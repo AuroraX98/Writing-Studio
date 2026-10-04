@@ -2468,7 +2468,7 @@ html { color-scheme:light; background:#eaf0eb; } body { margin:0; padding:22px; 
  const root=document.getElementById('writer-hybrid');
  let chapters=[];
  const state={view:'write',selected:'opening',focus:false,context:true,hintsVisible:false,prose:18,format:'Markdown',type:'nonfiction',theme:'glass',font:'chalkboard',contextTab:'guide',solidGlass:false,typing:'auto',genres:{fiction:'novel',nonfiction:'reflective',memoir:'chronological'}};
- const commonTypos={whta:'what',thta:'that',liek:'like',teh:'the',adn:'and',recieve:'receive',becuase:'because',definately:'definitely',seperate:'separate',writting:'writing',occured:'occurred',tommorow:'tomorrow',thier:'their',coudl:'could',woudl:'would',shoudl:'should',wiht:'with',hte:'the'};
+ const commonTypos={i:'I',whta:'what',thta:'that',liek:'like',teh:'the',adn:'and',recieve:'receive',becuase:'because',becasue:'because',definately:'definitely',seperate:'separate',writting:'writing',occured:'occurred',tommorow:'tomorrow',thier:'their',coudl:'could',woudl:'would',shoudl:'should',wiht:'with',hte:'the'};
  const spacingWords=new Set(('a about after again all also am an and another any are around as at back be because been before being book books both but by can cannot chapter chapters come could day did do does done down each end even every few find first for from get give go good had has have he her here him his how i idea if in input into is it its just keep know last later life like little look made make may me more most much my new next no not now of off on one only or other our out over own part people place put question read right said same see she should small so some something story take than that the their them then there these they thing think this those through time to too try two up us use very want was way we well were what when where which who will with word words work world would write writer writing year you your receive separate definitely tomorrow occurred').split(' '));
  let typingSuggestions=[],lastCorrection=null;
  // Original, optional planning prompts. These are patterns to adapt, not chapter requirements.
@@ -2547,7 +2547,7 @@ html { color-scheme:light; background:#eaf0eb; } body { margin:0; padding:22px; 
   }
   if(typingSuggestions.length){updateTyping('Possible spacing change. Choose the wording you intended.');return;}
   const word=/(?:^|\s)([A-Za-z]+)([\s.,!?;:]+)$/.exec(prefix);
-  if(word&&!isPersonalWord(word[1])&&commonTypos[word[1].toLowerCase()]){
+  if(word&&!isPersonalWord(word[1])&&commonTypos[word[1].toLowerCase()]&&word[1]!==matchCase(word[1],commonTypos[word[1].toLowerCase()])){
    const end=caret-word[2].length,s={before,start:end-word[1].length,end,replacement:matchCase(word[1],commonTypos[word[1].toLowerCase()])};
    if(state.typing==='auto')applyTypingCorrection(s);else{typingSuggestions=[s];updateTyping('Possible spelling change. Choose the wording you intended.');}
   }else updateTyping();
