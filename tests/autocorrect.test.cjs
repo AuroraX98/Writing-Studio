@@ -75,7 +75,8 @@ function makeHarness({ mode = 'auto', personalWords = [] } = {}) {
       get caret() { return caret; },
       get suggestions() { return typingSuggestions.map(item => item.replacement); },
       get undoRecords() { return undoRecords; },
-      setInput(text) { value = text; caret = text.length; chapter.text = text; },
+      setInput(text, position = text.length) { value = text; caret = position; chapter.text = text; },
+      useSuggestion() { applyTypingCorrection(typingSuggestions[0]); },
       input({ inputType = 'insertText', data = ' ', isComposing = false } = {}) {
         checkTypedWord({ target: draft, inputType, data, isComposing });
         chapter.text = draft.value;
@@ -256,4 +257,178 @@ test('the explicit Ca n correction runs, while general spacing stays suggestion-
   joined.input({ data: ' ' });
   assert.equal(joined.text, 'canyou ');
   assert.equal(joined.suggestions.join(','), '');
+});
+
+test('completed sentence first words capitalize after punctuation, whitespace, or Enter', () => {
+  for (const [text, event, expected] of [
+    ['It ended. hello ', { data: ' ' }, 'It ended. Hello '],
+    ['Is it ready? yes,', { data: ',' }, 'Is it ready? Yes,'],
+    ['Look! there!', { data: '!' }, 'Look! There!'],
+    ['Really?! yes ', { data: ' ' }, 'Really?! Yes '],
+    ['It ended.  hello ', { data: ' ' }, 'It ended.  Hello '],
+    ['It ended.\nhello\n', { inputType: 'insertLineBreak', data: null }, 'It ended.\nHello\n'],
+    ['It ended. "hello ', { data: ' ' }, 'It ended. "Hello '],
+    ['It ended. “hello ', { data: ' ' }, 'It ended. “Hello '],
+    ["It ended. 'hello ", { data: ' ' }, "It ended. 'Hello "],
+    ['She said, “Okay.” “hello ', { data: ' ' }, 'She said, “Okay.” “Hello '],
+    ['It ended. "hello"', { data: '"' }, 'It ended. "Hello"'],
+    ["It ended. can't ", { data: ' ' }, "It ended. Can't "],
+    ['It ended. can’t ', { data: ' ' }, 'It ended. Can’t '],
+    ['It ended. well-known ', { data: ' ' }, 'It ended. Well-known ']
+  ]) {
+    const app = makeHarness();
+    app.setInput(text);
+    app.input(event);
+    assert.equal(app.text, expected, JSON.stringify(text));
+    assert.equal(app.caret, expected.length, 'capitalizing must preserve the caret');
+    assert.equal(app.messages.length, 1, 'capitalizing should report one correction');
+  }
+});
+
+test('sentence capitalization leaves unfinished words, other positions, and uppercase letters alone', () => {
+  for (const mode of ['auto', 'suggest']) {
+    for (const [text, data] of [
+      ['h', 'h'],
+      ['hello ', ' '],
+      ['A normal hello ', ' '],
+      ['It ended. H', 'H'],
+      ['It ended. Hello ', ' '],
+      ['It ended. h', 'h'],
+      ['It ended. he', 'e'],
+      ['It ended.hello ', ' '],
+      ['Heading: hello ', ' '],
+      ['Clause; hello ', ' ']
+    ]) {
+      const app = makeHarness({ mode });
+      app.setInput(text);
+      app.input({ data });
+      assert.equal(app.text, text, JSON.stringify(text));
+      assert.equal(app.suggestions.join(','), '');
+      assert.equal(app.messages.length, 0);
+    }
+  }
+});
+
+test('sentence capitalization follows Suggestions and Off and its suggestion can be used', () => {
+  const suggestions = makeHarness({ mode: 'suggest' });
+  suggestions.setInput('It ended. hello ');
+  suggestions.input({ data: ' ' });
+  assert.equal(suggestions.text, 'It ended. hello ');
+  assert.equal(suggestions.suggestions.join(','), 'Hello');
+  suggestions.useSuggestion();
+  assert.equal(suggestions.text, 'It ended. Hello ');
+  assert.equal(suggestions.caret, 16);
+
+  const off = makeHarness({ mode: 'off' });
+  off.setInput('It ended. hello ');
+  off.input({ data: ' ' });
+  assert.equal(off.text, 'It ended. hello ');
+  assert.equal(off.suggestions.join(','), '');
+  assert.equal(off.messages.length, 0);
+});
+
+test('Undo restores the sentence word and its caret, including an insertion inside a draft', () => {
+  for (const mode of ['auto', 'suggest']) {
+    const app = makeHarness({ mode });
+    app.setInput('It ended. hello Then more.', 16);
+    app.input({ data: ' ' });
+    if (mode === 'suggest') app.useSuggestion();
+    assert.equal(app.text, 'It ended. Hello Then more.');
+    assert.equal(app.caret, 16);
+    app.undoTypingCorrection();
+    assert.equal(app.text, 'It ended. hello Then more.');
+    assert.equal(app.caret, 16);
+    assert.equal(app.undoRecords, 1);
+  }
+});
+
+test('abbreviations, initials, numbers, addresses, and ellipses do not start capitalized sentences', () => {
+  for (const mode of ['auto', 'suggest']) {
+    for (const text of [
+      'Ask Dr. hello ',
+      'Ask Mr. hello ',
+      'Ask Mrs. hello ',
+      'Try e.g. hello ',
+      'Try i.e. hello ',
+      'The U.S. hello ',
+      'Ask J. hello ',
+      '3. hello ',
+      '3.14. hello ',
+      'Visit example.com. hello ',
+      'Visit https://example.com. hello ',
+      'Write name@example.com. hello ',
+      'Well... hello ',
+      'Well… hello '
+    ]) {
+      const app = makeHarness({ mode });
+      app.setInput(text);
+      app.input({ data: ' ' });
+      assert.equal(app.text, text, JSON.stringify(text));
+      assert.equal(app.suggestions.join(','), '');
+      assert.equal(app.messages.length, 0);
+    }
+  }
+});
+
+test('completed sentence first words combine spelling corrections and capitalization', () => {
+  for (const [text, data, expected] of [
+    ['It ended. becasue ', ' ', 'It ended. Because '],
+    ['It ended. whta,', ',', 'It ended. What,'],
+    ['It ended! liek ', ' ', 'It ended! Like '],
+    ['It ended. "becasue ', ' ', 'It ended. "Because ']
+  ]) {
+    const app = makeHarness();
+    app.setInput(text);
+    app.input({ data });
+    assert.equal(app.text, expected, JSON.stringify(text));
+    assert.equal(app.caret, expected.length);
+    app.undoTypingCorrection();
+    assert.equal(app.text, text, 'Undo should restore both the original spelling and case');
+    assert.equal(app.caret, text.length);
+  }
+
+  const suggestions = makeHarness({ mode: 'suggest' });
+  suggestions.setInput('It ended. becasue ');
+  suggestions.input({ data: ' ' });
+  assert.equal(suggestions.text, 'It ended. becasue ');
+  assert.equal(suggestions.suggestions.join(','), 'Because');
+  suggestions.useSuggestion();
+  assert.equal(suggestions.text, 'It ended. Because ');
+});
+
+test('personal dictionary protects completed sentence words from spelling and capitalization', () => {
+  for (const mode of ['auto', 'suggest']) {
+    for (const [text, personalWord] of [
+      ['It ended. i ', 'i'],
+      ['It ended. i ', 'I'],
+      ['It ended. eBay ', 'ebay'],
+      ['It ended. iphone ', 'iPhone'],
+      ['It ended. becasue ', 'becasue']
+    ]) {
+      const app = makeHarness({ mode, personalWords: [personalWord] });
+      app.setInput(text);
+      app.input({ data: ' ' });
+      assert.equal(app.text, text, JSON.stringify(text));
+      assert.equal(app.suggestions.join(','), '');
+      assert.equal(app.messages.length, 0);
+    }
+  }
+});
+
+test('sentence capitalization ignores paste, composition, deletion, and replacement events', () => {
+  for (const event of [
+    { inputType: 'insertFromPaste', data: ' ' },
+    { inputType: 'insertText', data: ' ', isComposing: true },
+    { inputType: 'deleteContentBackward', data: null },
+    { inputType: 'insertReplacementText', data: ' ' }
+  ]) {
+    for (const text of ['It ended. hello ', 'It ended. becasue ']) {
+      const app = makeHarness();
+      app.setInput(text);
+      app.input(event);
+      assert.equal(app.text, text);
+      assert.equal(app.suggestions.join(','), '');
+      assert.equal(app.messages.length, 0);
+    }
+  }
 });

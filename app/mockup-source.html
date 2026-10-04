@@ -210,7 +210,7 @@
  function matchCase(original,replacement){return original.length>1&&original===original.toUpperCase()?replacement.toUpperCase():/^[A-Z]/.test(original)?replacement[0].toUpperCase()+replacement.slice(1):replacement;}
  function updateTyping(message=''){
   const status=root.querySelector('#w-typing-status'),actions=root.querySelector('#w-typing-actions');if(!status||!actions)return;
-  status.textContent=message||({off:'Typing help is off.',suggest:'English demo · spelling and spacing suggestions.',auto:'English demo · common typos and “Ca n” corrected; other spacing changes suggested.'}[state.typing]);
+  status.textContent=message||({off:'Typing help is off.',suggest:'English typing help · spelling, sentence capitals, and spacing suggestions.',auto:'English typing help · common typos, sentence capitals, and “Ca n” corrected; other spacing changes suggested.'}[state.typing]);
   actions.innerHTML=typingSuggestions.map((s,i)=>`<button type="button" data-typing-choice="${i}">Use “${escape(s.replacement)}”</button>`).join('')+(lastCorrection?'<button type="button" id="w-undo-correction">Undo correction</button>':'');
  }
  function applyTypingCorrection(s){
@@ -224,15 +224,27 @@
   const draft=root.querySelector('#w-draft');if(!draft||!lastCorrection||draft.value!==lastCorrection.after)return;
   draft.value=lastCorrection.before;draft.focus();draft.setSelectionRange(lastCorrection.caret,lastCorrection.caret);selected().text=draft.value;lastCorrection=null;typingSuggestions=[];count();fitText();updateTyping('Correction undone.');
  }
+ function sentenceStartsBefore(text,start){
+  const prefix=text.slice(Math.max(0,start-200),start);
+  const boundary=/([.!?])(["'”’)\]}]*)(\s+)(["'“‘(\[{]*)$/.exec(prefix);
+  if(!boundary)return false;
+  const preceding=prefix.slice(0,boundary.index),token=/([^\s()[\]{}"“”]+)$/.exec(preceding)?.[1]||'';
+  if(/(?:https?:\/\/|www\.|@)/i.test(token)||/\.[A-Za-z]{2,}$/.test(token)&&! /^(?:e\.g|i\.e|a\.m|p\.m)$/i.test(token))return false;
+  if(boundary[1]==='.'){
+   if(/[.\d]$/.test(preceding)||/^(?:[A-Za-z]\.)*[A-Z]$/.test(token))return false;
+   if(/^(?:mr|mrs|ms|dr|prof|sr|jr|st|vs|etc|approx|dept|inc|no|nos|p|pp|fig|figs|vol|vols|ch|ed|eds|rev|hon|capt|lt|col|gen|e\.g|i\.e|a\.m|p\.m)$/i.test(token))return false;
+  }
+  return true;
+ }
  function checkTypedWord(e){
   typingSuggestions=[];lastCorrection=null;
-  if(state.typing==='off'||e.isComposing||!['insertText','insertLineBreak'].includes(e.inputType)||!(e.inputType==='insertLineBreak'||/^[\s.,!?;:]$/.test(e.data||''))){updateTyping();return;}
+  if(state.typing==='off'||e.isComposing||!['insertText','insertLineBreak'].includes(e.inputType)||!(e.inputType==='insertLineBreak'||/^[\s.,!?;:"'”’)\]}]$/.test(e.data||''))){updateTyping();return;}
   const draft=e.target,caret=draft.selectionStart;if(caret!==draft.selectionEnd)return;
   const before=draft.value,prefix=before.slice(Math.max(0,caret-120),caret),offset=caret-prefix.length;
   const pair=/(?:^|\s)([A-Za-z]+) ([A-Za-z]+)([\s.,!?;:]+)$/.exec(prefix);
   if(pair){
    const left=pair[1],right=pair[2],a=left.toLowerCase(),b=right.toLowerCase(),start=offset+pair.index+pair[0].length-left.length-right.length-pair[3].length-1,end=caret-pair[3].length;
-   const make=replacement=>({before,start,end,replacement:matchCase(left,replacement)});
+   const make=replacement=>{replacement=matchCase(left,replacement);if(sentenceStartsBefore(before,start))replacement=replacement[0].toUpperCase()+replacement.slice(1);return {before,start,end,replacement};};
    if(a==='ca'&&b==='n'){
     const s=make('can');if(state.typing==='auto'){applyTypingCorrection(s);return;}typingSuggestions=[s];
    }else if(/^[a-z]+$/.test(right)&&/^(?:[a-z]+|[A-Z][a-z]+)$/.test(left)&&!(spacingWords.has(a)&&spacingWords.has(b))){
@@ -245,10 +257,14 @@
    }
   }
   if(typingSuggestions.length){updateTyping('Possible spacing change. Choose the wording you intended.');return;}
-  const word=/(?:^|\s)([A-Za-z]+)([\s.,!?;:]+)$/.exec(prefix);
-  if(word&&commonTypos[word[1].toLowerCase()]&&word[1]!==matchCase(word[1],commonTypos[word[1].toLowerCase()])){
-   const end=caret-word[2].length,s={before,start:end-word[1].length,end,replacement:matchCase(word[1],commonTypos[word[1].toLowerCase()])};
-   if(state.typing==='auto')applyTypingCorrection(s);else{typingSuggestions=[s];updateTyping('Possible spelling change. Choose the wording you intended.');}
+  const word=/(?:^|[\s"'“‘(\[{])([A-Za-z]+(?:['’\-][A-Za-z]+)*)([\s.,!?;:"'”’)\]}]+)$/.exec(prefix);
+  if(word){
+   const end=caret-word[2].length,start=end-word[1].length;
+   let replacement=commonTypos[word[1].toLowerCase()]?matchCase(word[1],commonTypos[word[1].toLowerCase()]):word[1];
+   if(sentenceStartsBefore(before,start))replacement=replacement[0].toUpperCase()+replacement.slice(1);
+   if(replacement===word[1]){updateTyping();return;}
+   const s={before,start,end,replacement};
+   if(state.typing==='auto')applyTypingCorrection(s);else{typingSuggestions=[s];updateTyping('Possible spelling or capitalization change. Choose the wording you intended.');}
   }else updateTyping();
  }
  const genre=()=>library[state.type][state.genres[state.type]];
@@ -286,7 +302,7 @@
   else if(state.contextTab==='guide') context.innerHTML=guide(c);
   context.insertAdjacentHTML('afterbegin',`<div class="w-board-tabs" aria-label="Chapter tools">${['guide','ideas','notes'].map(t=>`<button type="button" data-context="${t}" aria-pressed="${t===state.contextTab}">${t[0].toUpperCase()+t.slice(1)}</button>`).join('')}</div>`);
   if(state.view==='write'){
-   main.innerHTML=`<div class="w-row"><p class="w-chapter-number">Chapter ${String(chapters.indexOf(c)+1).padStart(2,'0')}</p><span class="w-secondary">${escape(c.status)} · sample draft</span></div><h2>${escape(c.title)}</h2><section class="w-typing-tools" aria-label="Typing help"><label for="w-typing">Typing help</label><select id="w-typing"><option value="off" ${state.typing==='off'?'selected':''}>Off</option><option value="suggest" ${state.typing==='suggest'?'selected':''}>Suggestions</option><option value="auto" ${state.typing==='auto'?'selected':''}>Autocorrect</option></select><p class="w-secondary" id="w-typing-status" role="status"></p><div id="w-typing-actions"></div></section>${c.planOutline?`<details class="w-outline" ${c.outlineOpen?'open':''}><summary>Your chapter outline</summary><textarea id="w-outline" aria-label="Chapter outline">${escape(c.planOutline)}</textarea></details>`:''}<textarea id="w-draft" aria-label="Chapter draft" lang="en" spellcheck="${state.typing!=='off'}" autocorrect="off" autocapitalize="off">${escape(c.text)}</textarea><section class="w-sequence"><h3>Your chapter sequence</h3><div class="w-sequence-grid">${chapters.map((x,i)=>`<button type="button" data-chapter="${x.id}" aria-pressed="${x.id===c.id}"><span class="w-secondary">${String(i+1).padStart(2,'0')} · ${x.status}</span><span>${escape(x.title)}</span></button>`).join('')}</div></section>`;
+   main.innerHTML=`<div class="w-row"><p class="w-chapter-number">Chapter ${String(chapters.indexOf(c)+1).padStart(2,'0')}</p><span class="w-secondary">${escape(c.status)} · sample draft</span></div><h2>${escape(c.title)}</h2><section class="w-typing-tools" aria-label="Typing help"><label for="w-typing">Typing help</label><select id="w-typing"><option value="off" ${state.typing==='off'?'selected':''}>Off</option><option value="suggest" ${state.typing==='suggest'?'selected':''}>Suggestions</option><option value="auto" ${state.typing==='auto'?'selected':''}>Autocorrect</option></select><p class="w-secondary">English corrections run when you finish a word with a space, punctuation, or Enter. Includes common typos, standalone I, and sentence capitals after . ? !. Personal dictionary words are protected.</p><p class="w-secondary" id="w-typing-status" role="status"></p><div id="w-typing-actions"></div></section>${c.planOutline?`<details class="w-outline" ${c.outlineOpen?'open':''}><summary>Your chapter outline</summary><textarea id="w-outline" aria-label="Chapter outline">${escape(c.planOutline)}</textarea></details>`:''}<textarea id="w-draft" aria-label="Chapter draft" lang="en" spellcheck="${state.typing!=='off'}" autocorrect="off" autocapitalize="off">${escape(c.text)}</textarea><section class="w-sequence"><h3>Your chapter sequence</h3><div class="w-sequence-grid">${chapters.map((x,i)=>`<button type="button" data-chapter="${x.id}" aria-pressed="${x.id===c.id}"><span class="w-secondary">${String(i+1).padStart(2,'0')} · ${x.status}</span><span>${escape(x.title)}</span></button>`).join('')}</div></section>`;
    updateTyping();
   }else if(state.view==='plan'){
    main.innerHTML=`<div class="w-row"><div><p class="w-chapter-number">Creative studio</p><h2>Shape your manuscript.</h2></div></div>${roadmap()}<p class="w-secondary">Drag chapters into order, or use the arrow buttons.</p><div class="w-board-grid">${chapters.map((x,i)=>`<article class="w-plancard" data-card="${x.id}" draggable="true"><div class="w-card-grip"><span class="w-secondary">CHAPTER ${String(i+1).padStart(2,'0')}</span><span aria-hidden="true">⋮⋮</span></div><h3>${escape(x.title)}</h3><span class="w-secondary">${x.status} · ${roleNames[chapterRole(x)]}</span><p>${escape(x.summary)}</p><div class="w-card-controls"><button type="button" data-open="${x.id}">Open draft</button><button type="button" data-move="${x.id}" data-direction="-1" aria-label="Move ${escape(x.title)} earlier" ${i===0?'disabled':''}>←</button><button type="button" data-move="${x.id}" data-direction="1" aria-label="Move ${escape(x.title)} later" ${i===chapters.length-1?'disabled':''}>→</button></div></article>`).join('')}</div>`;

@@ -68,7 +68,8 @@ undo=js[a:b].replace("const draft=root.querySelector('#w-draft');if(!draft||!las
 js=js[:a]+undo+js[b:]
 js=js.replace('checkTypedWord(e);setDraftText', 'typingInput=true;try{checkTypedWord(e);}finally{typingInput=false;}setDraftText')
 js=js.replace("if(a==='ca'&&b==='n'){","if(isPersonalWord(left)||isPersonalWord(right)){updateTyping();return;}\n   if(a==='ca'&&b==='n'){")
-js=js.replace("if(word&&commonTypos[", "if(word&&!isPersonalWord(word[1])&&commonTypos[")
+assert js.count("  if(word){") == 1, "Expected one completed-word correction guard"
+js=js.replace("  if(word){", "  if(word&&!isPersonalWord(word[1])){")
 js=js.replace("context:true,prose:18","context:true,hintsVisible:false,prose:18")
 js=js.replace("context.innerHTML=guide(c);","context.innerHTML=state.hintsVisible?guide(c):'<section class=\"w-guide\"><p class=\"w-secondary\">Chapter hints are tucked away.</p><button type=\"button\" id=\"w-show-hints\">Show chapter hints</button></section>';")
 js=js.replace(' initialize();\n render();',' initialize();\n initializePalette();\n initializeNavigation();\n initializeAssistant();\n render();\n connectFolderBackups();')
