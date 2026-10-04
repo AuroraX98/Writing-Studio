@@ -52,6 +52,8 @@ js=js[:a]+'''  }else if(state.view==='research'){
   }
 '''+js[b:]
 js=js.replace('${Object.entries(library[state.type]).map(([id,g])=>`<option value="${id}" ${state.genres[state.type]===id?\'selected\':\'\'}>${escape(g.name)}</option>`).join(\'\')}','${genreOptions(state.type,state.genres[state.type])}')
+# Textarea borders add to the measured height; retain auto-fit without a tiny scrollbar.
+js=js.replace("el.style.height=el.scrollHeight+'px'","el.style.height=(el.scrollHeight+el.offsetHeight-el.clientHeight)+'px'")
 # Initial data, reliable persistence and new interactions inserted before event handlers.
 pos=js.index(" root.addEventListener('click'")
 js=js[:pos]+Path('work/genre_extension.js').read_text(encoding='utf-8')+Path('work/app_extension.js').read_text(encoding='utf-8')+Path('work/app_advanced.js').read_text(encoding='utf-8')+Path('work/theme_extension.js').read_text(encoding='utf-8')+Path('work/characters_extension.js').read_text(encoding='utf-8')+Path('work/assistant_extension.js').read_text(encoding='utf-8')+js[pos:]

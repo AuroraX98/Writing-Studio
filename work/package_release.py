@@ -17,7 +17,7 @@ RUNTIME = [
     'app/vendor/DejaVu-LICENSE.txt', 'app/thesaurus.js', 'app/assistant.js',
     'app/vendor/wordnet-data.js', 'app/vendor/WordNet-LICENSE.txt',
 ]
-COMMON = ['launch.py', 'ai_proxy.py', 'key_file.py', 'deepseek-key.example.json', 'KEY_FILE_SETUP.md', 'Writing Studio.html', 'README.md', 'VERSION', 'docs/character-profiles.png'] + RUNTIME
+COMMON = ['launch.py', 'ai_proxy.py', 'key_file.py', 'deepseek-key.example.json', 'KEY_FILE_SETUP.md', 'Writing Studio.html', 'README.md', 'VERSION', 'docs/character-profiles.png', 'docs/assistant-sections.png'] + RUNTIME
 SOURCE = [
     '.gitignore', 'Open Writing Studio.command', 'Open Writing Studio.bat',
     'app/mockup-source.html', 'work/build_app.py', 'work/app_extension.js',
@@ -63,9 +63,9 @@ def start_here(platform, version):
     return (introduction + launch + '\r\nKeep a JSON backup on another drive before updates.\r\n'
             'Read README.md for storage, recovery, formatting, and known limitations.\r\n'
             'Downloads: https://github.com/AuroraX98/Writing-Studio/tree/main/downloads\r\n'
-            'Windows: https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.3-beta-windows.zip\r\n'
-            'Mac: https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.3-beta-mac.zip\r\n'
-            'Source: https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.3-beta-source.zip\r\n'
+            'Windows: https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.3.1-beta-windows.zip\r\n'
+            'Mac: https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.3.1-beta-mac.zip\r\n'
+            'Source: https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.3.1-beta-source.zip\r\n'
             'For optional saved DeepSeek keys, read KEY_FILE_SETUP.md. The example\r\n'
             'key file is blank; keep your private copy outside the app folder.\r\n').encode('utf-8')
 

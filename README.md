@@ -2,11 +2,13 @@
 
 Writing Studio is a private writing workspace for fiction, nonfiction, memoir, poetry, screenplays, essays, and academic work. It runs in your browser on your computer, with gentle mint, peach, and rosy pink glass, Chalkboard style headings, and light and dark grey themes. Writing, revision tools, local backups, and exports work without an account or internet connection. An optional DeepSeek assistant uses your own API key when you choose to enable it.
 
-Version **0.3-beta** includes Mac and Windows launchers and a portable single-file edition. The Windows package is prepared and its platform logic has been checked, but it has not yet been run on an actual Windows computer.
+Version **0.3.1-beta** includes Mac and Windows launchers and a portable single-file edition. The Windows package is prepared and its platform logic has been checked, but it has not yet been run on an actual Windows computer.
 
-[Source repository](https://github.com/AuroraX98/Writing-Studio) · [Version 0.3-beta downloads](https://github.com/AuroraX98/Writing-Studio/tree/main/downloads)
+[Source repository](https://github.com/AuroraX98/Writing-Studio) · [Version 0.3.1-beta downloads](https://github.com/AuroraX98/Writing-Studio/tree/main/downloads)
 
-Download: [Windows ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.3-beta-windows.zip) · [Mac ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.3-beta-mac.zip) · [Source ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.3-beta-source.zip)
+Download: [Windows ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.3.1-beta-windows.zip) · [Mac ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.3.1-beta-mac.zip) · [Source ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.3.1-beta-source.zip)
+
+![Writing Studio assistant with clearer section dividers](docs/assistant-sections.png)
 
 ![Writing Studio character profiles with rounded detail fields](docs/character-profiles.png)
 
@@ -23,6 +25,8 @@ The font selector includes Chalkboard, existing serif and modern options, and Ge
 **Colors** opens an optional live color preview. Enable custom colors, choose a solid background or a three-color soft gradient, and adjust hue, intensity, brightness, and gradient direction. Writing panels adapt to your selected light or dark theme for readability. **Save colors** keeps your choices; Cancel or Escape restores the previous palette. **Restore original colors** previews the original theme without changing your other settings.
 
 ## Write and organize
+
+Subtle dividers and rounded fields make writing sections, assistant controls, and notes easier to scan.
 
 Choose **New project**, enter a name, and select Fiction, Nonfiction, Memoir, Poetry, Screenplay, Essays, or Academic. Add chapters with the **＋** button. The chapter board supports reordering and flexible structure guidance for 42 genres and approaches across those seven project types. All use the same chapter-based workspace, with prompts suited to the selected type. Add guide prompts to your editable outline, then adapt them to your book. Chapter hints start hidden; **Show chapter hints** brings them into view when you want guidance, and **Hide chapter hints** returns to a calmer draft.
 

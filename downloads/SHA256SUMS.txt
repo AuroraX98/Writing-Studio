@@ -1,3 +1,6 @@
 6f18ad0be84deb775d4bf98eb419ec5714c8a627694425f3e5c003ad7d22f79d  Writing-Studio-0.3-beta-windows.zip
 ada2cf6e9dacae1d3dcbfeb16508d5398dfabe18deff8b8e28ea6558e5cfb7cd  Writing-Studio-0.3-beta-mac.zip
 a75706119577271b4dc9cfe2ec5d268ffe4d24284e4558b4784ffd185782fec3  Writing-Studio-0.3-beta-source.zip
+abfcb15d8077274b2229c04f1c48cf6fbb64cb220dcc9d3a5176dd4f0fd6b53d  Writing-Studio-0.3.1-beta-windows.zip
+f6be77b798bd7e92de559cec60596223ca0f4207ea6c7f1da75f3a0d390ee56b  Writing-Studio-0.3.1-beta-mac.zip
+98f155be02e4fd69fbb65fb27ab2d1de5ad870105402d566aa61c43b9d7434de  Writing-Studio-0.3.1-beta-source.zip
