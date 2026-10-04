@@ -105,6 +105,94 @@ test('common transposition autocorrects after typed space or punctuation and pre
   assert.equal(enter.text, 'like\n');
 });
 
+test('becasue autocorrects after space, punctuation, or Enter and preserves capitalization', () => {
+  for (const [text, event, expected] of [
+    ['I stayed becasue ', { data: ' ' }, 'I stayed because '],
+    ['becasue,', { data: ',' }, 'because,'],
+    ['becasue.', { data: '.' }, 'because.'],
+    ['becasue\n', { inputType: 'insertLineBreak', data: null }, 'because\n'],
+    ['Becasue ', { data: ' ' }, 'Because '],
+    ['BECASUE!', { data: '!' }, 'BECAUSE!']
+  ]) {
+    const app = makeHarness();
+    app.setInput(text);
+    app.input(event);
+    assert.equal(app.text, expected, `${JSON.stringify(text)} should become ${JSON.stringify(expected)}`);
+    assert.equal(app.caret, expected.length, 'caret should remain after the typed delimiter');
+  }
+});
+
+test('standalone lowercase i becomes I after space, punctuation, or Enter', () => {
+  for (const [text, event, expected] of [
+    ['i ', { data: ' ' }, 'I '],
+    ['Today i ', { data: ' ' }, 'Today I '],
+    ['i,', { data: ',' }, 'I,'],
+    ['i.', { data: '.' }, 'I.'],
+    ['i\n', { inputType: 'insertLineBreak', data: null }, 'I\n']
+  ]) {
+    const app = makeHarness();
+    app.setInput(text);
+    app.input(event);
+    assert.equal(app.text, expected, `${JSON.stringify(text)} should become ${JSON.stringify(expected)}`);
+    assert.equal(app.caret, expected.length, 'caret should remain after the typed delimiter');
+    assert.equal(app.messages.length, 1, 'a real capitalization change should report a correction');
+  }
+});
+
+test('words containing i and already uppercase I do not trigger a correction', () => {
+  for (const mode of ['auto', 'suggest']) {
+    for (const text of ['inside ', 'this ', 'idea ', 'I ', 'Today I ']) {
+      const app = makeHarness({ mode });
+      app.setInput(text);
+      app.input({ data: ' ' });
+      assert.equal(app.text, text);
+      assert.equal(app.suggestions.join(','), '');
+      assert.equal(app.messages.length, 0, `${text} should not report a correction in ${mode} mode`);
+      app.undoTypingCorrection();
+      assert.equal(app.undoRecords, 0, 'unchanged text should not create a correction to undo');
+    }
+  }
+});
+
+test('Undo restores lowercase i and its original caret', () => {
+  const app = makeHarness();
+  app.setInput('Today i ');
+  app.input({ data: ' ' });
+  assert.equal(app.text, 'Today I ');
+  app.undoTypingCorrection();
+  assert.equal(app.text, 'Today i ');
+  assert.equal(app.caret, 8);
+  assert.equal(app.undoRecords, 1);
+});
+
+test('lowercase i follows Suggestions and Off typing modes', () => {
+  const suggestions = makeHarness({ mode: 'suggest' });
+  suggestions.setInput('i ');
+  suggestions.input({ data: ' ' });
+  assert.equal(suggestions.text, 'i ');
+  assert.equal(suggestions.suggestions.join(','), 'I');
+
+  const off = makeHarness({ mode: 'off' });
+  off.setInput('i ');
+  off.input({ data: ' ' });
+  assert.equal(off.text, 'i ');
+  assert.equal(off.suggestions.join(','), '');
+  assert.equal(off.messages.length, 0);
+});
+
+test('personal dictionary can protect lowercase i from capitalization', () => {
+  for (const mode of ['auto', 'suggest']) {
+    for (const word of ['i', 'I']) {
+      const app = makeHarness({ mode, personalWords: [word] });
+      app.setInput('i ');
+      app.input({ data: ' ' });
+      assert.equal(app.text, 'i ');
+      assert.equal(app.suggestions.join(','), '');
+      assert.equal(app.messages.length, 0);
+    }
+  }
+});
+
 test('immediate Undo restores the typo and original caret after autocorrection', () => {
   const app = makeHarness();
   app.setInput('whta ');
