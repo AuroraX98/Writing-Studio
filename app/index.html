@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><title>Writing Studio</title><link rel="icon" href="data:,"><link rel="stylesheet" href="styles.css?v=eed86bb7d752"></head><body><div id="writer-hybrid" aria-label="Writing Studio">
+  <header class="w-top">
+    <div class="w-brand"><span class="w-monogram" aria-hidden="true">Ws.</span><div><strong>Writing Studio</strong></div></div>
+    <div class="w-settings">
+      <label for="w-type">Project type<select id="w-type"><option value="fiction">Fiction</option><option value="nonfiction" selected>Nonfiction</option><option value="memoir">Memoir</option></select></label>
+      <label for="w-theme">Theme<select id="w-theme"><option value="light">Light grey</option><option value="dark">Dark grey</option><option value="glass" selected>Pastel glass</option></select></label>
+      <label for="w-font">Manuscript font<select title="Draft and in-app reading font; manuscript downloads use book serif" id="w-font"><option value="chalkboard">Chalkboard</option><option value="serif">Book serif</option><option value="sans">Sans serif</option><option value="georgia">Georgia</option><option value="palatino">Palatino</option><option value="garamond">Garamond</option><option value="times">Times New Roman</option><option value="courier">Courier New</option><option value="trebuchet">Trebuchet</option><option value="verdana">Verdana</option></select></label>
+      <button type="button" id="w-focus" aria-pressed="false">Focus mode</button>
+    </div>
+  </header>
+  <section class="w-projectbar"><label for="w-project">Project<select id="w-project"></select></label><button id="w-new-project">New project</button><button id="w-rename-project">Rename</button><button id="w-delete-project">Delete project</button><button id="w-backup">Back up projects</button><button id="w-import">Import</button><span id="w-save-status" role="status" aria-live="polite">Opening…</span><input type="file" id="w-import-file" accept=".json,.txt,.md" hidden></section><div class="w-folderbar"><span id="w-folder-status" role="status" aria-live="polite">Folder backups…</span><button id="w-folder-backups">Folder backups</button></div><nav class="w-nav" aria-label="Workspace views">
+    <button type="button" data-view="write" aria-pressed="true">Studio</button>
+    <button type="button" data-view="plan" aria-pressed="false">Chapter board</button>
+    <button type="button" data-view="research" aria-pressed="false">Research</button>
+    <button type="button" data-view="revise" aria-pressed="false">Revise</button>
+    <button type="button" data-view="export" aria-pressed="false">Export</button>
+  <button type="button" data-view="characters">Characters</button><button type="button" data-view="reading">Read manuscript</button><button type="button" data-view="trash">Trash</button></nav>
+  <div class="w-shell">
+    <aside class="w-tree" aria-label="Manuscript navigation">
+      <label for="w-search">Find chapters or notes</label>
+      <input type="search" id="w-search" placeholder="Search this project">
+      <div class="w-row"><h3>Manuscript</h3><button id="w-add-chapter" aria-label="Add chapter">＋</button></div>
+      <div id="w-chapters"></div>
+      <hr>
+      <p class="w-secondary">One project. Connected chapters, notes, sources, and revision tasks.</p>
+    </aside>
+    <main id="w-main" aria-label="Selected workspace view"></main>
+    <aside class="w-context" id="w-context" aria-label="Chapter context"></aside>
+  </div>
+  <footer class="w-footer"><span id="w-wordcount"></span><label id="w-transparency-control" hidden><input type="checkbox" id="w-solid"> Reduce transparency</label><span>Local workspace · private to this browser</span></footer>
+</div>
+
+<dialog id="w-dialog"><form id="w-form"><h2 id="w-dialog-title"></h2><div id="w-dialog-fields"></div><div class="w-row"><button type="button" id="w-dialog-cancel">Cancel</button><button type="submit" id="w-dialog-save">Save</button></div></form></dialog>
+<script src="vendor/wordnet-data.js?v=962f5ba963f3"></script><script src="thesaurus.js?v=cc7a428b18b9"></script><script src="theme-palette.js?v=b27cbc8fcbb5"></script><script src="genres.js?v=226224c6d87f"></script><script src="assistant.js?v=f5faae2cad39"></script><script src="text-tools.js?v=de16980b6f0c"></script><script src="storage.js?v=21d0c304f567"></script><script src="revision.js?v=e8db8cfb9154"></script><script src="local-backup.js?v=8144d63406b0"></script><script src="export.js?v=977f797fac84"></script><script src="vendor/pdf-font.js?v=0961b78ec662"></script><script src="pdf.js?v=0426c2f36101"></script><script src="main.js?v=600291fdc6f1"></script></body></html>
