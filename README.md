@@ -2,11 +2,11 @@
 
 Writing Studio is a private writing workspace for fiction, nonfiction, memoir, poetry, screenplays, essays, and academic work. It runs in your browser on your computer, with gentle mint, peach, and rosy pink glass, Chalkboard style headings, and light and dark grey themes. Writing, revision tools, local backups, and exports work without an account or internet connection. An optional DeepSeek assistant uses your own API key when you choose to enable it.
 
-Version **0.4.1-beta** makes local use explicit in the app and download instructions. It includes saved Assistant drafts, persistent find-and-replace settings, Back and Forward navigation, local location links, a compact mobile writing bar, and in-app Help, with Mac and Windows launchers and a portable single-file edition. The Windows package is prepared and its platform logic has been checked, but it has not yet been run on an actual Windows computer.
+Version **0.4.2-beta** adds corrections for “whta” → “what”, “thta” → “that”, and “liek” → “like”, while keeping local use explicit in the app and download instructions. It includes saved Assistant drafts, persistent find-and-replace settings, Back and Forward navigation, local location links, a compact mobile writing bar, and in-app Help, with Mac and Windows launchers and a portable single-file edition. The Windows package is prepared and its platform logic has been checked, but it has not yet been run on an actual Windows computer.
 
-[Source repository](https://github.com/AuroraX98/Writing-Studio) · [Version 0.4.1-beta downloads](https://github.com/AuroraX98/Writing-Studio/tree/main/downloads)
+[Source repository](https://github.com/AuroraX98/Writing-Studio) · [Version 0.4.2-beta downloads](https://github.com/AuroraX98/Writing-Studio/tree/main/downloads)
 
-Download: [Windows ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.4.1-beta-windows.zip) · [Mac ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.4.1-beta-mac.zip) · [Source ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.4.1-beta-source.zip)
+Download: [Windows ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.4.2-beta-windows.zip) · [Mac ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.4.2-beta-mac.zip) · [Source ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.4.2-beta-source.zip)
 
 ## Local mode — no ChatGPT account needed
 
@@ -50,7 +50,7 @@ Drafts, titles, notes, ideas, saved passages, outlines, research records, and re
 
 Select words in the draft and click **Bold** or **Italic**. Formatting appears in **Formatted chapter preview**, whole manuscript reading, and formatted exports; the typing area displays plain text. Each chapter remembers its left, right, or justified alignment and Compact, Comfortable, or Double line spacing. **Undo** and **Redo** handle draft edits and formatting during the current session. Save a version for a lasting milestone.
 
-**Personal dictionary** protects your names and unusual words from the app's typing corrections. It also lets you restore removed words. Browser spelling underlines use your browser's own dictionary. The bundled English typing help offers a small list of common typo corrections, including `Ca n` → `Can`; ambiguous word boundaries appear as suggestions. It is not a complete spelling dictionary. Use **Undo correction** to immediately reverse a correction.
+**Personal dictionary** protects your names and unusual words from the app's typing corrections. It also lets you restore removed words. Browser spelling underlines use your browser's own dictionary. The bundled English typing help offers a small list of common typo corrections, including `Ca n` → `Can`, `whta` → `what`, `thta` → `that`, and `liek` → `like` when you finish a word with a space, punctuation, or Enter; ambiguous word boundaries appear as suggestions. It is not a complete spelling dictionary. Use **Undo correction** to immediately reverse a correction.
 
 **Offline thesaurus** uses the locally bundled WordNet 3.0 English word database. Select a word to explore synonyms grouped by meaning and part of speech, then choose a replacement yourself. Replacements preserve selected formatting and can be undone. Coverage varies by word; definitions and part-of-speech groups help you judge whether a synonym suits your sentence. It does not interpret the context for you, and it makes no external runtime requests.
 
@@ -140,6 +140,7 @@ node tests/pdf.test.cjs
 node tests/revision.test.cjs
 node --test tests/revision-ui.test.cjs
 node tests/text-tools.test.cjs
+node --test tests/autocorrect.test.cjs
 node tests/local-backup.test.cjs
 node tests/thesaurus.test.cjs
 node --test tests/theme-palette.test.cjs

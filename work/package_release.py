@@ -31,7 +31,7 @@ SOURCE = [
     'work/build_thesaurus.py', 'tests/thesaurus.test.cjs',
     'tests/backup-fixture.json', 'tests/storage.test.cjs', 'tests/export.test.cjs',
     'tests/pdf.test.cjs', 'tests/revision.test.cjs', 'tests/text-tools.test.cjs',
-    'tests/local-backup.test.cjs', 'tests/test_local_backup.py',
+    'tests/local-backup.test.cjs', 'tests/test_local_backup.py', 'tests/autocorrect.test.cjs',
 ]
 
 
