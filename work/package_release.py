@@ -36,7 +36,13 @@ SOURCE = [
 
 
 def start_here(platform, version):
-    introduction = 'Writing Studio ' + version + '\r\n\r\nExtract this entire ZIP into a folder before opening the app.\r\n\r\n'
+    introduction = ('Writing Studio ' + version + '\r\n\r\n'
+                    'LOCAL MODE - NO CHATGPT ACCOUNT NEEDED\r\n'
+                    'The downloaded app runs on your computer without ChatGPT, Codex, or\r\n'
+                    'any sign-in. Writing, autosave, revision, the thesaurus, and exports\r\n'
+                    'work offline. The optional DeepSeek assistant needs your own DeepSeek\r\n'
+                    'API key and internet access only when you choose Generate.\r\n\r\n'
+                    'Extract this entire ZIP into a folder before opening the app.\r\n\r\n')
     if platform == 'windows':
         launch = ('WINDOWS\r\nDouble-click Open Writing Studio.bat. Python 3.8 or newer must be installed\r\n'
                   'for the launcher and automatic folder backups. Keep the launcher window\r\n'

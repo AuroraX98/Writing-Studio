@@ -2,11 +2,19 @@
 
 Writing Studio is a private writing workspace for fiction, nonfiction, memoir, poetry, screenplays, essays, and academic work. It runs in your browser on your computer, with gentle mint, peach, and rosy pink glass, Chalkboard style headings, and light and dark grey themes. Writing, revision tools, local backups, and exports work without an account or internet connection. An optional DeepSeek assistant uses your own API key when you choose to enable it.
 
-Version **0.4-beta** adds saved Assistant drafts, persistent find-and-replace settings, Back and Forward navigation, local location links, a compact mobile writing bar, and in-app Help. It includes Mac and Windows launchers and a portable single-file edition. The Windows package is prepared and its platform logic has been checked, but it has not yet been run on an actual Windows computer.
+Version **0.4.1-beta** makes local use explicit in the app and download instructions. It includes saved Assistant drafts, persistent find-and-replace settings, Back and Forward navigation, local location links, a compact mobile writing bar, and in-app Help, with Mac and Windows launchers and a portable single-file edition. The Windows package is prepared and its platform logic has been checked, but it has not yet been run on an actual Windows computer.
 
-[Source repository](https://github.com/AuroraX98/Writing-Studio) · [Version 0.4-beta downloads](https://github.com/AuroraX98/Writing-Studio/tree/main/downloads)
+[Source repository](https://github.com/AuroraX98/Writing-Studio) · [Version 0.4.1-beta downloads](https://github.com/AuroraX98/Writing-Studio/tree/main/downloads)
 
-Download: [Windows ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.4-beta-windows.zip) · [Mac ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.4-beta-mac.zip) · [Source ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.4-beta-source.zip)
+Download: [Windows ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.4.1-beta-windows.zip) · [Mac ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.4.1-beta-mac.zip) · [Source ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.4.1-beta-source.zip)
+
+## Local mode — no ChatGPT account needed
+
+The downloaded app runs independently on your computer. **No ChatGPT account, ChatGPT subscription, Writing Studio account, or GitHub sign-in is required to use it.** Local mode is the default: open the app and start writing. You do not need Codex or ChatGPT running alongside it.
+
+Writing, browser autosave, chapter guidance, character profiles, revision tools, the bundled thesaurus, and exports work without internet access. The launcher also provides automatic local folder backups. Your workspace stays in this browser and your backup files; there is no account-based cloud synchronization.
+
+The optional DeepSeek assistant uses your own DeepSeek API key and internet connection when you choose Generate. It does not use a ChatGPT account. External research links need internet access to open their websites.
 
 ![Writing Studio assistant with clearer section dividers](docs/assistant-sections.png)
 
