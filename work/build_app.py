@@ -14,7 +14,7 @@ markup=markup.replace('<nav class="w-nav"','<section class="w-projectbar"><label
 markup=markup.replace('</section><nav class="w-nav"','</section><div class="w-folderbar"><span id="w-folder-status" role="status" aria-live="polite">Folder backups…</span><button id="w-folder-backups">Folder backups</button></div><nav class="w-nav"')
 markup=markup.replace('</nav>', '<button type="button" data-view="characters">Characters</button><button type="button" data-view="reading">Read manuscript</button><button type="button" data-view="trash">Trash</button></nav>',1)
 markup=markup.replace('<span>Design mockup · sample project · edits reset on reload</span>','<span>Local workspace · private to this browser</span>')
-markup+='\n<dialog id="w-dialog"><form id="w-form"><h2 id="w-dialog-title"></h2><div id="w-dialog-fields"></div><div class="w-row"><button type="button" id="w-dialog-cancel">Cancel</button><button type="submit" id="w-dialog-save">Save</button></div></form></dialog>\n'
+markup+='\n<dialog id="w-dialog" aria-labelledby="w-dialog-title"><form id="w-form"><h2 id="w-dialog-title"></h2><div id="w-dialog-fields"></div><div class="w-row"><button type="button" id="w-dialog-cancel">Cancel</button><button type="submit" id="w-dialog-save">Save</button></div></form></dialog>\n'
 # Start a blank real project, retaining all bundled guidance and typing help.
 a=js.index(' const chapters=[');b=js.index(' const state=',a)
 js=js[:a]+" let chapters=[];\n"+js[b:]
@@ -47,6 +47,8 @@ js=js[:a]+'''  }else if(state.view==='research'){
    main.innerHTML=backupsView();renderFolderDetails();
   }else if(state.view==='trash'){
    main.innerHTML=trashView();
+  }else if(state.view==='help'){
+   main.innerHTML=helpView();
   }else{
    main.innerHTML=exportView();
   }
@@ -56,7 +58,7 @@ js=js.replace('${Object.entries(library[state.type]).map(([id,g])=>`<option valu
 js=js.replace("el.style.height=el.scrollHeight+'px'","el.style.height=(el.scrollHeight+el.offsetHeight-el.clientHeight)+'px'")
 # Initial data, reliable persistence and new interactions inserted before event handlers.
 pos=js.index(" root.addEventListener('click'")
-js=js[:pos]+Path('work/genre_extension.js').read_text(encoding='utf-8')+Path('work/app_extension.js').read_text(encoding='utf-8')+Path('work/app_advanced.js').read_text(encoding='utf-8')+Path('work/theme_extension.js').read_text(encoding='utf-8')+Path('work/characters_extension.js').read_text(encoding='utf-8')+Path('work/assistant_extension.js').read_text(encoding='utf-8')+js[pos:]
+js=js[:pos]+''.join(Path(path).read_text(encoding='utf-8') for path in ['work/genre_extension.js','work/app_extension.js','work/app_advanced.js','work/theme_extension.js','work/characters_extension.js','work/assistant_extension.js','work/help_extension.js','work/navigation_extension.js'])+js[pos:]
 
 js=js.replace('selected().text=draft.value','setDraftText(draft.value)').replace('selected().text=e.target.value','setDraftText(e.target.value)')
 js=js.replace("const before=draft.value,caret=draft.selectionStart;draft.setRangeText","const beforeFormats=clone(selected().formats||[]);if(!typingInput)recordEditorUndo();\n  const before=draft.value,caret=draft.selectionStart;draft.setRangeText")
@@ -69,10 +71,10 @@ js=js.replace("if(a==='ca'&&b==='n'){","if(isPersonalWord(left)||isPersonalWord(
 js=js.replace("if(word&&commonTypos[word[1].toLowerCase()]){","if(word&&!isPersonalWord(word[1])&&commonTypos[word[1].toLowerCase()]){")
 js=js.replace("context:true,prose:18","context:true,hintsVisible:false,prose:18")
 js=js.replace("context.innerHTML=guide(c);","context.innerHTML=state.hintsVisible?guide(c):'<section class=\"w-guide\"><p class=\"w-secondary\">Chapter hints are tucked away.</p><button type=\"button\" id=\"w-show-hints\">Show chapter hints</button></section>';")
-js=js.replace(' initialize();\n render();',' initialize();\n initializePalette();\n render();\n initializeAssistant();\n connectFolderBackups();')
+js=js.replace(' initialize();\n render();',' initialize();\n initializePalette();\n initializeNavigation();\n initializeAssistant();\n render();\n connectFolderBackups();')
 js=js.replace('\"Chalkboard SE\",\"Chalkboard\",cursive','\"Chalkboard SE\",\"Chalkboard\",\"Segoe Print\",\"Comic Sans MS\",cursive')
 js=js.replace("sans:'system-ui,sans-serif'",'sans:\'system-ui,sans-serif\',georgia:\'Georgia,serif\',palatino:\'Palatino,"Palatino Linotype","Book Antiqua",serif\',garamond:\'Garamond,Baskerville,Georgia,serif\',times:\'"Times New Roman",Times,serif\',courier:\'"Courier New",Courier,monospace\',trebuchet:\'"Trebuchet MS",Arial,sans-serif\',verdana:\'Verdana,Geneva,sans-serif\'')
-js=js.replace('enrichView();fitText();','enrichView();enrichAssistant();fitText();')
+js=js.replace('enrichView();fitText();','enrichView();enrichAssistant();fitText();enrichNavigation();')
 js=js.replace("root.classList.toggle('w-board-mode',state.view==='plan');", "root.classList.toggle('w-board-mode',state.view==='plan');root.classList.toggle('w-characters-mode',state.view==='characters');")
 js=js.replace("[state.font]);}","[state.font]);onPaletteAppearance();}")
 Path('app/styles.css').write_text(css+'\n'+Path('work/app_extra.css').read_text(encoding='utf-8'), encoding='utf-8')

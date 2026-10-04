@@ -2,11 +2,11 @@
 
 Writing Studio is a private writing workspace for fiction, nonfiction, memoir, poetry, screenplays, essays, and academic work. It runs in your browser on your computer, with gentle mint, peach, and rosy pink glass, Chalkboard style headings, and light and dark grey themes. Writing, revision tools, local backups, and exports work without an account or internet connection. An optional DeepSeek assistant uses your own API key when you choose to enable it.
 
-Version **0.3.1-beta** includes Mac and Windows launchers and a portable single-file edition. The Windows package is prepared and its platform logic has been checked, but it has not yet been run on an actual Windows computer.
+Version **0.4-beta** adds saved Assistant drafts, persistent find-and-replace settings, Back and Forward navigation, local location links, a compact mobile writing bar, and in-app Help. It includes Mac and Windows launchers and a portable single-file edition. The Windows package is prepared and its platform logic has been checked, but it has not yet been run on an actual Windows computer.
 
-[Source repository](https://github.com/AuroraX98/Writing-Studio) · [Version 0.3.1-beta downloads](https://github.com/AuroraX98/Writing-Studio/tree/main/downloads)
+[Source repository](https://github.com/AuroraX98/Writing-Studio) · [Version 0.4-beta downloads](https://github.com/AuroraX98/Writing-Studio/tree/main/downloads)
 
-Download: [Windows ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.3.1-beta-windows.zip) · [Mac ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.3.1-beta-mac.zip) · [Source ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.3.1-beta-source.zip)
+Download: [Windows ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.4-beta-windows.zip) · [Mac ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.4-beta-mac.zip) · [Source ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.4-beta-source.zip)
 
 ![Writing Studio assistant with clearer section dividers](docs/assistant-sections.png)
 
@@ -23,6 +23,14 @@ The standalone HTML edition stores its workspace in browser storage. Storage for
 The font selector includes Chalkboard, existing serif and modern options, and Georgia, Palatino, Garamond, Times New Roman, Courier New, Trebuchet, and Verdana. These choices change draft and in-app reading text. Fonts use local system fallbacks, so their exact appearance varies by computer; exports keep their book typography.
 
 **Colors** opens an optional live color preview. Enable custom colors, choose a solid background or a three-color soft gradient, and adjust hue, intensity, brightness, and gradient direction. Writing panels adapt to your selected light or dark theme for readability. **Save colors** keeps your choices; Cancel or Escape restores the previous palette. **Restore original colors** previews the original theme without changing your other settings.
+
+## Find your way around
+
+The workspace shows your current view and project. **Back** and **Forward** revisit chapters and views within the app; your browser's navigation buttons also work. **Copy location link** records the current project, chapter, and view in the browser address. A location link opens that spot only when the same projects are available at the same app address in the same browser. It does not transfer your writing or create a public sharing link. When returning during a session, the app restores the view's search, open panels, scroll position, and available keyboard focus.
+
+On narrow screens, use the compact **Workspace** menu to choose a view and **Write** to reach the draft. **Project & appearance** opens the project and visual settings when you need them. Keyboard users can use **Skip to workspace** and **Skip to draft** before the main controls.
+
+**Help** includes an optional first-session guide and direct links to Studio, Chapter board, Revise, Folder backups, Export, and Assistant settings. Chapter search shows matching text and **Clear search** brings back the full list.
 
 ## Write and organize
 
@@ -48,7 +56,7 @@ Full JSON backups include character profiles. Manuscript exports keep chapter te
 
 ## Revise and read
 
-**Revise → Find and replace** searches a chapter or the whole manuscript, with case and whole-word options. Preview the matches before applying changes. Applying saves a version of every affected chapter first. If the manuscript changed after previewing, create a new preview.
+**Revise → Find and replace** searches a chapter or the whole manuscript, with case and whole-word options. Preview the matches before applying changes. Applying saves a version of every affected chapter first. Find and replacement text, scope, case, and whole-word choices save with each chapter, so leaving Revise or reloading keeps your setup. Returning during the same session restores a preview only while the manuscript and search settings still match it. Reloading or importing keeps the settings and asks for a new preview before applying. If the manuscript changed after previewing, create a new preview.
 
 **Save a version** captures the chapter's text, formatting, alignment, spacing, and notes. **Compare with current draft** shows added and removed wording. Large comparisons may show whole changed blocks or shortened displays; the complete versions stay saved. Restoring a version first preserves the draft it replaces.
 
@@ -101,6 +109,8 @@ The assistant requires the local launcher, your own DeepSeek API key, an interne
 
 Suggestions stay in an editable review area until you explicitly save them as a chapter note, replace selected words, or append them to the chapter. Insertion preserves a saved version first. If the draft, project type, genre, or writing profile changes after generating, create a new suggestion before inserting. The core writing tools continue to work offline.
 
+Your instruction, text preview, goal, model, and editable suggestion save locally with the chapter and are included in full JSON backups. **Clear saved assistant draft** removes those saved fields for the current chapter after confirmation. After reload or import, restored suggestions remain available for review, editing, and copying. Generate a new suggestion before using an insertion or save-as-note button, because the original draft target cannot be verified after reload. Saved drafts contain your writing; API keys remain excluded.
+
 Manual key attachment keeps the key in launcher memory for that session. Closing the launcher clears that in-memory copy. You can also opt in to reading a private local key file, using the setup described in **KEY_FILE_SETUP.md**. The file is plain JSON on your computer and stays outside the app folder by default, beside the backup folder. Protect access to your computer and keep the private key file out of GitHub. API keys are excluded from project backups and release downloads; the distributed example is blank. The controls are under **Assistant → Assistant settings → Saved API key file**. Create a blank private file, fill it locally, then select **Allow Writing Studio to read this key file** or **Reload saved key** if it is already enabled. Reading a saved key requires your explicit setting; it is not enabled by default. **Disconnect** forgets the in-memory key and disables automatic file reading while leaving the file in place. **Remove saved key** empties the configured file, disables reading, and forgets the in-memory key. You can also clear its `apiKey` value manually. The assistant is optional and disabled until configured. Manual **Attach key** turns off automatic file reading. Attaching a key only sets up the local session; it makes no provider request and does not verify account credit. An actual live DeepSeek request has not been verified in this build without a user key.
 
 ## Build and check the source
@@ -120,18 +130,20 @@ node --test tests/storage.test.cjs
 node tests/export.test.cjs
 node tests/pdf.test.cjs
 node tests/revision.test.cjs
+node --test tests/revision-ui.test.cjs
 node tests/text-tools.test.cjs
 node tests/local-backup.test.cjs
 node tests/thesaurus.test.cjs
 node --test tests/theme-palette.test.cjs
 node --test tests/genres.test.cjs
 node tests/assistant.test.cjs
+node --test tests/assistant-drafts.test.cjs
 python3 -m unittest discover -s tests -p test_local_backup.py -v
 python3 -m unittest discover -s tests -p test_ai_proxy.py -v
 python3 -m unittest discover -s tests -p test_key_file.py -v
 ```
 
-Checks cover storage and recovery, invalid imports, Trash, formatted exports, alignment, replacement previews, stale previews, version comparisons, formatting edits, dictionary storage, backup conflicts, atomic writes, retention, and local request boundaries. Backups in these tests use temporary folders and sample text. PDF checks require Python for structural inspection. Loopback server tests require permission to bind a local address. Assistant checks use mocked provider responses and need no real API key; `tests/mock_ai_server.py` is a development-only browser test launcher.
+Checks cover storage and recovery, invalid imports, Trash, formatted exports, alignment, replacement settings across navigation and reload, replacement previews, stale previews, saved Assistant drafts, restored suggestion limits, version comparisons, formatting edits, dictionary storage, backup conflicts, atomic writes, retention, and local request boundaries. Backups in these tests use temporary folders and sample text. PDF checks require Python for structural inspection. Loopback server tests require permission to bind a local address. Assistant checks use mocked provider responses and need no real API key; `tests/mock_ai_server.py` is a development-only browser test launcher.
 
 After rebuilding, create curated downloads with:
 

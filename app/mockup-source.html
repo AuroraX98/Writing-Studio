@@ -17,8 +17,11 @@
   </nav>
   <div class="w-shell">
     <aside class="w-tree" aria-label="Manuscript navigation">
-      <label for="w-search">Find chapters or notes</label>
-      <input type="search" id="w-search" placeholder="Search this project">
+      <label for="w-search">Find in the manuscript</label>
+      <input type="search" id="w-search" placeholder="Search chapter titles, notes, and draft text" aria-describedby="w-search-help w-search-status">
+      <p id="w-search-help" class="w-secondary">Search chapter titles, notes, and draft text. Sources, characters, and outlines are not included.</p>
+      <button type="button" id="w-clear-search" hidden>Clear search</button>
+      <p id="w-search-status" class="w-secondary" role="status" aria-live="polite"></p>
       <h3>Manuscript</h3>
       <div id="w-chapters"></div>
       <hr>
@@ -261,9 +264,13 @@
  function fitText(){root.querySelectorAll('textarea').forEach(el=>{el.style.height='auto';el.style.height=el.scrollHeight+'px';});}
  function count(){root.querySelector('#w-wordcount').textContent=`${words(selected().text)} chapter words · ${chapters.reduce((n,c)=>n+words(c.text),0)} manuscript words`;}
  function tree(){
-  const q=root.querySelector('#w-search').value.toLowerCase().trim();
-  const matches=chapters.filter(c=>(c.title+' '+c.note+' '+c.text).toLowerCase().includes(q));
-  root.querySelector('#w-chapters').innerHTML=matches.length?matches.map(c=>`<button type="button" class="w-chapter" data-chapter="${c.id}" aria-pressed="${c.id===state.selected}">${escape(c.title)}<span>${c.status}${q?' · search match':''}</span></button>`).join(''):'<p role="status">No matching chapters or notes.</p>';
+  const q=root.querySelector('#w-search').value.toLocaleLowerCase().trim();
+  const excerpt=value=>{const lower=value.toLocaleLowerCase(),at=lower.indexOf(q);if(at<0)return null;const start=Math.max(0,at-48),end=Math.min(value.length,at+q.length+72);return (start?'…':'')+value.slice(start,end).replace(/\s+/g,' ')+(end<value.length?'…':'');};
+  const matches=chapters.map(c=>{if(!q)return {chapter:c,where:'',excerpt:''};for(const [key,label] of [['title','Title'],['note','Chapter notes'],['text','Draft']]){const found=excerpt(c[key]||'');if(found!==null)return {chapter:c,where:label,excerpt:found};}return null;}).filter(Boolean);
+  const status=root.querySelector('#w-search-status'),clear=root.querySelector('#w-clear-search');
+  status.textContent=q?`${matches.length} matching ${matches.length===1?'chapter':'chapters'} of ${chapters.length}.`:`${chapters.length} ${chapters.length===1?'chapter':'chapters'}.`;
+  clear.hidden=!q;
+  root.querySelector('#w-chapters').innerHTML=matches.length?matches.map(({chapter:c,where,excerpt:match})=>`<button type="button" class="w-chapter" data-chapter="${c.id}" aria-pressed="${c.id===state.selected}">${escape(c.title)}<span>${escape(c.status)}${q?' · '+escape(where)+': “'+escape(match)+'”':''}</span></button>`).join(''):'<div class="w-search-empty"><p role="status">No chapters match this search.</p><p class="w-secondary">Try a shorter phrase or use Clear search to browse every chapter.</p></div>';
  }
  function render(){
   const c=selected();

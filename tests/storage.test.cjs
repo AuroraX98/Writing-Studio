@@ -315,3 +315,38 @@ test("character list limit is 1000 and character trash requires a typed profile"
   const malformedTrash=sample();malformedTrash.projects[0].trash.push({id:"trash-character",kind:"character",label:"Bad profile",deletedAt:"today",item:{id:"missing-fields"}});
   assert.throws(()=>WritingStore.validate(malformedTrash),/name must be a string/);
 });
+
+test("Assistant and revision drafts survive local save, backup, import and chapter Trash", () => {
+  const data = sample(), chapter = data.projects[0].chapters[0];
+  chapter.assistantDraft = {model:'deepseek-v4-pro',goal:'feedback',brief:'Keep my voice.',text:'A passage',suggestion:{text:'A reviewed suggestion',truncated:false}};
+  chapter.uiDrafts = {revision:{find:'passage',replacement:'scene',scope:'project',caseSensitive:true,wholeWord:false,previewRequested:true}};
+  const storage = memoryStorage(), store = WritingStore.createStore(storage);
+  store.save(data);
+  assert.deepEqual(store.load().projects[0].chapters[0].assistantDraft, chapter.assistantDraft);
+  assert.deepEqual(WritingStore.parse(WritingStore.serialize(data)).projects[0].chapters[0].uiDrafts, chapter.uiDrafts);
+  data.projects[0].trash.push({id:'deleted-chapter',kind:'chapter',label:chapter.title,deletedAt:'2026-10-03',item:structuredClone(chapter)});
+  assert.deepEqual(WritingStore.parse(WritingStore.serialize(data)).projects[0].trash.at(-1).item.assistantDraft, chapter.assistantDraft);
+});
+
+test("Assistant drafts reject secrets, runtime targets, unsupported choices and oversized fields", () => {
+  const draft = {model:'deepseek-flash',goal:'brainstorm',brief:'A request',text:'An excerpt',suggestion:{text:'A suggestion',truncated:false}};
+  const invalid = [
+    {...draft,apiKey:'secret'}, {...draft,connected:true}, {...draft,model:'arbitrary'}, {...draft,goal:'delete'},
+    {...draft,brief:'x'.repeat(2001)}, {...draft,text:'x'.repeat(10001)}, {...draft,text:'a\0b'},
+    {...draft,suggestion:{...draft.suggestion,target:{text:'Old manuscript'}}},
+    {...draft,suggestion:{...draft.suggestion,text:'x'.repeat(24001)}},
+    {...draft,suggestion:{...draft.suggestion,truncated:'false'}},
+  ];
+  for (const candidate of invalid) {
+    const data = sample(); data.projects[0].chapters[0].assistantDraft = candidate;
+    assert.throws(() => WritingStore.serialize(data), /assistantDraft/);
+  }
+});
+
+test("revision drafts reject snapshots, invalid options and oversized search context", () => {
+  const revision = {find:'word',replacement:'term',scope:'chapter',caseSensitive:false,wholeWord:true,previewRequested:false};
+  for (const candidate of [{...revision,snapshot:'manuscript'}, {...revision,scope:'global'}, {...revision,wholeWord:1}, {...revision,find:'x'.repeat(100001)}]) {
+    const data = sample(); data.projects[0].chapters[0].uiDrafts = {revision:candidate};
+    assert.throws(() => WritingStore.serialize(data), /uiDrafts.revision/);
+  }
+});

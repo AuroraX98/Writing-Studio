@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><title>Writing Studio</title><link rel="icon" href="data:,"><link rel="stylesheet" href="styles.css?v=cf5fbc5dd30d"></head><body><div id="writer-hybrid" aria-label="Writing Studio">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><title>Writing Studio</title><link rel="icon" href="data:,"><link rel="stylesheet" href="styles.css?v=7886a9576a85"></head><body><div id="writer-hybrid" aria-label="Writing Studio">
   <header class="w-top">
     <div class="w-brand"><span class="w-monogram" aria-hidden="true">Ws.</span><div><strong>Writing Studio</strong></div></div>
     <div class="w-settings">
@@ -18,8 +18,11 @@
   <button type="button" data-view="characters">Characters</button><button type="button" data-view="reading">Read manuscript</button><button type="button" data-view="trash">Trash</button></nav>
   <div class="w-shell">
     <aside class="w-tree" aria-label="Manuscript navigation">
-      <label for="w-search">Find chapters or notes</label>
-      <input type="search" id="w-search" placeholder="Search this project">
+      <label for="w-search">Find in the manuscript</label>
+      <input type="search" id="w-search" placeholder="Search chapter titles, notes, and draft text" aria-describedby="w-search-help w-search-status">
+      <p id="w-search-help" class="w-secondary">Search chapter titles, notes, and draft text. Sources, characters, and outlines are not included.</p>
+      <button type="button" id="w-clear-search" hidden>Clear search</button>
+      <p id="w-search-status" class="w-secondary" role="status" aria-live="polite"></p>
       <div class="w-row"><h3>Manuscript</h3><button id="w-add-chapter" aria-label="Add chapter">＋</button></div>
       <div id="w-chapters"></div>
       <hr>
@@ -31,5 +34,5 @@
   <footer class="w-footer"><span id="w-wordcount"></span><label id="w-transparency-control" hidden><input type="checkbox" id="w-solid"> Reduce transparency</label><span>Local workspace · private to this browser</span></footer>
 </div>
 
-<dialog id="w-dialog"><form id="w-form"><h2 id="w-dialog-title"></h2><div id="w-dialog-fields"></div><div class="w-row"><button type="button" id="w-dialog-cancel">Cancel</button><button type="submit" id="w-dialog-save">Save</button></div></form></dialog>
-<script src="vendor/wordnet-data.js?v=962f5ba963f3"></script><script src="thesaurus.js?v=cc7a428b18b9"></script><script src="theme-palette.js?v=b27cbc8fcbb5"></script><script src="genres.js?v=226224c6d87f"></script><script src="assistant.js?v=f5faae2cad39"></script><script src="text-tools.js?v=de16980b6f0c"></script><script src="storage.js?v=21d0c304f567"></script><script src="revision.js?v=e8db8cfb9154"></script><script src="local-backup.js?v=8144d63406b0"></script><script src="export.js?v=977f797fac84"></script><script src="vendor/pdf-font.js?v=0961b78ec662"></script><script src="pdf.js?v=0426c2f36101"></script><script src="main.js?v=757aa08eb010"></script></body></html>
+<dialog id="w-dialog" aria-labelledby="w-dialog-title"><form id="w-form"><h2 id="w-dialog-title"></h2><div id="w-dialog-fields"></div><div class="w-row"><button type="button" id="w-dialog-cancel">Cancel</button><button type="submit" id="w-dialog-save">Save</button></div></form></dialog>
+<script src="vendor/wordnet-data.js?v=962f5ba963f3"></script><script src="thesaurus.js?v=cc7a428b18b9"></script><script src="theme-palette.js?v=b27cbc8fcbb5"></script><script src="genres.js?v=226224c6d87f"></script><script src="assistant.js?v=f5faae2cad39"></script><script src="text-tools.js?v=de16980b6f0c"></script><script src="storage.js?v=f2e85a32bcc9"></script><script src="revision.js?v=e8db8cfb9154"></script><script src="local-backup.js?v=8144d63406b0"></script><script src="export.js?v=977f797fac84"></script><script src="vendor/pdf-font.js?v=0961b78ec662"></script><script src="pdf.js?v=0426c2f36101"></script><script src="main.js?v=bae40e949341"></script></body></html>

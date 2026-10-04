@@ -24,7 +24,8 @@ SOURCE = [
     'work/app_advanced.js', 'work/app_extra.css', 'work/package_release.py',
     'work/theme_extension.js', 'tests/theme-palette.test.cjs',
     'work/genre_extension.js', 'tests/genres.test.cjs',
-    'work/assistant_extension.js', 'tests/assistant.test.cjs',
+    'work/assistant_extension.js', 'tests/assistant.test.cjs', 'tests/assistant-drafts.test.cjs',
+    'work/help_extension.js', 'work/navigation_extension.js', 'tests/revision-ui.test.cjs',
     'work/characters_extension.js',
     'tests/test_ai_proxy.py', 'tests/mock_ai_server.py', 'tests/test_key_file.py',
     'work/build_thesaurus.py', 'tests/thesaurus.test.cjs',
@@ -63,9 +64,9 @@ def start_here(platform, version):
     return (introduction + launch + '\r\nKeep a JSON backup on another drive before updates.\r\n'
             'Read README.md for storage, recovery, formatting, and known limitations.\r\n'
             'Downloads: https://github.com/AuroraX98/Writing-Studio/tree/main/downloads\r\n'
-            'Windows: https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.3.1-beta-windows.zip\r\n'
-            'Mac: https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.3.1-beta-mac.zip\r\n'
-            'Source: https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.3.1-beta-source.zip\r\n'
+            'Windows: https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-' + version + '-windows.zip\r\n'
+            'Mac: https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-' + version + '-mac.zip\r\n'
+            'Source: https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-' + version + '-source.zip\r\n'
             'For optional saved DeepSeek keys, read KEY_FILE_SETUP.md. The example\r\n'
             'key file is blank; keep your private copy outside the app folder.\r\n').encode('utf-8')
 

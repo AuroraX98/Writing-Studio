@@ -162,3 +162,29 @@ html { color-scheme:light; background:#eaf0eb; } body { margin:0; padding:22px; 
 #w-dialog [data-palette-gradient]{border-bottom:1px solid var(--w-line,#b8cec1);padding-bottom:8px;margin-bottom:18px}
 @media(max-width:900px){#writer-hybrid .w-character-editor{border-left:0;border-top:1px solid var(--w-divider);padding:22px 0 0}}
 @media(max-width:480px){#writer-hybrid .w-section{margin-top:22px;padding-top:18px}}
+/* Navigation and writing access. */
+#writer-hybrid .w-skip-link { position:fixed;left:12px;top:-100px;z-index:100;background:var(--w-paper);color:var(--w-text);padding:12px 18px;border:2px solid var(--w-accent);border-radius:10px; }
+#writer-hybrid .w-skip-link:focus { top:12px; }
+#writer-hybrid .w-navigation-tools { display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:0 24px 16px;border-bottom:1px solid var(--w-divider); }
+#writer-hybrid #w-location { font-size:13px;color:var(--w-muted);margin-left:auto; }
+#writer-hybrid #w-navigation-status { width:100%;font-size:13px; }
+#writer-hybrid .w-mobile-nav { display:none; }
+#writer-hybrid .w-search-snippet { white-space:normal;overflow-wrap:anywhere; }
+#writer-hybrid .w-chapter small { display:block;font-size:12px;line-height:1.5;margin-top:5px; }
+#writer-hybrid #w-search-count { font-size:12px; }
+#writer-hybrid .w-nav button:disabled { opacity:.6; }
+#writer-hybrid h2:focus-visible,#writer-hybrid summary:focus-visible,#writer-hybrid a:focus-visible { outline:2px solid var(--w-accent);outline-offset:3px;border-radius:4px; }
+@media(max-width:480px){
+ #writer-hybrid .w-mobile-nav { display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;position:sticky;top:0;z-index:10;padding:12px;background:var(--w-paper);border-bottom:1px solid var(--w-divider); }
+ #writer-hybrid .w-mobile-nav strong { font-size:16px;align-self:center;overflow-wrap:anywhere; }
+ #writer-hybrid .w-mobile-nav label { margin:0; }
+ #writer-hybrid #w-mobile-save { grid-column:1/-1;font-size:12px;color:var(--w-muted); }
+ #writer-hybrid .w-mobile-nav select { width:100%; }
+ #writer-hybrid .w-mobile-nav button { font-size:13px;padding:10px; }
+ #writer-hybrid .w-mobile-settings-hidden .w-top,#writer-hybrid .w-mobile-settings-hidden .w-projectbar,#writer-hybrid .w-mobile-settings-hidden .w-folderbar { display:none; }
+ #writer-hybrid .w-nav { display:none; }
+ #writer-hybrid .w-navigation-tools { padding:10px 12px; }
+ #writer-hybrid #w-location { width:100%;margin:0; }
+ #writer-hybrid #w-main { scroll-margin-top:140px; }
+ #writer-hybrid #w-draft,#writer-hybrid h2 { scroll-margin-top:140px; }
+}

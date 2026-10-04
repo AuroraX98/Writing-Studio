@@ -89,6 +89,12 @@
     validateAlignment(chapter, label);
     for (const field of ["title", "text", "note", "summary", "task", "status"]) requireString(chapter[field], label + "." + field);
     validateFormatting(chapter, label);
+    if ("assistantDraft" in chapter) validateAssistantDraft(chapter.assistantDraft, label + ".assistantDraft");
+    if ("uiDrafts" in chapter) {
+      requireRecord(chapter.uiDrafts, label + ".uiDrafts");
+      if (Object.keys(chapter.uiDrafts).some(key => key !== "revision")) fail(label + ".uiDrafts has an unsupported field");
+      if ("revision" in chapter.uiDrafts) validateRevisionDraft(chapter.uiDrafts.revision, label + ".uiDrafts.revision");
+    }
     for (const field of ["idea", "saved", "planOutline"]) {
       if (field in chapter) requireString(chapter[field], label + "." + field);
     }
@@ -106,6 +112,35 @@
       if (chapterIds.has(chapter.id)) fail("chapter ids must be unique");
       chapterIds.add(chapter.id);
     }
+  }
+
+  function validateAssistantDraft(draft, label) {
+    requireRecord(draft, label);
+    if (Object.keys(draft).some(key => !["model", "goal", "brief", "text", "suggestion"].includes(key))) fail(label + " has an unsupported field");
+    if (!["deepseek-flash", "deepseek-v4-pro"].includes(draft.model)) fail(label + ".model is unsupported");
+    if (!["brainstorm", "outline", "continue", "rewrite", "feedback"].includes(draft.goal)) fail(label + ".goal is unsupported");
+    for (const [field, limit] of [["brief", 2000], ["text", 10000]]) {
+      requireString(draft[field], label + "." + field);
+      if (draft[field].length > limit || draft[field].includes("\u0000")) fail(label + "." + field + " is too long or invalid");
+    }
+    if (draft.suggestion !== null) {
+      requireRecord(draft.suggestion, label + ".suggestion");
+      if (Object.keys(draft.suggestion).some(key => !["text", "truncated"].includes(key))) fail(label + ".suggestion has an unsupported field");
+      requireString(draft.suggestion.text, label + ".suggestion.text");
+      if (draft.suggestion.text.length > 24000 || draft.suggestion.text.includes("\u0000")) fail(label + ".suggestion.text is too long or invalid");
+      if (typeof draft.suggestion.truncated !== "boolean") fail(label + ".suggestion.truncated must be a boolean");
+    }
+  }
+
+  function validateRevisionDraft(draft, label) {
+    requireRecord(draft, label);
+    if (Object.keys(draft).some(key => !["find", "replacement", "scope", "caseSensitive", "wholeWord", "previewRequested"].includes(key))) fail(label + " has an unsupported field");
+    for (const field of ["find", "replacement"]) {
+      requireString(draft[field], label + "." + field);
+      if (draft[field].length > 100000) fail(label + "." + field + " is too long");
+    }
+    if (!["chapter", "project"].includes(draft.scope)) fail(label + ".scope is unsupported");
+    for (const field of ["caseSensitive", "wholeWord", "previewRequested"]) if (typeof draft[field] !== "boolean") fail(label + "." + field + " must be a boolean");
   }
 
   function validateSource(source, label, sourceIds) {
