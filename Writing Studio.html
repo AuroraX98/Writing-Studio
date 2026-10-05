@@ -349,11 +349,49 @@ html { color-scheme:light; background:#eaf0eb; } body { margin:0; padding:22px; 
 </script><script>(function(root,factory){const data=typeof module==='object'&&module.exports?require('./vendor/wordnet-data.js'):root.WritingWordNetData;const api=factory(data);if(typeof module==='object'&&module.exports)module.exports=api;if(root)root.WritingThesaurus=api;})(typeof globalThis==='object'?globalThis:this,function(data){
  'use strict';
  const LIMIT=80;
+ const SPELLING_LIMIT=8;
  const names={n:'noun',v:'verb',a:'adjective',r:'adverb'};
  const substitutions={n:[['s',''],['ses','s'],['xes','x'],['zes','z'],['ches','ch'],['shes','sh'],['men','man'],['ies','y']],v:[['s',''],['ies','y'],['es','e'],['es',''],['ed','e'],['ed',''],['ing','e'],['ing','']],a:[['er',''],['est',''],['er','e'],['est','e']],r:[]};
  const own=(object,key)=>!!object&&Object.prototype.hasOwnProperty.call(object,key);
  const key=word=>word.trim().toLowerCase().replace(/[’‘]/g,"'").replace(/[\s_]+/g,'_');
  const display=word=>word.replace(/_/g,' ');
+ // WordNet focuses on meaning-bearing words. These common function words also
+ // belong in spelling checks, even when WordNet has no sense entry for them.
+ const functionWords='a an the and or but nor so yet if then else because although though unless until while whether as than that this these those each every either neither both all any some no none another other such what whatever which whichever who whoever whom whomever whose how when whenever where wherever why i me my mine myself we us our ours ourselves you your yours yourself yourselves he him his himself she her hers herself it its itself they them their theirs themselves one oneself be am is are was were been being have has had having do does did doing can could may might must shall should will would ought to of in on at by for from with without about above across after against along among around before behind below beneath beside between beyond despite down during except inside into near off onto out outside over past per since through throughout toward towards under underneath up upon via within'.split(' ');
+ const spellingWords=new Set();
+ if(data){
+  // Build once at load time; a keystroke only probes the set and WordNet index.
+  for(const word of Object.keys(data.index))if(/^[a-z]+$/.test(word))spellingWords.add(word);
+  for(const pos of ['n','v','a','r'])for(const word of Object.keys(data.exceptions[pos]))if(/^[a-z]+$/.test(word))spellingWords.add(word);
+  for(const word of functionWords)spellingWords.add(word);
+ }
+ const spellingWordCount=spellingWords.size;
+ const spellingCoverage='Unique lowercase ASCII single-word entries from bundled WordNet, its exception forms, and common function words. Excludes phrases and punctuation; regular inflections are recognized but not added to the count. This is not a complete English dictionary.';
+ function hasSpellingWord(word){
+  if(spellingWords.has(word))return true;
+  for(const pos of ['n','v','a','r'])for(const [suffix,replacement] of substitutions[pos]){
+   if(!word.endsWith(suffix)||word.length<=suffix.length)continue;
+   const base=word.slice(0,-suffix.length)+replacement;
+   if(own(data.index,base)&&data.index[base].some(id=>data.senses[id][0]===pos))return true;
+  }
+  return false;
+ }
+ function missingLetterSuggestions(input){
+  const empty={words:[],total:0,limited:false};
+  if(!data||typeof input!=='string'||input.length<3||input.length>32||/[^a-z]/i.test(input))return empty;
+  const word=input.toLowerCase();
+  // A valid word can also be one letter away from another word, such as now/know.
+  if(hasSpellingWord(word))return empty;
+  const matches=new Set(),checked=new Set();
+  for(let position=0;position<=word.length;position++)for(let code=97;code<=122;code++){
+   const candidate=word.slice(0,position)+String.fromCharCode(code)+word.slice(position);
+   if(checked.has(candidate))continue;
+   checked.add(candidate);
+   if(hasSpellingWord(candidate))matches.add(candidate);
+  }
+  const words=[...matches].sort();
+  return {words:words.slice(0,SPELLING_LIMIT),total:words.length,limited:words.length>SPELLING_LIMIT};
+ }
  function lookup(input){
   const query=typeof input==='string'?input.trim():'';
   const result={query,lemma:null,matchedForms:[],senses:[],total:0,limited:false};
@@ -374,7 +412,7 @@ html { color-scheme:light; background:#eaf0eb; } body { margin:0; padding:22px; 
   for(const id of [...ids].slice(0,LIMIT)){const [pos,definition,members]=data.senses[id];result.senses.push({partOfSpeech:names[pos],definition,words:members.split('|').filter(word=>!excluded.has(key(word)))});}
   return result;
  }
- return {lookup,LIMIT,version:data&&data.version,source:data&&data.source,license:data&&data.license};
+ return {lookup,LIMIT,missingLetterSuggestions,SPELLING_LIMIT,spellingWordCount,spellingCoverage,version:data&&data.version,source:data&&data.source,license:data&&data.license};
 });
 </script><script>(function (root, factory) {
   const api = factory();
@@ -2468,7 +2506,7 @@ html { color-scheme:light; background:#eaf0eb; } body { margin:0; padding:22px; 
  const root=document.getElementById('writer-hybrid');
  let chapters=[];
  const state={view:'write',selected:'opening',focus:false,context:true,hintsVisible:false,prose:18,format:'Markdown',type:'nonfiction',theme:'glass',font:'chalkboard',contextTab:'guide',solidGlass:false,typing:'auto',genres:{fiction:'novel',nonfiction:'reflective',memoir:'chronological'}};
- const commonTypos={i:'I',whta:'what',thta:'that',liek:'like',teh:'the',adn:'and',recieve:'receive',becuase:'because',becasue:'because',definately:'definitely',seperate:'separate',writting:'writing',occured:'occurred',tommorow:'tomorrow',thier:'their',coudl:'could',woudl:'would',shoudl:'should',wiht:'with',hte:'the'};
+ const commonTypos={bdy:'body',knw:'know',i:'I',whta:'what',thta:'that',liek:'like',teh:'the',adn:'and',recieve:'receive',becuase:'because',becasue:'because',definately:'definitely',seperate:'separate',writting:'writing',occured:'occurred',tommorow:'tomorrow',thier:'their',coudl:'could',woudl:'would',shoudl:'should',wiht:'with',hte:'the'};
  const spacingWords=new Set(('a about after again all also am an and another any are around as at back be because been before being book books both but by can cannot chapter chapters come could day did do does done down each end even every few find first for from get give go good had has have he her here him his how i idea if in input into is it its just keep know last later life like little look made make may me more most much my new next no not now of off on one only or other our out over own part people place put question read right said same see she should small so some something story take than that the their them then there these they thing think this those through time to too try two up us use very want was way we well were what when where which who will with word words work world would write writer writing year you your receive separate definitely tomorrow occurred').split(' '));
  let typingSuggestions=[],lastCorrection=null;
  // Original, optional planning prompts. These are patterns to adapt, not chapter requirements.
@@ -2563,6 +2601,13 @@ html { color-scheme:light; background:#eaf0eb; } body { margin:0; padding:22px; 
    const end=caret-word[2].length,start=end-word[1].length;
    let replacement=commonTypos[word[1].toLowerCase()]?matchCase(word[1],commonTypos[word[1].toLowerCase()]):word[1];
    if(sentenceStartsBefore(before,start))replacement=replacement[0].toUpperCase()+replacement.slice(1);
+   if(!commonTypos[word[1].toLowerCase()]&&!spacingWords.has(word[1].toLowerCase())){
+    const missing=globalThis.WritingThesaurus?.missingLetterSuggestions?.(word[1]);
+    if(missing?.words?.length){
+     typingSuggestions=missing.words.map(candidate=>{let replacement=matchCase(word[1],candidate);if(sentenceStartsBefore(before,start))replacement=replacement[0].toUpperCase()+replacement.slice(1);return {before,start,end,replacement};});
+     updateTyping('Possible missing letter. Choose the word you intended.'+(missing.limited?' Showing '+missing.words.length+' of '+missing.total+' choices.':''));return;
+    }
+   }
    if(replacement===word[1]){updateTyping();return;}
    const s={before,start,end,replacement};
    if(state.typing==='auto')applyTypingCorrection(s);else{typingSuggestions=[s];updateTyping('Possible spelling or capitalization change. Choose the wording you intended.');}
@@ -2603,7 +2648,7 @@ html { color-scheme:light; background:#eaf0eb; } body { margin:0; padding:22px; 
   else if(state.contextTab==='guide') context.innerHTML=state.hintsVisible?guide(c):'<section class="w-guide"><p class="w-secondary">Chapter hints are tucked away.</p><button type="button" id="w-show-hints">Show chapter hints</button></section>';
   context.insertAdjacentHTML('afterbegin',`<div class="w-board-tabs" aria-label="Chapter tools">${['guide','ideas','notes'].map(t=>`<button type="button" data-context="${t}" aria-pressed="${t===state.contextTab}">${t[0].toUpperCase()+t.slice(1)}</button>`).join('')}</div>`);
   if(state.view==='write'){
-   main.innerHTML=`<div class="w-row"><p class="w-chapter-number">Chapter ${String(chapters.indexOf(c)+1).padStart(2,'0')}</p><span class="w-secondary">${escape(c.status)}</span></div><h2>${escape(c.title)}</h2><section class="w-typing-tools" aria-label="Typing help"><label for="w-typing">Typing help</label><select id="w-typing"><option value="off" ${state.typing==='off'?'selected':''}>Off</option><option value="suggest" ${state.typing==='suggest'?'selected':''}>Suggestions</option><option value="auto" ${state.typing==='auto'?'selected':''}>Autocorrect</option></select><p class="w-secondary">English corrections run when you finish a word with a space, punctuation, or Enter. Includes common typos, standalone I, and sentence capitals after . ? !. Personal dictionary words are protected.</p><p class="w-secondary" id="w-typing-status" role="status"></p><div id="w-typing-actions"></div></section>${c.planOutline?`<details class="w-outline" ${c.outlineOpen?'open':''}><summary>Your chapter outline</summary><textarea id="w-outline" aria-label="Chapter outline">${escape(c.planOutline)}</textarea></details>`:''}<textarea id="w-draft" aria-label="Chapter draft" placeholder="Begin writing here…" lang="en" spellcheck="${state.typing!=='off'}" autocorrect="off" autocapitalize="off">${escape(c.text)}</textarea><section class="w-sequence"><h3>Your chapter sequence</h3><div class="w-sequence-grid">${chapters.map((x,i)=>`<button type="button" data-chapter="${x.id}" aria-pressed="${x.id===c.id}"><span class="w-secondary">${String(i+1).padStart(2,'0')} · ${x.status}</span><span>${escape(x.title)}</span></button>`).join('')}</div></section>`;
+   main.innerHTML=`<div class="w-row"><p class="w-chapter-number">Chapter ${String(chapters.indexOf(c)+1).padStart(2,'0')}</p><span class="w-secondary">${escape(c.status)}</span></div><h2>${escape(c.title)}</h2><section class="w-typing-tools" aria-label="Typing help"><label for="w-typing">Typing help</label><select id="w-typing"><option value="off" ${state.typing==='off'?'selected':''}>Off</option><option value="suggest" ${state.typing==='suggest'?'selected':''}>Suggestions</option><option value="auto" ${state.typing==='auto'?'selected':''}>Autocorrect</option></select><p class="w-secondary">English corrections run when you finish a word with a space, punctuation, or Enter. Includes common typos, standalone I, and sentence capitals after . ? !. Missing-letter guesses appear as choices for you to review. Personal dictionary words are protected.</p><p class="w-secondary" id="w-typing-status" role="status"></p><div id="w-typing-actions"></div></section>${c.planOutline?`<details class="w-outline" ${c.outlineOpen?'open':''}><summary>Your chapter outline</summary><textarea id="w-outline" aria-label="Chapter outline">${escape(c.planOutline)}</textarea></details>`:''}<textarea id="w-draft" aria-label="Chapter draft" placeholder="Begin writing here…" lang="en" spellcheck="${state.typing!=='off'}" autocorrect="off" autocapitalize="off">${escape(c.text)}</textarea><section class="w-sequence"><h3>Your chapter sequence</h3><div class="w-sequence-grid">${chapters.map((x,i)=>`<button type="button" data-chapter="${x.id}" aria-pressed="${x.id===c.id}"><span class="w-secondary">${String(i+1).padStart(2,'0')} · ${x.status}</span><span>${escape(x.title)}</span></button>`).join('')}</div></section>`;
    updateTyping();
   }else if(state.view==='plan'){
    main.innerHTML=`<div class="w-row"><div><p class="w-chapter-number">Creative studio</p><h2>Shape your manuscript.</h2></div></div>${roadmap()}<p class="w-secondary">Drag chapters into order, or use the arrow buttons.</p><div class="w-board-grid">${chapters.map((x,i)=>`<article class="w-plancard" data-card="${x.id}" draggable="true"><div class="w-card-grip"><span class="w-secondary">CHAPTER ${String(i+1).padStart(2,'0')}</span><span aria-hidden="true">⋮⋮</span></div><h3>${escape(x.title)}</h3><span class="w-secondary">${x.status} · ${roleNames[chapterRole(x)]}</span><p>${escape(x.summary)}</p><div class="w-card-controls"><button type="button" data-open="${x.id}">Open draft</button><button type="button" data-move="${x.id}" data-direction="-1" aria-label="Move ${escape(x.title)} earlier" ${i===0?'disabled':''}>←</button><button type="button" data-move="${x.id}" data-direction="1" aria-label="Move ${escape(x.title)} later" ${i===chapters.length-1?'disabled':''}>→</button></div></article>`).join('')}</div>`;
