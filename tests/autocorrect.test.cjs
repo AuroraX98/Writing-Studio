@@ -23,7 +23,7 @@ const checkFunction = source.slice(checkStart, checkEnd);
 const spacingWordsSource = source.match(/const spacingWords=new Set\(\('([^']+)'\)/)?.[1];
 assert.ok(spacingWordsSource, 'missing spacing word list in app/main.js');
 
-function makeHarness({ mode = 'auto', personalWords = [] } = {}) {
+function makeHarness({ mode = 'auto', personalWords = [], missingLetterResults = {} } = {}) {
   const context = vm.createContext({});
   vm.runInContext(`
     const state = { typing: ${JSON.stringify(mode)} };
@@ -36,6 +36,14 @@ function makeHarness({ mode = 'auto', personalWords = [] } = {}) {
     let caret = 0;
     let value = '';
     const messages = [];
+    const missingLetterCalls = [];
+    const missingLetterResults = ${JSON.stringify(missingLetterResults)};
+    globalThis.WritingThesaurus = {
+      missingLetterSuggestions(word) {
+        missingLetterCalls.push(word);
+        return missingLetterResults[word.toLowerCase()] || { words: [], total: 0, limited: false };
+      }
+    };
     const draft = {
       get value() { return value; },
       set value(next) { value = next; },
@@ -71,12 +79,13 @@ function makeHarness({ mode = 'auto', personalWords = [] } = {}) {
       undoTypingCorrection,
       draft,
       messages,
+      missingLetterCalls,
       get text() { return value; },
       get caret() { return caret; },
       get suggestions() { return typingSuggestions.map(item => item.replacement); },
       get undoRecords() { return undoRecords; },
       setInput(text, position = text.length) { value = text; caret = position; chapter.text = text; },
-      useSuggestion() { applyTypingCorrection(typingSuggestions[0]); },
+      useSuggestion(index = 0) { applyTypingCorrection(typingSuggestions[index]); },
       input({ inputType = 'insertText', data = ' ', isComposing = false } = {}) {
         checkTypedWord({ target: draft, inputType, data, isComposing });
         chapter.text = draft.value;
@@ -430,5 +439,125 @@ test('sentence capitalization ignores paste, composition, deletion, and replacem
       assert.equal(app.suggestions.join(','), '');
       assert.equal(app.messages.length, 0);
     }
+  }
+});
+
+test('explicit bdy and knw corrections follow typed boundaries, case, and Undo', () => {
+  for (const [text, event, expected] of [
+    ['bdy ', { data: ' ' }, 'body '],
+    ['knw,', { data: ',' }, 'know,'],
+    ['Bdy.', { data: '.' }, 'Body.'],
+    ['KNW!', { data: '!' }, 'KNOW!'],
+    ['knw\n', { inputType: 'insertLineBreak', data: null }, 'know\n'],
+    ['It ended. bdy ', { data: ' ' }, 'It ended. Body ']
+  ]) {
+    const app = makeHarness();
+    app.setInput(text);
+    app.input(event);
+    assert.equal(app.text, expected);
+    assert.equal(app.caret, expected.length);
+    assert.equal(app.missingLetterCalls.length, 0, 'explicit corrections should not need inferred candidates');
+    app.undoTypingCorrection();
+    assert.equal(app.text, text);
+    assert.equal(app.caret, text.length);
+    assert.equal(app.undoRecords, 1);
+  }
+});
+
+test('explicit missing letter corrections honor Suggestions, Off, and personal dictionary', () => {
+  for (const [word, replacement] of [['bdy', 'body'], ['knw', 'know']]) {
+    const suggestions = makeHarness({ mode: 'suggest' });
+    suggestions.setInput(word + ' ');
+    suggestions.input({ data: ' ' });
+    assert.equal(suggestions.text, word + ' ');
+    assert.equal(suggestions.suggestions.join(','), replacement);
+    suggestions.useSuggestion();
+    assert.equal(suggestions.text, replacement + ' ');
+
+    const off = makeHarness({ mode: 'off' });
+    off.setInput(word + ' ');
+    off.input({ data: ' ' });
+    assert.equal(off.text, word + ' ');
+    assert.equal(off.suggestions.join(','), '');
+
+    for (const mode of ['auto', 'suggest']) {
+      const protectedWord = makeHarness({ mode, personalWords: [word.toUpperCase()] });
+      protectedWord.setInput('It ended. ' + word + ' ');
+      protectedWord.input({ data: ' ' });
+      assert.equal(protectedWord.text, 'It ended. ' + word + ' ');
+      assert.equal(protectedWord.suggestions.join(','), '');
+      assert.equal(protectedWord.messages.length, 0);
+      assert.equal(protectedWord.missingLetterCalls.length, 0);
+    }
+  }
+});
+
+test('inferred missing letters offer choices even in Autocorrect and preserve case and sentence starts', () => {
+  for (const mode of ['auto', 'suggest']) {
+    for (const [text, expected, choice] of [
+      ['wrld ', 'world', 'world '],
+      ['Wrld,', 'World', 'World,'],
+      ['WRLD!', 'WORLD', 'WORLD!'],
+      ['It ended. wrld ', 'World', 'It ended. World '],
+      ['It ended. “wrld ', 'World', 'It ended. “World ']
+    ]) {
+      const app = makeHarness({ mode, missingLetterResults: { wrld: { words: ['world'], total: 1, limited: false } } });
+      app.setInput(text);
+      app.input({ data: text.at(-1) });
+      assert.equal(app.text, text, 'an inferred candidate must await a user choice');
+      assert.equal(app.suggestions.join(','), expected);
+      assert.equal(app.missingLetterCalls.length, 1);
+      app.useSuggestion();
+      assert.equal(app.text, choice);
+      assert.equal(app.caret, choice.length);
+      app.undoTypingCorrection();
+      assert.equal(app.text, text);
+      assert.equal(app.caret, text.length);
+      assert.equal(app.undoRecords, 1);
+    }
+  }
+});
+
+test('ambiguous missing letters expose alternatives and let the writer select a later choice', () => {
+  const app = makeHarness({ missingLetterResults: { crt: { words: ['cart', 'curt'], total: 7, limited: true } } });
+  app.setInput('crt ');
+  app.input({ data: ' ' });
+  assert.equal(app.text, 'crt ');
+  assert.equal(app.suggestions.join(','), 'cart,curt');
+  assert.match(app.messages.at(-1), /Showing 2 of 7 choices/);
+  app.useSuggestion(1);
+  assert.equal(app.text, 'curt ');
+  app.undoTypingCorrection();
+  assert.equal(app.text, 'crt ');
+});
+
+test('valid words without inferred candidates remain unchanged and offer no spelling choice', () => {
+  for (const word of ['body', 'know', 'world', 'cat']) {
+    const app = makeHarness({ missingLetterResults: { [word]: { words: [], total: 0, limited: false } } });
+    app.setInput(word + ' ');
+    app.input({ data: ' ' });
+    assert.equal(app.text, word + ' ');
+    assert.equal(app.suggestions.join(','), '');
+    assert.equal(app.messages.length, 0);
+  }
+});
+
+test('dictionary words, Off, paste, composition, and unfinished words suppress inferred suggestions', () => {
+  const fixtures = [
+    [{ personalWords: ['WRLD'] }, { data: ' ' }, 'wrld '],
+    [{ mode: 'off' }, { data: ' ' }, 'wrld '],
+    [{}, { inputType: 'insertFromPaste', data: ' ' }, 'wrld '],
+    [{}, { data: ' ', isComposing: true }, 'wrld '],
+    [{}, { inputType: 'insertReplacementText', data: ' ' }, 'wrld '],
+    [{}, { data: 'd' }, 'wrld']
+  ];
+  for (const [settings, event, text] of fixtures) {
+    const app = makeHarness({ ...settings, missingLetterResults: { wrld: { words: ['world'], total: 1, limited: false } } });
+    app.setInput(text);
+    app.input(event);
+    assert.equal(app.text, text);
+    assert.equal(app.suggestions.join(','), '');
+    assert.equal(app.messages.length, 0);
+    assert.equal(app.missingLetterCalls.length, 0, 'excluded input should not query inferred words');
   }
 });

@@ -77,3 +77,57 @@ test('browser UMD lookup stays synchronous and announces any result truncation',
  vm.runInContext(fs.readFileSync(path.join(__dirname,'../app/thesaurus.js'),'utf8'),context);
  const result=context.WritingThesaurus.lookup('example');assert.equal(result.total,100);assert.equal(result.senses.length,80);assert.equal(result.limited,true);assert.equal(result.senses[0].words[0],'alternative 0');assert.equal(result instanceof Promise,false);
 });
+
+test('missing-letter suggestions use real bundled words and preserve ambiguity',()=>{
+ assert.deepEqual(thesaurus.missingLetterSuggestions('bdy'),{words:['body'],total:1,limited:false});
+ assert.deepEqual(thesaurus.missingLetterSuggestions('KNW'),{words:['knew','know'],total:2,limited:false});
+ assert.deepEqual(thesaurus.missingLetterSuggestions('bll').words,['ball','bell','bill','boll','bull']);
+ // Inserting m on either side of the existing m produces the same candidate.
+ assert.deepEqual(thesaurus.missingLetterSuggestions('comittee'),{words:['committee'],total:1,limited:false});
+ const changed=thesaurus.missingLetterSuggestions('bdy');changed.words.push('invented');
+ assert.deepEqual(thesaurus.missingLetterSuggestions('bdy').words,['body']);
+});
+
+test('recognized words, common function words, and real inflections need no correction',()=>{
+ for(const word of ['now','read','the','you','that','my','hers','whomever','bodies','walks','children','went','running']){
+  assert.deepEqual(thesaurus.missingLetterSuggestions(word),{words:[],total:0,limited:false},word);
+ }
+ assert.deepEqual(thesaurus.missingLetterSuggestions('bodis').words,['bodies']);
+ assert.deepEqual(thesaurus.missingLetterSuggestions('chldren').words,['children']);
+ assert.deepEqual(thesaurus.missingLetterSuggestions('runnng').words,['running']);
+});
+
+test('missing-letter inputs reject malformed values and enforce length bounds',()=>{
+ for(const input of ['', 'ab','b dy',' bdy','bdy ','body\n','b-dy','b_dy','b2y','bød','<bdy>','bdy\u0000','q'.repeat(33),null,undefined,42,[],{toString(){throw Error('Do not coerce input');}}]){
+  assert.deepEqual(thesaurus.missingLetterSuggestions(input),{words:[],total:0,limited:false});
+ }
+ assert.equal(thesaurus.spellingWordCount,82378);
+ assert.match(thesaurus.spellingCoverage,/Excludes phrases and punctuation/);
+ assert.match(thesaurus.spellingCoverage,/not a complete English dictionary/);
+});
+
+test('offline browser suggestions cap choices, count unique matches, and avoid corpus scans',()=>{
+ let scans=0;
+ const index=Object.fromEntries(Array.from({length:26},(_,i)=>[String.fromCharCode(97+i)+'zzz',[0]]));
+ index['x'.repeat(33)]=[0];
+ const fake={index:new Proxy(index,{ownKeys(target){scans++;return Reflect.ownKeys(target);}}),senses:[['n','A test word','unused']],exceptions:{n:{},v:{},a:{},r:{}}};
+ const context=vm.createContext({WritingWordNetData:fake,fetch(){throw Error('Spelling suggestions must stay offline');}});
+ vm.runInContext(fs.readFileSync(path.join(__dirname,'../app/thesaurus.js'),'utf8'),context);
+ const api=context.WritingThesaurus,initialScans=scans,result=api.missingLetterSuggestions('zzz');
+ assert.deepEqual(Array.from(result.words),['azzz','bzzz','czzz','dzzz','ezzz','fzzz','gzzz','hzzz']);
+ assert.equal(result.total,26);assert.equal(result.limited,true);assert.equal(result instanceof Promise,false);
+ assert.deepEqual(Array.from(api.missingLetterSuggestions('x'.repeat(32)).words),['x'.repeat(33)]);
+ assert.equal(api.missingLetterSuggestions('x'.repeat(33)).total,0);
+ assert.equal(scans,initialScans,'The vocabulary must be indexed once, not scanned for each input');
+});
+
+test('regular inflections require a matching part of speech in the local index',()=>{
+ function spellingFor(pos){
+  const fake={index:{fly:[0]},senses:[[pos,'A test meaning','fly']],exceptions:{n:{},v:{},a:{},r:{}}};
+  const context=vm.createContext({WritingWordNetData:fake});
+  vm.runInContext(fs.readFileSync(path.join(__dirname,'../app/thesaurus.js'),'utf8'),context);
+  return context.WritingThesaurus;
+ }
+ assert.equal(spellingFor('n').missingLetterSuggestions('flyng').total,0,'A noun cannot validate an -ing verb candidate');
+ assert.deepEqual(Array.from(spellingFor('v').missingLetterSuggestions('flyng').words),['flying']);
+});
