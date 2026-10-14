@@ -18,7 +18,7 @@ RUNTIME = [
     'app/vendor/wordnet-data.js', 'app/vendor/WordNet-LICENSE.txt',
     'app/typing-glow.js', 'app/vendor/Caveat-Variable.ttf', 'app/vendor/Caveat-OFL.txt',
 ]
-COMMON = ['launch.py', 'ai_proxy.py', 'key_file.py', 'deepseek-key.example.json', 'KEY_FILE_SETUP.md', 'Writing Studio.html', 'README.md', 'VERSION', 'docs/character-profiles.png', 'docs/assistant-sections.png'] + RUNTIME
+COMMON = ['launch.py', 'ai_proxy.py', 'key_file.py', 'deepseek-key.example.json', 'KEY_FILE_SETUP.md', 'Writing Studio.html', 'README.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'VERSION', 'docs/mint-writing-workspace.png', 'docs/grouped-navigation.png'] + RUNTIME
 SOURCE = [
     '.gitignore', 'Open Writing Studio.command', 'Open Writing Studio.bat',
     'app/mockup-source.html', 'work/build_app.py', 'work/app_extension.js',
@@ -44,6 +44,10 @@ def start_here(platform, version):
                     'any sign-in. Writing, autosave, revision, the thesaurus, and exports\r\n'
                     'work offline. The optional DeepSeek assistant needs your own DeepSeek\r\n'
                     'API key and internet access only when you choose Generate.\r\n\r\n'
+                    'Writing Studio is free to use, modify, and share under the MIT License.\r\n'
+                    'Commercial use is allowed. Keep the copyright and license notices.\r\n'
+                    'Bundled fonts and WordNet data retain their separate licenses;\r\n'
+                    'read LICENSE and THIRD_PARTY_NOTICES.md for the terms.\r\n\r\n'
                     'Extract this entire ZIP into a folder before opening the app.\r\n\r\n')
     if platform == 'windows':
         launch = ('WINDOWS\r\nDouble-click Open Writing Studio.bat. Python 3.8 or newer must be installed\r\n'
@@ -65,8 +69,7 @@ def start_here(platform, version):
     else:
         launch = ('SOURCE\r\nRead README.md for the source build, checks, and release packaging.\r\n'
                   'Runtime files and build inputs are both included. Core writing works\r\n'
-                  'offline; the DeepSeek assistant is optional. A source license has not yet been selected.\r\n'
-                  'The bundled font and WordNet data keep their separate licenses.\r\n'
+                  'offline; the DeepSeek assistant is optional.\r\n'
                   'Repository: https://github.com/AuroraX98/Writing-Studio\r\n'
                   'Downloads: https://github.com/AuroraX98/Writing-Studio/tree/main/downloads\r\n')
     return (introduction + launch + '\r\nKeep a JSON backup on another drive before updates.\r\n'
