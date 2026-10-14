@@ -36,7 +36,7 @@
   function paint(value, theme) {
     const palette = normalize(value);
     if (!palette.enabled) return {enabled: false, palette, styles: {}};
-    const dark = theme === 'dark', hue = palette.hues[0], saturation = Math.min(palette.saturation * 0.3, 16);
+    const dark = (theme === 'dark' || theme === 'mint'), hue = palette.hues[0], saturation = Math.min(palette.saturation * 0.3, 16);
     const backgrounds = palette.hues.map(item => rgb(item, palette.saturation, palette.lightness));
     const paper = rgb(hue, saturation, dark ? 17 : 96), selected = rgb(hue, saturation, dark ? 27 : 86);
     const ink = rgb(hue, 8, dark ? 96 : 13), muted = rgb(hue, 8, dark ? 80 : 31), accent = rgb(hue, Math.min(palette.saturation, 28), dark ? 85 : 25);

@@ -42,7 +42,7 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'writing-export-'));
 try {
   const archive = path.join(tmp, 'manuscript.docx');
   fs.writeFileSync(archive, bytes);
-  const verify = spawnSync('python3', ['-c', [
+  const verify = spawnSync(process.env.WRITING_DESK_TEST_PYTHON || 'python3', ['-c', [
     'import sys, zipfile, xml.etree.ElementTree as ET',
     'z = zipfile.ZipFile(sys.argv[1])',
     'assert z.testzip() is None',
@@ -79,7 +79,7 @@ assert.equal(WritingExport.text(styled),'Styled\n\nWords\n\nBold and italic\n\nB
 const styledTmp=fs.mkdtempSync(path.join(os.tmpdir(),'writing-styled-'));
 try{
   const styledPath=path.join(styledTmp,'styled.docx');fs.writeFileSync(styledPath,WritingExport.docx(styled));
-  const checked=spawnSync('python3',['-c',String.raw`
+  const checked=spawnSync(process.env.WRITING_DESK_TEST_PYTHON || 'python3',['-c',String.raw`
 import sys,zipfile,xml.etree.ElementTree as ET
 with zipfile.ZipFile(sys.argv[1]) as z:
     root=ET.fromstring(z.read('word/document.xml'))

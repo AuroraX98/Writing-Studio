@@ -2,6 +2,18 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const WritingStore = require("../app/storage.js");
 
+test('mint theme and glow preference round-trip without changing manuscript data', () => {
+  const original = sample();
+  original.preferences.theme = 'mint';
+  original.preferences.typingGlow = false;
+  const restored = WritingStore.parse(WritingStore.serialize(original));
+  assert.deepEqual(restored.projects, original.projects);
+  assert.equal(restored.preferences.theme, 'mint');
+  assert.equal(restored.preferences.typingGlow, false);
+  original.preferences.typingGlow = 'false';
+  assert.throws(() => WritingStore.serialize(original), /typingGlow/);
+});
+
 function sample(overrides = {}) {
   return {
     version: 1,

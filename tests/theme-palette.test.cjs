@@ -27,7 +27,7 @@ test('solid mode uses one hue while gradients preserve three ordered stops and d
 });
 
 test('writing surfaces retain readable text at all allowed background extremes', () => {
-  for (const theme of ['dark','light','glass']) for (const hue of [0,30,60,90,120,180,240,300,360]) for (const saturation of [0,35,65]) for (const lightness of [15,40,65,95]) {
+  for (const theme of ['dark','mint','light','glass']) for (const hue of [0,30,60,90,120,180,240,300,360]) for (const saturation of [0,35,65]) for (const lightness of [15,40,65,95]) {
     const painted = Palette.paint({enabled:true,hues:[hue,(hue+75)%360,(hue+210)%360],saturation,lightness},theme);
     assert.ok(painted.minimumContrast>=4.5, `${theme} ${hue} ${saturation} ${lightness}: ${painted.minimumContrast}`);
     const {paper,ink,muted,accent,error,backgrounds} = painted.colors;

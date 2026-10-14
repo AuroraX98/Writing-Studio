@@ -314,7 +314,7 @@
     requireId(data.activeProject, "activeProject");
     requireRecord(data.preferences, "preferences");
     const preferenceEnums = {
-      theme: new Set(["light", "dark", "glass"]),
+      theme: new Set(["light", "dark", "glass", "mint"]),
       font: new Set(["chalkboard", "serif", "sans", "georgia", "palatino", "garamond", "times", "courier", "trebuchet", "verdana"]),
       typing: new Set(["off", "suggest", "auto"]),
       contextTab: new Set(["guide", "ideas", "notes"]),
@@ -322,7 +322,7 @@
     for (const [field, values] of Object.entries(preferenceEnums)) {
       if (field in data.preferences && !values.has(data.preferences[field])) fail("preferences." + field + " is unsupported");
     }
-    for (const field of ["solidGlass", "context", "hintsVisible"]) {
+    for (const field of ["solidGlass", "context", "hintsVisible", "typingGlow"]) {
       if (field in data.preferences && typeof data.preferences[field] !== "boolean") fail("preferences." + field + " must be a boolean");
     }
     if ("prose" in data.preferences && ![16, 18, 20, 22].includes(data.preferences.prose)) fail("preferences.prose must be 16, 18, 20, or 22");

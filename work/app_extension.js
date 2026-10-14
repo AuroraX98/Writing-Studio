@@ -9,13 +9,13 @@
   try{data=WritingStore.load();}catch(error){blocked=true;blockReason='corrupt';saveStatus('Saved data could not be read: '+(error.cause?.message||error.message)+'. Import a backup to recover.',true);}
   if(!data){freshWorkspace=true;const p=blankProject();data={version:1,projects:[p],activeProject:p.id,preferences:{},trashProjects:[]};}
   data.trashProjects??=[];
-  for(const key of ['theme','font','typing','solidGlass','context','contextTab','prose','hintsVisible'])if(key in data.preferences)state[key]=data.preferences[key];state.focus=false;
+  for(const key of ['theme','font','typing','solidGlass','context','contextTab','prose','hintsVisible','typingGlow'])if(key in data.preferences)state[key]=data.preferences[key];state.focus=false;
   if(!data.projects.some(p=>p.id===data.activeProject))data.activeProject=data.projects[0].id;
   activateProject();
   if(!blocked)saveStatus('Ready · edits save locally');
  }
  function activateProject(){const p=project();p.characters??=[];chapters=p.chapters;state.type=p.type;state.genres=initializeGenreChoices(p.genres);state.selected=p.selected&&chapters.some(c=>c.id===p.selected)?p.selected:chapters[0].id;state.view='write';}
- function syncData(){const p=project();p.type=state.type;p.genres={...state.genres};p.selected=state.selected;data.preferences={theme:state.theme,font:state.font,typing:state.typing,solidGlass:state.solidGlass,context:state.context,contextTab:state.contextTab,hintsVisible:state.hintsVisible,palette:WritingPalette.normalize(state.palette),prose:state.prose,personalDictionary:data.preferences.personalDictionary||[],dictionaryTrash:data.preferences.dictionaryTrash||[]};}
+ function syncData(){const p=project();p.type=state.type;p.genres={...state.genres};p.selected=state.selected;data.preferences={theme:state.theme,typingGlow:state.typingGlow!==false,font:state.font,typing:state.typing,solidGlass:state.solidGlass,context:state.context,contextTab:state.contextTab,hintsVisible:state.hintsVisible,palette:WritingPalette.normalize(state.palette),prose:state.prose,personalDictionary:data.preferences.personalDictionary||[],dictionaryTrash:data.preferences.dictionaryTrash||[]};}
  function flushSave(){clearTimeout(saveTimer);if(!dirty)return !blocked;if(blocked){saveStatus('Saving paused. Download a backup or reopen the app.',true);return false;}syncData();try{WritingStore.save(data);dirty=false;queueFolderBackup();saveStatus('Saved locally · '+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}));return true;}catch(error){queueFolderBackup();saveStatus('Save failed · download a backup to keep your work',true);return false;}}
  function scheduleSave(){dirty=true;if(blocked){saveStatus('Saving paused · download a backup',true);return;}saveStatus('Saving…');clearTimeout(saveTimer);saveTimer=setTimeout(flushSave,500);}
  function snapshot(c,label='Saved draft'){const p=project();p.history.unshift({id:uid(),chapterId:c.id,at:new Date().toISOString(),title:label,text:c.text,note:c.note,planOutline:c.planOutline||'',alignment:c.alignment||'left',formats:clone(c.formats||[]),lineSpacing:c.lineSpacing||1.7});}

@@ -2,7 +2,7 @@
 (() => {
  const root=document.getElementById('writer-hybrid');
  let chapters=[];
- const state={view:'write',selected:'opening',focus:false,context:true,hintsVisible:false,prose:18,format:'Markdown',type:'nonfiction',theme:'glass',font:'chalkboard',contextTab:'guide',solidGlass:false,typing:'auto',genres:{fiction:'novel',nonfiction:'reflective',memoir:'chronological'}};
+ const state={view:'write',selected:'opening',focus:false,context:true,hintsVisible:false,prose:18,format:'Markdown',type:'nonfiction',theme:'mint',font:'georgia',typingGlow:true,contextTab:'guide',solidGlass:false,typing:'auto',genres:{fiction:'novel',nonfiction:'reflective',memoir:'chronological'}};
  const commonTypos={bdy:'body',knw:'know',i:'I',whta:'what',thta:'that',liek:'like',teh:'the',adn:'and',recieve:'receive',becuase:'because',becasue:'because',definately:'definitely',seperate:'separate',writting:'writing',occured:'occurred',tommorow:'tomorrow',thier:'their',coudl:'could',woudl:'would',shoudl:'should',wiht:'with',hte:'the'};
  const spacingWords=new Set(('a about after again all also am an and another any are around as at back be because been before being book books both but by can cannot chapter chapters come could day did do does done down each end even every few find first for from get give go good had has have he her here him his how i idea if in input into is it its just keep know last later life like little look made make may me more most much my new next no not now of off on one only or other our out over own part people place put question read right said same see she should small so some something story take than that the their them then there these they thing think this those through time to too try two up us use very want was way we well were what when where which who will with word words work world would write writer writing year you your receive separate definitely tomorrow occurred').split(' '));
  let typingSuggestions=[],lastCorrection=null;
@@ -119,7 +119,7 @@
   return `<section class="w-guide"><h3>Chapter compass</h3><label for="w-genre">${state.type==='memoir'?'Memoir structure':'Genre / approach'}</label><select id="w-genre">${genreOptions(state.type,state.genres[state.type])}</select><label for="w-role">This chapter’s role</label><select id="w-role">${Object.entries(roleNames).map(([id,label])=>`<option value="${id}" ${chapterRole(c)===id?'selected':''}>${label}</option>`).join('')}</select><p class="w-secondary">Common ingredients to consider. Choose what helps this chapter.</p>${guideItems(c).map(([title,prompt],i)=>`<details ${i===0?'open':''}><summary>${escape(title)}</summary><p>${escape(prompt)}</p><label class="w-check"><input type="checkbox" data-guide-pick="${i}" ${picks[i]!==false?'checked':''}><span>Include in outline</span></label></details>`).join('')}<button type="button" id="w-save-guide">Add prompts to outline</button><p id="w-guide-status" role="status"></p><button type="button" data-view="plan">See suggested book structure ↗</button></section>`;
  }
  function roadmap(){return `<details class="w-roadmap" open><summary>Suggested book structure · ${escape(genre().name)}</summary><p class="w-secondary">Flexible movements, not fixed chapter numbers. A movement can span several chapters; a chapter can serve several purposes.</p><ol>${genre().map.map(([title,prompt])=>`<li><strong>${escape(title)}</strong><span class="w-secondary">${escape(prompt)}</span></li>`).join('')}</ol></details>`;}
- function appearance(){root.style.colorScheme=state.theme==='dark'?'dark':'light';root.classList.toggle('w-glass',state.theme==='glass');root.classList.toggle('w-solid-glass',state.solidGlass);root.querySelector('#w-transparency-control').hidden=state.theme!=='glass';root.querySelector('#w-solid').checked=state.solidGlass;root.querySelector('#w-theme').value=state.theme;root.querySelector('#w-font').value=state.font;root.style.setProperty('--w-draft-font',{chalkboard:'"Chalkboard SE","Chalkboard","Segoe Print","Comic Sans MS",cursive',serif:'Georgia,serif',sans:'system-ui,sans-serif',georgia:'Georgia,serif',palatino:'Palatino,"Palatino Linotype","Book Antiqua",serif',garamond:'Garamond,Baskerville,Georgia,serif',times:'"Times New Roman",Times,serif',courier:'"Courier New",Courier,monospace',trebuchet:'"Trebuchet MS",Arial,sans-serif',verdana:'Verdana,Geneva,sans-serif'}[state.font]);onPaletteAppearance();}
+ function appearance(){root.style.colorScheme=state.theme==='dark'?'dark':'light';root.classList.toggle('w-glass',state.theme==='glass');root.classList.toggle('w-solid-glass',state.solidGlass);root.querySelector('#w-transparency-control').hidden=state.theme!=='glass';root.querySelector('#w-solid').checked=state.solidGlass;root.querySelector('#w-theme').value=state.theme;root.querySelector('#w-font').value=state.font;root.style.setProperty('--w-draft-font',{chalkboard:'"Chalkboard SE","Chalkboard","Segoe Print","Comic Sans MS",cursive',serif:'Georgia,serif',sans:'system-ui,sans-serif',georgia:'Georgia,serif',palatino:'Palatino,"Palatino Linotype","Book Antiqua",serif',garamond:'Garamond,Baskerville,Georgia,serif',times:'"Times New Roman",Times,serif',courier:'"Courier New",Courier,monospace',trebuchet:'"Trebuchet MS",Arial,sans-serif',verdana:'Verdana,Geneva,sans-serif'}[state.font]);onPaletteAppearance();studioAppearance();}
  function fitText(){root.querySelectorAll('textarea').forEach(el=>{el.style.height='auto';el.style.height=(el.scrollHeight+el.offsetHeight-el.clientHeight)+'px';});}
  function count(){root.querySelector('#w-wordcount').textContent=`${words(selected().text)} chapter words · ${chapters.reduce((n,c)=>n+words(c.text),0)} manuscript words`;}
  function tree(){
@@ -132,6 +132,7 @@
   root.querySelector('#w-chapters').innerHTML=matches.length?matches.map(({chapter:c,where,excerpt:match})=>`<button type="button" class="w-chapter" data-chapter="${c.id}" aria-pressed="${c.id===state.selected}">${escape(c.title)}<span>${escape(c.status)}${q?' · '+escape(where)+': “'+escape(match)+'”':''}</span></button>`).join(''):'<div class="w-search-empty"><p role="status">No chapters match this search.</p><p class="w-secondary">Try a shorter phrase or use Clear search to browse every chapter.</p></div>';
  }
  function render(){
+  prepareStudioRender();
   const c=selected();
   typingSuggestions=[];lastCorrection=null;
   appearance();root.querySelector('#w-type').value=state.type;
@@ -168,7 +169,7 @@
   }else{
    main.innerHTML=exportView();
   }
-  enrichView();enrichAssistant();fitText();enrichNavigation();
+  enrichView();enrichAssistant();fitText();enrichNavigation();enrichStudio();
  }
  function exportDetail(){}
 // Inject inside the main app closure after `library`, `roleNames`, and
@@ -222,13 +223,13 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
   try{data=WritingStore.load();}catch(error){blocked=true;blockReason='corrupt';saveStatus('Saved data could not be read: '+(error.cause?.message||error.message)+'. Import a backup to recover.',true);}
   if(!data){freshWorkspace=true;const p=blankProject();data={version:1,projects:[p],activeProject:p.id,preferences:{},trashProjects:[]};}
   data.trashProjects??=[];
-  for(const key of ['theme','font','typing','solidGlass','context','contextTab','prose','hintsVisible'])if(key in data.preferences)state[key]=data.preferences[key];state.focus=false;
+  for(const key of ['theme','font','typing','solidGlass','context','contextTab','prose','hintsVisible','typingGlow'])if(key in data.preferences)state[key]=data.preferences[key];state.focus=false;
   if(!data.projects.some(p=>p.id===data.activeProject))data.activeProject=data.projects[0].id;
   activateProject();
   if(!blocked)saveStatus('Ready · edits save locally');
  }
  function activateProject(){const p=project();p.characters??=[];chapters=p.chapters;state.type=p.type;state.genres=initializeGenreChoices(p.genres);state.selected=p.selected&&chapters.some(c=>c.id===p.selected)?p.selected:chapters[0].id;state.view='write';}
- function syncData(){const p=project();p.type=state.type;p.genres={...state.genres};p.selected=state.selected;data.preferences={theme:state.theme,font:state.font,typing:state.typing,solidGlass:state.solidGlass,context:state.context,contextTab:state.contextTab,hintsVisible:state.hintsVisible,palette:WritingPalette.normalize(state.palette),prose:state.prose,personalDictionary:data.preferences.personalDictionary||[],dictionaryTrash:data.preferences.dictionaryTrash||[]};}
+ function syncData(){const p=project();p.type=state.type;p.genres={...state.genres};p.selected=state.selected;data.preferences={theme:state.theme,typingGlow:state.typingGlow!==false,font:state.font,typing:state.typing,solidGlass:state.solidGlass,context:state.context,contextTab:state.contextTab,hintsVisible:state.hintsVisible,palette:WritingPalette.normalize(state.palette),prose:state.prose,personalDictionary:data.preferences.personalDictionary||[],dictionaryTrash:data.preferences.dictionaryTrash||[]};}
  function flushSave(){clearTimeout(saveTimer);if(!dirty)return !blocked;if(blocked){saveStatus('Saving paused. Download a backup or reopen the app.',true);return false;}syncData();try{WritingStore.save(data);dirty=false;queueFolderBackup();saveStatus('Saved locally · '+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}));return true;}catch(error){queueFolderBackup();saveStatus('Save failed · download a backup to keep your work',true);return false;}}
  function scheduleSave(){dirty=true;if(blocked){saveStatus('Saving paused · download a backup',true);return;}saveStatus('Saving…');clearTimeout(saveTimer);saveTimer=setTimeout(flushSave,500);}
  function snapshot(c,label='Saved draft'){const p=project();p.history.unshift({id:uid(),chapterId:c.id,at:new Date().toISOString(),title:label,text:c.text,note:c.note,planOutline:c.planOutline||'',alignment:c.alignment||'left',formats:clone(c.formats||[]),lineSpacing:c.lineSpacing||1.7});}
@@ -416,6 +417,7 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
   recordEditorUndo();const c=selected();try{c.formats=WritingTextTools.toggle(c.text,c.formats,range.start,range.end,attribute);}catch(error){if(notice)notice.textContent=error.message;return;}draft.focus();draft.setSelectionRange(range.start,range.end);updateFormattedPreview();scheduleSave();if(notice)notice.textContent='Formatting updated in the preview and exports.';
  }
  function updateFormattedPreview(){
+  if(typeof studioGlow!=='undefined')studioGlow?.refresh();
   const preview=root.querySelector('#w-formatted-preview');if(!preview||!selected())return;const c=selected();preview.innerHTML=c.text?WritingTextTools.html(c.text,c.formats):'<span class="w-secondary">Your formatted chapter will appear here.</span>';preview.style.textAlign=c.alignment||'left';preview.style.lineHeight=c.lineSpacing||1.7;
  }
  function writingControls(){
@@ -531,7 +533,7 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
    state.palette=WritingPalette.normalize(palettePreview);data.preferences.palette=clone(state.palette);palettePreview=null;paletteTransaction=null;onPaletteAppearance();
   },'Save colors');updatePaletteControls();
  }
- function cancelPalette(){if(!paletteTransaction)return;state.palette=paletteTransaction.before;palettePreview=null;paletteTransaction=null;onPaletteAppearance();}
+ function cancelPalette(){if(!paletteTransaction)return;state.palette=paletteTransaction.before;palettePreview=null;paletteTransaction=null;onPaletteAppearance();studioAppearance();}
  root.addEventListener('click',event=>{if(event.target.closest('#w-colors'))openPalette();});
  document.getElementById('w-dialog').addEventListener('input',event=>{
   if(!paletteTransaction||!event.target.id.startsWith('w-palette-'))return;const input=event.target,key=input.id.slice('w-palette-'.length);
@@ -583,6 +585,7 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
   if(key==='name')root.querySelector('#w-character-heading').textContent=c.name;
   updateCharacterList();scheduleSave();
  });
+ function assistantIsVisible(){return state.view==='assistant'||(state.view==='write'&&typeof studioPanel!=='undefined'&&studioPanel==='assistant');}
  const assistantWorkspaces=new Map();let assistantCurrentKey='',assistantInitialized=false;
  const assistantClient=WritingAssistant.createClient({onStatus:updateAssistantStatus});
  const assistantStylePresets=['Clear and concrete','Conversational','Lyrical','Literary','Academic','Direct'];
@@ -629,7 +632,7 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
   const choice=(values,current,labels={})=>values.map(value=>`<option value="${escape(value)}" ${value===current?'selected':''}>${escape(labels[value]||value)}</option>`).join('');
   return `<h2>Writing assistant</h2><p class="w-secondary">Optional DeepSeek support. Your writing stays local until you choose Generate. DeepSeek receives the writing profile, project type, genre, instruction, and text preview below. Requests use your DeepSeek account and may incur charges.</p><details id="w-ai-settings" class="w-plancard"><summary>Assistant settings</summary><p id="w-ai-connection-status" role="status">Checking the local launcher…</p><label for="w-ai-key">DeepSeek API key<input id="w-ai-key" type="password" autocomplete="new-password" autocapitalize="off" spellcheck="false" placeholder="Paste your key for this session"></label><div class="w-row"><button id="w-ai-connect">Attach key</button><button id="w-ai-disconnect">Disconnect and forget key</button><button id="w-ai-reconnect">Check local connection</button></div><p class="w-secondary">A key attached here stays in memory and is excluded from projects and backups. Attaching it turns off automatic key-file reading. Closing the launcher forgets this session key. Attaching a key makes no provider request and does not verify account credit.</p>${assistantKeyFileFields()}</details><details class="w-plancard"><summary>Project writing profile</summary><p class="w-secondary">Saved with ${escape(project().title)} and included in every assistant request for this project.</p><div class="w-assistant-grid"><label>Tone<select id="w-ai-tone">${choice(WritingAssistant.TONES,profile.tone)}</select></label><label>Point of view<select id="w-ai-pov">${choice(WritingAssistant.POVS,profile.pov,{first:'First person',second:'Second person',third:'Third person'})}</select></label><label>English variant<select id="w-ai-variant">${choice(WritingAssistant.VARIANTS,profile.englishVariant,{american:'American English',british:'British English'})}</select></label><label>Style preset<select id="w-ai-style-preset"><option value="">Custom / describe below</option>${choice(assistantStylePresets,profile.style)}</select></label></div><label>Style description<input id="w-ai-style" maxlength="400" value="${escape(profile.style)}" placeholder="For example: warm, lyrical, concrete"></label><label>Intended audience<input id="w-ai-audience" maxlength="400" value="${escape(profile.audience)}" placeholder="Who are you writing for?"></label><label>Writing preferences<textarea id="w-ai-instructions" maxlength="2000" placeholder="Words to avoid, what to preserve, or other preferences">${escape(profile.instructions)}</textarea></label></details><section class="w-section" aria-label="Writing request"><h3>Writing request</h3><div class="w-assistant-grid"><label>Writing goal<select id="w-ai-goal">${choice(WritingAssistant.GOALS,work.goal,{brainstorm:'Brainstorm ideas',outline:'Create an outline',continue:'Suggest a continuation',rewrite:'Rewrite an excerpt',feedback:'Give feedback'})}</select></label><label>DeepSeek model<select id="w-ai-model">${choice(WritingAssistant.MODELS,work.model,{'deepseek-flash':'Flash','deepseek-v4-pro':'V4 Pro'})}</select></label></div><p class="w-secondary">Current context: ${escape(projectTypeLabel(state.type))} · ${escape(genre().name)} · ${escape(c.title)}. Chapter title is shown here for orientation; it is excluded from the request.</p><p class="w-secondary">Your instruction, text preview, chosen goal/model and editable suggestion are saved with this chapter, including in full backups.</p><button id="w-ai-clear-draft" type="button">Clear saved assistant draft</button><label>Your instruction<textarea id="w-ai-brief" maxlength="2000" placeholder="What would help with this passage?">${escape(work.brief)}</textarea></label></section><section class="w-section" aria-label="Text to send"><h3>Text preview</h3><div class="w-row"><button id="w-ai-use-selection" ${work.selection?'':'disabled'}>Use selected words</button><button id="w-ai-use-chapter">Use chapter excerpt</button><button id="w-ai-clear-text">Clear text preview</button></div><label>Text to send<textarea id="w-ai-text" maxlength="10000" placeholder="Include text explicitly or paste an excerpt">${escape(work.text)}</textarea></label><p class="w-secondary">Nothing is included automatically. Chapter excerpts include at most the first 10,000 characters; review and edit them before generating. Total request limit: 12,000 characters including instructions and profile.</p><p id="w-ai-prerequisite" role="status" class="w-secondary"></p><div class="w-row"><button id="w-ai-generate" aria-describedby="w-ai-prerequisite">Generate suggestion</button><button type="button" id="w-ai-open-settings" aria-controls="w-ai-settings">Open Assistant settings</button></div><p id="w-ai-status" role="status" class="w-secondary">${escape(work.error||'Suggestions stay here until you explicitly insert them or save them as a note.')}</p></section>${work.result?`<section class="w-assistant-result w-section" aria-label="Editable suggestion"><h3>Editable suggestion</h3>${work.result.restored?'<p class="w-secondary">Restored suggestion: review and copy this text here. Generate a new suggestion to insert it, because the original draft target cannot be verified after reload or import.</p>':''}${work.result.truncated?'<p class="w-secondary">The model reached the output limit. This suggestion may end mid-sentence.</p>':''}<textarea id="w-ai-result" maxlength="24000" aria-label="Editable assistant suggestion">${escape(work.result.text)}</textarea><div class="w-row"><button id="w-ai-save-note" ${work.result.restored?'disabled':''}>Save as chapter note</button><button id="w-ai-insert-selection" ${work.result.selection&&!work.result.restored?'':'disabled'}>Replace selected words</button><button id="w-ai-append" ${work.result.restored?'disabled':''}>Append to chapter</button></div><p class="w-secondary">Insertion preserves a version of your draft first. Changes to the draft after generation require a new suggestion.</p></section>`:''}`;
  }
- function enrichAssistant(){if(state.view==='assistant'){updateAssistantStatus(assistantClient.state);fitText();}}
+ function enrichAssistant(){if(assistantIsVisible()){updateAssistantStatus(assistantClient.state);fitText();}}
  function initializeAssistant(){
   if(assistantInitialized)return;assistantInitialized=true;
   const nav=root.querySelector('.w-nav');if(nav&&!nav.querySelector('[data-view="assistant"]'))nav.insertAdjacentHTML('beforeend','<button type="button" data-view="assistant">Assistant</button>');
@@ -654,8 +657,8 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
   try{const result=await assistantClient.generate({model:work.model,goal:work.goal,brief:work.brief,text:work.text,profile:WritingAssistant.normalizeProfile(project().writingProfile),projectType:state.type,genre:genre().name});
    // A cleared draft or imported workspace must not be repopulated by an old response.
    if(assistantWorkspaces.get(key)!==work||!data.projects.some(p=>p.chapters.includes(work.chapter)))return;
-   work.result={...result,target,selection};saveAssistantDraft(work);if(assistantCurrentKey===key&&state.view==='assistant'){render();assistantNotice('Suggestion ready. Review it before adding it to your writing.');}
-  }catch(error){work.error=error.message;if(assistantCurrentKey===key&&state.view==='assistant')assistantNotice(error.message,true);}
+   work.result={...result,target,selection};saveAssistantDraft(work);if(assistantCurrentKey===key&&assistantIsVisible()){render();assistantNotice('Suggestion ready. Review it before adding it to your writing.');}
+  }catch(error){work.error=error.message;if(assistantCurrentKey===key&&assistantIsVisible())assistantNotice(error.message,true);}
  }
  function applyAssistant(action){
   const work=assistantWorkspace(),result=work.result;if(!result)return;
@@ -785,6 +788,138 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
  window.addEventListener('hashchange',()=>{if(location.hash.startsWith('#studio?')&&location.hash!==navigationURL(navigationRoute())){captureNavigation();navigationApplying=true;navigationTrigger={id:'location-link'};if(applyNavigationURL()){render();scheduleSave();}navigationApplying=false;}});
 
  window.addEventListener('scroll',()=>{if(navigationCurrent&&window.scrollY>=main.getBoundingClientRect().top+window.scrollY-20)navigationWorkspacePositions.set(navigationKey(navigationCurrent),window.scrollY);},{passive:true});
+ // The editor retains its native textarea and existing storage/formatting model.
+ let studioReady=false,studioGlow=null,studioFontLabel=null;
+ let studioPanel='notes',studioChapters=window.innerWidth>900,studioTools=window.innerWidth>1100;
+ function studioMenu(id,label){const el=document.createElement('details');el.id=id;el.className='w-menu';el.innerHTML='<summary>'+label+'</summary><div class="w-menu-panel"></div>';return el;}
+ function initializeStudio(){
+  const header=root.querySelector('.w-top'),brand=header.querySelector('.w-brand');
+  const projectMenu=studioMenu('w-project-menu','Project'),workspaceMenu=studioMenu('w-workspace-menu','Workspace: Studio'),appearanceMenu=studioMenu('w-appearance-menu','Appearance');
+  const projectPanel=projectMenu.lastElementChild,appearancePanel=appearanceMenu.lastElementChild;
+  for(const id of ['w-project','w-new-project','w-rename-project','w-type','w-import','w-backup','w-folder-backups','w-delete-project']){
+   const el=root.querySelector('#'+id);projectPanel.append(el.matches('select')?el.closest('label'):el);
+  }
+  projectPanel.insertAdjacentHTML('beforeend','<button type="button" data-view="export">Export manuscript</button><button type="button" data-view="trash">Trash</button>');
+  for(const id of ['w-theme','w-colors','w-transparency-control']){const el=root.querySelector('#'+id);appearancePanel.append(el.matches('select')?el.closest('label'):el);}
+  const theme=appearancePanel.querySelector('#w-theme');theme.insertAdjacentHTML('afterbegin','<option value="mint">Mint charcoal</option>');
+  appearancePanel.insertAdjacentHTML('beforeend','<label class="w-check"><input type="checkbox" id="w-typing-glow"><span>Typing glow</span></label><p class="w-secondary">A mint glow fades after each letter. Animation is off when your device requests reduced motion.</p><div id="w-font-home"></div>');
+  studioFontLabel=root.querySelector('#w-font').closest('label');appearancePanel.querySelector('#w-font-home').append(studioFontLabel);
+  const groups=[['Write',['write','reading']],['Plan',['plan','characters','research']],['Review',['revise','assistant']],['Help',['help']]];
+  workspaceMenu.lastElementChild.innerHTML=groups.map(([title,views])=>'<section class="w-menu-group"><h3>'+title+'</h3>'+views.map(view=>'<button type="button" data-view="'+view+'">'+navigationViews[view]+'</button>').join('')+'</section>').join('');
+  const actions=document.createElement('div');actions.className='w-top-actions';
+  actions.append(root.querySelector('#w-save-status'),root.querySelector('#w-focus'));
+  actions.insertAdjacentHTML('beforeend','<button type="button" id="w-studio-chapters" aria-controls="w-chapters-sidebar">Chapters</button><button type="button" id="w-studio-tools" aria-controls="w-context">Chapter tools</button>');
+  header.replaceChildren(brand,projectMenu,workspaceMenu,appearanceMenu,actions);
+  root.querySelector('.w-tree').id='w-chapters-sidebar';
+  root.querySelector('.w-nav').hidden=true;root.querySelector('.w-projectbar').hidden=true;root.querySelector('.w-folderbar').hidden=true;
+  root.querySelector('.w-footer').append(root.querySelector('#w-folder-status'));
+  studioPanel=state.contextTab==='guide'&&!state.hintsVisible?'notes':state.contextTab;
+  studioReady=true;
+ }
+ function prepareStudioRender(){
+  if(!studioReady)return;
+  studioGlow?.destroy();studioGlow=null;
+  root.querySelector('#w-font-home').append(studioFontLabel);
+  // Existing chapter tools still render and save through their original handlers.
+  state.contextTab=['notes','ideas','guide'].includes(studioPanel)?studioPanel:'notes';
+  if(studioPanel==='guide')state.hintsVisible=true;
+ }
+ function studioAppearance(){
+  root.classList.toggle('w-mint',state.theme==='mint');document.getElementById('w-dialog').classList.toggle('w-mint',state.theme==='mint');
+  root.style.colorScheme=['dark','mint'].includes(state.theme)?'dark':'light';
+  document.getElementById('w-dialog').style.colorScheme=root.style.colorScheme;
+ }
+ function studioVisibility(){
+  const writing=state.view==='write';
+  root.classList.toggle('w-writing-view',writing);
+  root.classList.toggle('w-chapters-hidden',!studioChapters||state.focus);
+  root.classList.toggle('w-tools-hidden',!studioTools||state.focus||!writing);
+  root.querySelector('.w-tree').hidden=!studioChapters||state.focus;
+  context.hidden=!studioTools||state.focus||!writing;
+  root.querySelector('#w-studio-chapters').setAttribute('aria-expanded',String(studioChapters&&!state.focus));
+  root.querySelector('#w-studio-tools').setAttribute('aria-expanded',String(studioTools&&!state.focus&&writing));
+  root.querySelector('#w-studio-tools').hidden=!writing;
+  // Supersede the previous breakpoint-specific navigation with one shared header.
+  root.classList.remove('w-no-context','w-mobile-settings-hidden');
+  root.querySelector('.w-mobile-nav')?.setAttribute('hidden','');
+ }
+ function enrichStudio(){
+  if(!studioReady)return;
+  root.querySelector('#w-project-menu>summary').textContent=project().title;
+  root.querySelector('#w-workspace-menu>summary').textContent='Workspace: '+navigationViews[state.view];
+  root.querySelector('#w-typing-glow').checked=state.typingGlow!==false;
+  root.querySelectorAll('.w-menu [data-view]').forEach(el=>el.setAttribute('aria-current',el.dataset.view===state.view?'page':'false'));
+  root.querySelector('#w-font-home').hidden=state.view==='write';
+  const navigation=root.querySelector('#w-navigation-tools');if(navigation)root.querySelector('.w-footer').append(navigation);
+  studioVisibility();studioAppearance();
+  if(state.view!=='write')return;
+  const draft=main.querySelector('#w-draft'),toolbar=main.querySelector('.w-writing-toolbar'),settings=main.querySelector('.w-metadata');
+  settings.append(main.querySelector('#w-delete-chapter'));
+  main.querySelector('#w-toggle-context')?.remove();main.querySelector('#w-toggle-hints')?.remove();
+  const tools=studioMenu('w-writing-tools','Writing tools');tools.classList.add('w-writing-tools');
+  for(const el of [main.querySelector('.w-typing-settings'),main.querySelector('#w-dictionary'),main.querySelector('#w-thesaurus'),main.querySelector('.w-shortcuts')])if(el)tools.lastElementChild.append(el);
+  const size=main.querySelector('#w-prose').closest('label'),alignment=main.querySelector('#w-alignment').closest('label'),spacing=main.querySelector('#w-spacing').closest('label');
+  toolbar.replaceChildren(main.querySelector('#w-editor-undo'),main.querySelector('#w-editor-redo'),studioFontLabel,size,main.querySelector('#w-bold'),main.querySelector('#w-italic'),alignment,spacing,tools);
+  const status=main.querySelector('#w-formatting-status');status.textContent='';
+  const outline=main.querySelector('.w-outline');
+  // Only one copy of each editable field exists, so existing input handlers and IDs remain valid.
+  context.querySelector('.w-board-tabs')?.remove();
+  if(studioPanel==='outline'){
+   context.replaceChildren(outline);outline.open=true;
+  }else if(studioPanel==='assistant'){
+   context.innerHTML=assistantView();outline?.remove();
+  }else outline?.remove();
+  context.insertAdjacentHTML('afterbegin','<div class="w-panel-heading"><label for="w-panel-choice">Chapter tools<select id="w-panel-choice"><option value="notes">Chapter notes</option><option value="outline">Outline</option><option value="guide">Hints</option><option value="ideas">Ideas &amp; saved passages</option><option value="assistant">Assistant</option></select></label><button type="button" id="w-close-tools" aria-label="Close chapter tools">×</button></div>');
+  context.querySelector('#w-panel-choice').value=studioPanel;
+  // Place all toolbar controls directly against the draft. Help/status follows it.
+  draft.before(toolbar);draft.after(status);
+  for(const id of ['w-new-project','w-ai-generate','w-download'])root.querySelector('#'+id)?.classList.add('w-primary');
+  const typing=main.querySelector('.w-typing-tools');status.after(typing);
+  main.querySelector('.w-sequence')?.remove();
+  studioGlow=globalThis.WritingGlow?.attach(draft,state.typingGlow!==false);
+  if(studioPanel==='assistant')updateAssistantStatus(assistantClient.state);
+  fitText();
+ }
+ function closeStudioMenus(except=null){root.querySelectorAll('details.w-menu[open]').forEach(menu=>{if(menu!==except)menu.open=false;});}
+ function captureStudioSelection(){
+  if(state.view!=='write'||studioPanel!=='assistant')return;
+  const draft=root.querySelector('#w-draft');if(!draft)return;
+  const c=selected(),work=assistantWorkspace();
+  work.selection=draft.selectionEnd>draft.selectionStart?{projectId:project().id,chapterId:c.id,start:draft.selectionStart,end:draft.selectionEnd,text:c.text,formatFingerprint:WritingRevision.formatFingerprint(c),contextFingerprint:assistantContextFingerprint()}:null;
+  const button=root.querySelector('#w-ai-use-selection');if(button)button.disabled=!work.selection;
+ }
+ root.addEventListener('select',event=>{if(event.target.id==='w-draft')captureStudioSelection();},true);
+ root.addEventListener('input',event=>{if(event.target.id==='w-draft')queueMicrotask(()=>{studioGlow?.refresh();captureStudioSelection();});});
+ root.addEventListener('click',event=>{if(event.target.closest('#w-ai-use-selection'))captureStudioSelection();},true);
+ root.addEventListener('toggle',event=>{
+  const menu=event.target;if(!menu.matches?.('details.w-menu'))return;
+  menu.querySelector('summary').setAttribute('aria-expanded',String(menu.open));
+  if(menu.open)closeStudioMenus(menu);
+ },true);
+ document.addEventListener('pointerdown',event=>{if(!event.target.closest('.w-menu'))closeStudioMenus();});
+ document.addEventListener('focusin',event=>{if(!event.target.closest('.w-menu'))closeStudioMenus();});
+ root.addEventListener('keydown',event=>{
+  if(event.key==='Escape'){
+   const menu=event.target.closest('details.w-menu[open]');if(menu){event.preventDefault();event.stopPropagation();menu.open=false;menu.querySelector('summary').focus();}
+  }
+ });
+ root.addEventListener('click',event=>{
+  const button=event.target.closest('button');if(!button)return;
+  if(button.id==='w-studio-chapters'){studioChapters=!studioChapters;studioVisibility();if(studioChapters)root.querySelector('#w-search').focus();}
+  else if(button.id==='w-studio-tools'||button.id==='w-close-tools'){studioTools=button.id==='w-close-tools'?false:!studioTools;studioVisibility();fitText();(studioTools?root.querySelector('#w-panel-choice'):root.querySelector('#w-studio-tools')).focus();}
+  if(button.closest('.w-menu')&&(button.dataset.view||['w-new-project','w-rename-project','w-delete-project','w-import','w-backup','w-folder-backups','w-colors','w-dictionary','w-thesaurus'].includes(button.id))){
+   const summary=button.closest('.w-menu').querySelector('summary');closeStudioMenus();queueMicrotask(()=>{if(document.activeElement===button||document.activeElement===document.body)summary.focus();});
+  }
+  if(button.id==='w-save-guide'){const before=selected().planOutline;setTimeout(()=>{if(selected().planOutline!==before){studioPanel='outline';studioTools=true;render();context.querySelector('#w-outline')?.focus();}});}
+ });
+ root.addEventListener('change',event=>{
+  if(event.target.id==='w-panel-choice'){
+   const range=selectionForDraft();if(event.target.value==='assistant'&&range&&range.end>range.start){const work=assistantWorkspace(),c=selected();work.selection={projectId:project().id,chapterId:c.id,start:range.start,end:range.end,text:c.text,formatFingerprint:WritingRevision.formatFingerprint(c),contextFingerprint:assistantContextFingerprint()};}
+   studioPanel=event.target.value;render();context.querySelector('#w-panel-choice').focus();
+  }else if(event.target.id==='w-typing-glow'){state.typingGlow=event.target.checked;studioGlow?.setEnabled(state.typingGlow);scheduleSave();}
+  queueMicrotask(()=>{studioAppearance();studioGlow?.refresh();});
+ });
+
  root.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;
   if(b.dataset.typingChoice!==undefined){applyTypingCorrection(typingSuggestions[Number(b.dataset.typingChoice)]);}
@@ -814,6 +949,7 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
  initializePalette();
  initializeNavigation();
  initializeAssistant();
+ initializeStudio();
  render();
  connectFolderBackups();
  let previousWidth=0;new ResizeObserver(entries=>{const width=entries[0].contentRect.width;if(width!==previousWidth){previousWidth=width;fitText();}}).observe(root);
