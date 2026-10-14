@@ -315,7 +315,7 @@
     requireRecord(data.preferences, "preferences");
     const preferenceEnums = {
       theme: new Set(["light", "dark", "glass", "mint"]),
-      font: new Set(["chalkboard", "serif", "sans", "georgia", "palatino", "garamond", "times", "courier", "trebuchet", "verdana"]),
+      font: new Set(["chalkboard", "serif", "sans", "caveat", "georgia", "palatino", "garamond", "times", "courier", "trebuchet", "verdana"]),
       typing: new Set(["off", "suggest", "auto"]),
       contextTab: new Set(["guide", "ideas", "notes"]),
     };
