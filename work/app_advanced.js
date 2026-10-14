@@ -86,6 +86,7 @@
   recordEditorUndo();const c=selected();try{c.formats=WritingTextTools.toggle(c.text,c.formats,range.start,range.end,attribute);}catch(error){if(notice)notice.textContent=error.message;return;}draft.focus();draft.setSelectionRange(range.start,range.end);updateFormattedPreview();scheduleSave();if(notice)notice.textContent='Formatting updated in the preview and exports.';
  }
  function updateFormattedPreview(){
+  if(typeof studioGlow!=='undefined')studioGlow?.refresh();
   const preview=root.querySelector('#w-formatted-preview');if(!preview||!selected())return;const c=selected();preview.innerHTML=c.text?WritingTextTools.html(c.text,c.formats):'<span class="w-secondary">Your formatted chapter will appear here.</span>';preview.style.textAlign=c.alignment||'left';preview.style.lineHeight=c.lineSpacing||1.7;
  }
  function writingControls(){

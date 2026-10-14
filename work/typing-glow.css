@@ -1,0 +1,11 @@
+.w-glow-wrap { position:relative; min-width:0; }
+.w-glow-wrap > textarea { display:block; }
+.w-glow-viewport { position:absolute; overflow:hidden; pointer-events:none; user-select:none; z-index:1; }
+.w-glow-viewport[hidden] { display:none; }
+.w-glow-mirror { box-sizing:border-box; margin:0; border:0; color:transparent; pointer-events:none; }
+.w-glow-letter { color:transparent; animation:w-letter-glow 1500ms ease-out both; }
+@keyframes w-letter-glow {
+  0% { text-shadow:0 0 3px #8ce8c3,0 0 9px #8ce8c3,0 0 17px rgba(140,232,195,.75); }
+  100% { text-shadow:0 0 3px transparent,0 0 9px transparent,0 0 17px transparent; }
+}
+@media(prefers-reduced-motion:reduce) { .w-glow-viewport { display:none; } }

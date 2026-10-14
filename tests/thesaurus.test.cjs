@@ -10,7 +10,7 @@ test('offline corpus keeps full WordNet coverage, provenance and exact license',
  assert.equal(Object.keys(data.index).length,147306);
  assert.equal(data.senses.length,117659);
  assert.equal(thesaurus.version,'3.0');
- assert.equal(thesaurus.license,fs.readFileSync(path.join(__dirname,'../app/vendor/WordNet-LICENSE.txt'),'utf8'));
+ assert.equal(thesaurus.license.replace(/\r\n/g,'\n'),fs.readFileSync(path.join(__dirname,'../app/vendor/WordNet-LICENSE.txt'),'utf8').replace(/\r\n/g,'\n'));
  assert.match(thesaurus.license,/Princeton University/);
  for(const field of ['database','exceptions','license'])assert.match(data.source[field],/^https:\/\/wordnetcode\.princeton\.edu\/3\.0\//);
  for(const field of ['databaseSha256','exceptionsSha256','licenseSha256'])assert.match(data.source[field],/^[a-f0-9]{64}$/);

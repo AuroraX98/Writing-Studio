@@ -16,6 +16,7 @@ RUNTIME = [
     'app/export.js', 'app/pdf.js', 'app/vendor/pdf-font.js',
     'app/vendor/DejaVu-LICENSE.txt', 'app/thesaurus.js', 'app/assistant.js',
     'app/vendor/wordnet-data.js', 'app/vendor/WordNet-LICENSE.txt',
+    'app/typing-glow.js', 'app/vendor/Caveat-Variable.ttf', 'app/vendor/Caveat-OFL.txt',
 ]
 COMMON = ['launch.py', 'ai_proxy.py', 'key_file.py', 'deepseek-key.example.json', 'KEY_FILE_SETUP.md', 'Writing Studio.html', 'README.md', 'VERSION', 'docs/character-profiles.png', 'docs/assistant-sections.png'] + RUNTIME
 SOURCE = [
@@ -26,7 +27,8 @@ SOURCE = [
     'work/genre_extension.js', 'tests/genres.test.cjs',
     'work/assistant_extension.js', 'tests/assistant.test.cjs', 'tests/assistant-drafts.test.cjs',
     'work/help_extension.js', 'work/navigation_extension.js', 'tests/revision-ui.test.cjs',
-    'work/characters_extension.js',
+    'work/characters_extension.js', 'work/studio_extension.js', 'work/studio-design.css',
+    'work/typing-glow.css', 'tests/typing-glow.test.cjs',
     'tests/test_ai_proxy.py', 'tests/mock_ai_server.py', 'tests/test_key_file.py',
     'work/build_thesaurus.py', 'tests/thesaurus.test.cjs',
     'tests/backup-fixture.json', 'tests/storage.test.cjs', 'tests/export.test.cjs',

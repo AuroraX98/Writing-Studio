@@ -1,6 +1,7 @@
 from pathlib import Path
 import os
 import hashlib
+import base64
 os.chdir(Path(__file__).resolve().parent.parent)
 src=Path('app/mockup-source.html').read_text(encoding='utf-8')
 markup, rest=src.split('<style>',1)
@@ -58,7 +59,7 @@ js=js.replace('${Object.entries(library[state.type]).map(([id,g])=>`<option valu
 js=js.replace("el.style.height=el.scrollHeight+'px'","el.style.height=(el.scrollHeight+el.offsetHeight-el.clientHeight)+'px'")
 # Initial data, reliable persistence and new interactions inserted before event handlers.
 pos=js.index(" root.addEventListener('click'")
-js=js[:pos]+''.join(Path(path).read_text(encoding='utf-8') for path in ['work/genre_extension.js','work/app_extension.js','work/app_advanced.js','work/theme_extension.js','work/characters_extension.js','work/assistant_extension.js','work/help_extension.js','work/navigation_extension.js'])+js[pos:]
+js=js[:pos]+''.join(Path(path).read_text(encoding='utf-8') for path in ['work/genre_extension.js','work/app_extension.js','work/app_advanced.js','work/theme_extension.js','work/characters_extension.js','work/assistant_extension.js','work/help_extension.js','work/navigation_extension.js','work/studio_extension.js'])+js[pos:]
 
 js=js.replace('selected().text=draft.value','setDraftText(draft.value)').replace('selected().text=e.target.value','setDraftText(e.target.value)')
 js=js.replace("const before=draft.value,caret=draft.selectionStart;draft.setRangeText","const beforeFormats=clone(selected().formats||[]);if(!typingInput)recordEditorUndo();\n  const before=draft.value,caret=draft.selectionStart;draft.setRangeText")
@@ -72,26 +73,32 @@ assert js.count("  if(word){") == 1, "Expected one completed-word correction gua
 js=js.replace("  if(word){", "  if(word&&!isPersonalWord(word[1])){")
 js=js.replace("context:true,prose:18","context:true,hintsVisible:false,prose:18")
 js=js.replace("context.innerHTML=guide(c);","context.innerHTML=state.hintsVisible?guide(c):'<section class=\"w-guide\"><p class=\"w-secondary\">Chapter hints are tucked away.</p><button type=\"button\" id=\"w-show-hints\">Show chapter hints</button></section>';")
-js=js.replace(' initialize();\n render();',' initialize();\n initializePalette();\n initializeNavigation();\n initializeAssistant();\n render();\n connectFolderBackups();')
+js=js.replace(' initialize();\n render();',' initialize();\n initializePalette();\n initializeNavigation();\n initializeAssistant();\n initializeStudio();\n render();\n connectFolderBackups();')
 js=js.replace('\"Chalkboard SE\",\"Chalkboard\",cursive','\"Chalkboard SE\",\"Chalkboard\",\"Segoe Print\",\"Comic Sans MS\",cursive')
 js=js.replace("sans:'system-ui,sans-serif'",'sans:\'system-ui,sans-serif\',georgia:\'Georgia,serif\',palatino:\'Palatino,"Palatino Linotype","Book Antiqua",serif\',garamond:\'Garamond,Baskerville,Georgia,serif\',times:\'"Times New Roman",Times,serif\',courier:\'"Courier New",Courier,monospace\',trebuchet:\'"Trebuchet MS",Arial,sans-serif\',verdana:\'Verdana,Geneva,sans-serif\'')
-js=js.replace('enrichView();fitText();','enrichView();enrichAssistant();fitText();enrichNavigation();')
+js=js.replace('enrichView();fitText();','enrichView();enrichAssistant();fitText();enrichNavigation();enrichStudio();')
 js=js.replace("root.classList.toggle('w-board-mode',state.view==='plan');", "root.classList.toggle('w-board-mode',state.view==='plan');root.classList.toggle('w-characters-mode',state.view==='characters');")
 js=js.replace("[state.font]);}","[state.font]);onPaletteAppearance();}")
-Path('app/styles.css').write_text(css+'\n'+Path('work/app_extra.css').read_text(encoding='utf-8'), encoding='utf-8')
+js=js.replace(' function render(){', ' function render(){\n  prepareStudioRender();')
+js=js.replace("theme:'glass',font:'chalkboard'", "theme:'mint',font:'georgia',typingGlow:true")
+js=js.replace('onPaletteAppearance();}', 'onPaletteAppearance();studioAppearance();}')
+Path('app/styles.css').write_text(css+'\n'+Path('work/app_extra.css').read_text(encoding='utf-8')+'\n'+Path('work/studio-design.css').read_text(encoding='utf-8')+'\n'+Path('work/typing-glow.css').read_text(encoding='utf-8'), encoding='utf-8')
 Path('app/main.js').write_text(js, encoding='utf-8')
 Path('app/index.html').write_text('''<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><title>Writing Studio</title><link rel="icon" href="data:,"><link rel="stylesheet" href="styles.css"></head><body>'''+markup+'''<script src="vendor/wordnet-data.js"></script><script src="thesaurus.js"></script><script src="theme-palette.js"></script><script src="genres.js"></script><script src="assistant.js"></script><script src="text-tools.js"></script><script src="storage.js"></script><script src="revision.js"></script><script src="local-backup.js"></script><script src="export.js"></script><script src="vendor/pdf-font.js"></script><script src="pdf.js"></script><script src="main.js"></script></body></html>''', encoding='utf-8')
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><title>Writing Studio</title><link rel="icon" href="data:,"><link rel="stylesheet" href="styles.css"></head><body>'''+markup+'''<script src="vendor/wordnet-data.js"></script><script src="thesaurus.js"></script><script src="theme-palette.js"></script><script src="genres.js"></script><script src="assistant.js"></script><script src="text-tools.js"></script><script src="storage.js"></script><script src="revision.js"></script><script src="local-backup.js"></script><script src="export.js"></script><script src="vendor/pdf-font.js"></script><script src="pdf.js"></script><script src="typing-glow.js"></script><script src="main.js"></script></body></html>''', encoding='utf-8')
 # Keep the portable single-file edition in step with the app build.
 portable=Path('app/index.html').read_text(encoding='utf-8').replace('<link rel="stylesheet" href="styles.css">','<style>'+Path('app/styles.css').read_text(encoding='utf-8')+'</style>')
-for asset in ['vendor/wordnet-data.js','thesaurus.js','theme-palette.js','genres.js','assistant.js','text-tools.js','storage.js','revision.js','local-backup.js','export.js','vendor/pdf-font.js','pdf.js','main.js']:
+for asset in ['vendor/wordnet-data.js','thesaurus.js','theme-palette.js','genres.js','assistant.js','text-tools.js','storage.js','revision.js','local-backup.js','export.js','vendor/pdf-font.js','pdf.js','typing-glow.js','main.js']:
     portable=portable.replace('<script src="'+asset+'"></script>','<script>'+Path('app',asset).read_text(encoding='utf-8').replace('</script','<\\/script')+'</script>')
+portable=portable.replace('vendor/Caveat-Variable.ttf', 'data:font/ttf;base64,'+base64.b64encode(Path('app/vendor/Caveat-Variable.ttf').read_bytes()).decode('ascii'))
 before,closing,after=portable.rpartition('</body>')
 portable=before+'<script type="text/plain" id="writing-studio-font-license">'+Path('app/vendor/DejaVu-LICENSE.txt').read_text(encoding='utf-8').replace('</script','<\\/script')+'</script>'+closing+after
+before,closing,after=portable.rpartition('</body>')
+portable=before+'<script type="text/plain" id="writing-studio-caveat-license">'+Path('app/vendor/Caveat-OFL.txt').read_text(encoding='utf-8')+'</script>'+closing+after
 Path('Writing Studio.html').write_text(portable, encoding='utf-8')
 # Content fingerprints keep every browser on matching scripts after an update.
 index=Path('app/index.html').read_text(encoding='utf-8')
-for asset in ['styles.css','vendor/wordnet-data.js','thesaurus.js','theme-palette.js','genres.js','assistant.js','text-tools.js','storage.js','revision.js','local-backup.js','export.js','vendor/pdf-font.js','pdf.js','main.js']:
+for asset in ['styles.css','vendor/wordnet-data.js','thesaurus.js','theme-palette.js','genres.js','assistant.js','text-tools.js','storage.js','revision.js','local-backup.js','export.js','vendor/pdf-font.js','pdf.js','typing-glow.js','main.js']:
     fingerprint=hashlib.sha256(Path('app',asset).read_bytes()).hexdigest()[:12]
     index=index.replace('"'+asset+'"', '"'+asset+'?v='+fingerprint+'"')
 Path('app/index.html').write_text(index, encoding='utf-8')
