@@ -95,6 +95,10 @@ before,closing,after=portable.rpartition('</body>')
 portable=before+'<script type="text/plain" id="writing-studio-font-license">'+Path('app/vendor/DejaVu-LICENSE.txt').read_text(encoding='utf-8').replace('</script','<\\/script')+'</script>'+closing+after
 before,closing,after=portable.rpartition('</body>')
 portable=before+'<script type="text/plain" id="writing-studio-caveat-license">'+Path('app/vendor/Caveat-OFL.txt').read_text(encoding='utf-8')+'</script>'+closing+after
+for notice_id, notice_path in [('writing-studio-license', 'LICENSE'), ('writing-studio-third-party-notices', 'THIRD_PARTY_NOTICES.md')]:
+    before,closing,after=portable.rpartition('</body>')
+    notice=Path(notice_path).read_text(encoding='utf-8').replace('</script','<\\/script')
+    portable=before+'<script type="text/plain" id="'+notice_id+'">'+notice+'</script>'+closing+after
 Path('Writing Studio.html').write_text(portable, encoding='utf-8')
 # Content fingerprints keep every browser on matching scripts after an update.
 index=Path('app/index.html').read_text(encoding='utf-8')

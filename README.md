@@ -1,12 +1,12 @@
 # Writing Studio
 
-Writing Studio is a private writing workspace for fiction, nonfiction, memoir, poetry, screenplays, essays, and academic work. It runs in your browser on your computer, with gentle mint, peach, and rosy pink glass, Chalkboard style headings, and light and dark grey themes. Writing, revision tools, local backups, and exports work without an account or internet connection. An optional DeepSeek assistant uses your own API key when you choose to enable it.
+Writing Studio is a private writing workspace for fiction, nonfiction, memoir, poetry, screenplays, essays, and academic work. Its mint charcoal theme pairs white manuscript text with handwritten chapter titles and a soft mint glow that fades after each typed letter. A narrower writing pane keeps lines comfortable to read, with grouped navigation above and chapter tools beside your draft. Writing, revision tools, local backups, and exports work without an account or internet connection. An optional DeepSeek assistant uses your own API key when you choose to enable it.
 
-Version **0.4.5-beta** adds offline suggestions for single missing letters, plus automatic “bdy” → “body” and “knw” → “know” corrections. Sentence capitalization, standalone “i” → “I”, and the earlier common typo corrections are included. It includes saved Assistant drafts, persistent find-and-replace settings, Back and Forward navigation, local location links, a compact mobile writing bar, and in-app Help, with Mac and Windows launchers and a portable single-file edition. The Windows package is prepared and its platform logic has been checked, but it has not yet been run on an actual Windows computer.
+Version **0.5.0-beta** adds the mint workspace, grouped Project, Workspace, and Appearance dropdowns, a formatting toolbar directly above the draft, and independently collapsible chapter and tools panels. Focus mode gives the manuscript more room. The typing glow can be switched off and respects reduced-motion preferences. Existing writing tools include offline corrections, saved Assistant drafts, persistent find-and-replace settings, Back and Forward navigation, local location links, and in-app Help. The downloads below include this design and the MIT license.
 
-[Source repository](https://github.com/AuroraX98/Writing-Studio) · [Version 0.4.5-beta downloads](https://github.com/AuroraX98/Writing-Studio/tree/main/downloads)
+[Source repository](https://github.com/AuroraX98/Writing-Studio) · [Version 0.5.0-beta downloads](https://github.com/AuroraX98/Writing-Studio/tree/main/downloads)
 
-Download: [Windows ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.4.5-beta-windows.zip) · [Mac ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.4.5-beta-mac.zip) · [Source ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.4.5-beta-source.zip)
+Download: [Windows ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.5.0-beta-windows.zip) · [Mac ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.5.0-beta-mac.zip) · [Source ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.5.0-beta-source.zip)
 
 ## Local mode — no ChatGPT account needed
 
@@ -16,9 +16,11 @@ Writing, browser autosave, chapter guidance, character profiles, revision tools,
 
 The optional DeepSeek assistant uses your own DeepSeek API key and internet connection when you choose Generate. It does not use a ChatGPT account. External research links need internet access to open their websites.
 
-![Writing Studio assistant with clearer section dividers](docs/assistant-sections.png)
+![Writing Studio mint charcoal workspace with a handwritten chapter title, narrow manuscript, formatting toolbar, chapter list, and notes](docs/mint-writing-workspace.png)
 
-![Writing Studio character profiles with rounded detail fields](docs/character-profiles.png)
+![Writing Studio Workspace dropdown groups destinations under Write, Plan, Review, and Help](docs/grouped-navigation.png)
+
+These screenshots show the running app with an original fictional sample manuscript.
 
 ## Open the app
 
@@ -28,23 +30,23 @@ Extract the entire download into a folder first. On Windows, double-click **Open
 
 The standalone HTML edition stores its workspace in browser storage. Storage for files opened directly from your computer varies by browser; moving or renaming the file may create a different workspace. Keep it in the same location, use the same browser, and download backups frequently. Use **Import** to move projects between browsers or computers.
 
-The font selector includes Chalkboard, existing serif and modern options, and Georgia, Palatino, Garamond, Times New Roman, Courier New, Trebuchet, and Verdana. These choices change draft and in-app reading text. Fonts use local system fallbacks, so their exact appearance varies by computer; exports keep their book typography.
+The font selector above the draft includes Chalkboard, serif and modern options, and Georgia, Palatino, Garamond, Times New Roman, Courier New, Trebuchet, and Verdana. These choices change draft and in-app reading text. Manuscript fonts use local system fallbacks, so their exact appearance varies by computer; exports keep their book typography. Handwritten chapter headings use the bundled Caveat font, which works offline.
 
-**Colors** opens an optional live color preview. Enable custom colors, choose a solid background or a three-color soft gradient, and adjust hue, intensity, brightness, and gradient direction. Writing panels adapt to your selected light or dark theme for readability. **Save colors** keeps your choices; Cancel or Escape restores the previous palette. **Restore original colors** previews the original theme without changing your other settings.
+**Appearance → Colors** opens an optional live color preview. Enable custom colors, choose a solid background or a three-color soft gradient, and adjust hue, intensity, brightness, and gradient direction. Writing panels adapt to your selected light or dark theme for readability. **Save colors** keeps your choices; Cancel or Escape restores the previous palette. **Restore original colors** previews the original theme without changing your other settings. Appearance also contains the theme selector and **Typing glow** switch.
 
 ## Find your way around
 
 The workspace shows your current view and project. **Back** and **Forward** revisit chapters and views within the app; your browser's navigation buttons also work. **Copy location link** records the current project, chapter, and view in the browser address. A location link opens that spot only when the same projects are available at the same app address in the same browser. It does not transfer your writing or create a public sharing link. When returning during a session, the app restores the view's search, open panels, scroll position, and available keyboard focus.
 
-On narrow screens, use the compact **Workspace** menu to choose a view and **Write** to reach the draft. **Project & appearance** opens the project and visual settings when you need them. Keyboard users can use **Skip to workspace** and **Skip to draft** before the main controls.
+The project-name dropdown contains project switching, creation, import, backups, export, and Trash. **Workspace** groups Studio and Read manuscript under Write; Chapter board, Characters, and Research under Plan; and Revise and Assistant under Review. **Appearance** holds visual preferences. The same menus work on narrow screens. Use **Chapters** and **Chapter tools** to open or close each sidebar, or **Focus mode** to clear both away. The Chapter tools selector offers notes, outline, hints, ideas and saved passages, and Assistant while keeping your draft visible. Keyboard users can use **Skip to workspace** and **Skip to draft** before the main controls.
 
 **Help** includes an optional first-session guide and direct links to Studio, Chapter board, Revise, Folder backups, Export, and Assistant settings. Chapter search shows matching text and **Clear search** brings back the full list.
 
 ## Write and organize
 
-Subtle dividers and rounded fields make writing sections, assistant controls, and notes easier to scan.
+The formatting toolbar sits directly above the draft, with font, text size, bold, italic, alignment, spacing, and undo/redo. **Writing tools** groups typing help, dictionary, thesaurus, and shortcuts. Each newly typed letter receives a mint glow that fades over 1.5 seconds while the letter stays visible; pasting and reopening a chapter do not animate the whole passage.
 
-Choose **New project**, enter a name, and select Fiction, Nonfiction, Memoir, Poetry, Screenplay, Essays, or Academic. Add chapters with the **＋** button. The chapter board supports reordering and flexible structure guidance for 42 genres and approaches across those seven project types. All use the same chapter-based workspace, with prompts suited to the selected type. Add guide prompts to your editable outline, then adapt them to your book. Chapter hints start hidden; **Show chapter hints** brings them into view when you want guidance, and **Hide chapter hints** returns to a calmer draft.
+Choose **New project** from the project-name dropdown, enter a name, and select Fiction, Nonfiction, Memoir, Poetry, Screenplay, Essays, or Academic. Add chapters with the **＋** button. The chapter board supports reordering and flexible structure guidance for 42 genres and approaches across those seven project types. All use the same chapter-based workspace, with prompts suited to the selected type. Add guide prompts to your editable outline, then adapt them to your book. Choose **Hints** in the Chapter tools selector for guidance, or **Outline** to work on the chapter plan beside your draft.
 
 Drafts, titles, notes, ideas, saved passages, outlines, research records, and revision tasks autosave after a half-second pause. The browser save indicator reports success or failure. Ordinary closing flushes pending browser changes; check the indicators before closing. A second window changing the same browser workspace pauses saving to protect it.
 
@@ -166,4 +168,4 @@ The packaging script checks archive integrity and excludes working backups and s
 
 This is a beta browser app with launch scripts, rather than an installed desktop application. Nested scenes, attached research files, anchored comments, DOCX import, EPUB, full offline spelling dictionaries, and cross-device synchronization are future work. Undo history is per session; saved versions and JSON backups are persistent. Keep a backup before updating, and import it when moving to a new browser or address.
 
-The bundled PDF font's license is in `app/vendor/DejaVu-LICENSE.txt`; the English thesaurus data license is in `app/vendor/WordNet-LICENSE.txt`. A license for the application source has not been selected yet. The public repository does not currently grant an open-source license for the application; the bundled font and WordNet data retain their separate licenses.
+The application source is available under the [MIT License](LICENSE). Bundled assets retain their own licenses: the handwritten Caveat font uses the SIL Open Font License in `app/vendor/Caveat-OFL.txt`, the PDF font's license is in `app/vendor/DejaVu-LICENSE.txt`, and the English thesaurus data license is in `app/vendor/WordNet-LICENSE.txt`.
