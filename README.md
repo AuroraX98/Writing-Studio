@@ -2,11 +2,11 @@
 
 Writing Studio is a private writing workspace for fiction, nonfiction, memoir, poetry, screenplays, essays, and academic work. Its mint charcoal theme pairs white manuscript text with handwritten chapter titles and a soft mint glow that fades after each typed letter. A narrower writing pane keeps lines comfortable to read, with grouped navigation above and chapter tools beside your draft. Writing, revision tools, local backups, and exports work without an account or internet connection. An optional DeepSeek assistant uses your own API key when you choose to enable it.
 
-Version **0.5.0-beta** adds the mint workspace, grouped Project, Workspace, and Appearance dropdowns, a formatting toolbar directly above the draft, and independently collapsible chapter and tools panels. Focus mode gives the manuscript more room. The typing glow can be switched off and respects reduced-motion preferences. Existing writing tools include offline corrections, saved Assistant drafts, persistent find-and-replace settings, Back and Forward navigation, local location links, and in-app Help. The downloads below include this design and the MIT license.
+Version **0.5.1-beta** adds the mint workspace, grouped Project, Workspace, and Appearance dropdowns, a formatting toolbar directly above the draft, and independently collapsible chapter and tools panels. Focus mode gives the manuscript more room. The typing glow can be switched off and respects reduced-motion preferences. Existing writing tools include offline corrections, saved Assistant drafts, persistent find-and-replace settings, Back and Forward navigation, local location links, and in-app Help. The downloads below include this design and the MIT license.
 
-[Source repository](https://github.com/AuroraX98/Writing-Studio) · [Version 0.5.0-beta downloads](https://github.com/AuroraX98/Writing-Studio/tree/main/downloads)
+[Source repository](https://github.com/AuroraX98/Writing-Studio) · [Version 0.5.1-beta downloads](https://github.com/AuroraX98/Writing-Studio/tree/main/downloads)
 
-Download: [Windows ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.5.0-beta-windows.zip) · [Mac ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.5.0-beta-mac.zip) · [Source ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.5.0-beta-source.zip)
+Download: [Windows ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.5.1-beta-windows.zip) · [Mac ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.5.1-beta-mac.zip) · [Source ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-0.5.1-beta-source.zip)
 
 ## Local mode — no ChatGPT account needed
 
@@ -30,7 +30,7 @@ Extract the entire download into a folder first. On Windows, double-click **Open
 
 The standalone HTML edition stores its workspace in browser storage. Storage for files opened directly from your computer varies by browser; moving or renaming the file may create a different workspace. Keep it in the same location, use the same browser, and download backups frequently. Use **Import** to move projects between browsers or computers.
 
-The font selector above the draft includes Chalkboard, serif and modern options, and Georgia, Palatino, Garamond, Times New Roman, Courier New, Trebuchet, and Verdana. These choices change draft and in-app reading text. Manuscript fonts use local system fallbacks, so their exact appearance varies by computer; exports keep their book typography. Handwritten chapter headings use the bundled Caveat font, which works offline.
+The font selector above the draft includes Caveat (handwritten), Chalkboard, serif and modern options, and Georgia, Palatino, Garamond, Times New Roman, Courier New, Trebuchet, and Verdana. These choices change draft and in-app reading text. Caveat is bundled for offline use. Other manuscript fonts use local system fallbacks, so their exact appearance varies by computer; exports keep their book typography. Handwritten chapter headings use the bundled Caveat font, which works offline.
 
 **Appearance → Colors** opens an optional live color preview. Enable custom colors, choose a solid background or a three-color soft gradient, and adjust hue, intensity, brightness, and gradient direction. Writing panels adapt to your selected light or dark theme for readability. **Save colors** keeps your choices; Cancel or Escape restores the previous palette. **Restore original colors** previews the original theme without changing your other settings. Appearance also contains the theme selector and **Typing glow** switch.
 
