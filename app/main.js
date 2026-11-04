@@ -707,7 +707,8 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
   const draft=main.querySelector('#w-draft'),toolbar=main.querySelector('.w-writing-toolbar');
   const tools=studioMenu('w-writing-tools','Writing tools');tools.classList.add('w-writing-tools');
   for(const el of [main.querySelector('.w-typing-settings'),main.querySelector('#w-dictionary'),main.querySelector('#w-thesaurus'),main.querySelector('.w-shortcuts')])if(el)tools.lastElementChild.append(el);
-  tools.lastElementChild.append(main.querySelector('#w-delete-chapter'));
+  const deleteGroup=document.createElement('div');deleteGroup.className='w-tools-delete';
+  deleteGroup.append(main.querySelector('#w-delete-chapter'));tools.lastElementChild.append(deleteGroup);
   const size=main.querySelector('#w-prose').closest('label'),alignment=main.querySelector('#w-alignment').closest('label'),spacing=main.querySelector('#w-spacing').closest('label');
   const format=studioMenu('w-format-menu','Format');
   format.lastElementChild.append(studioFontLabel,size,alignment,spacing);
