@@ -9,13 +9,13 @@
   try{data=WritingStore.load();}catch(error){blocked=true;blockReason='corrupt';saveStatus('Saved data could not be read: '+(error.cause?.message||error.message)+'. Import a backup to recover.',true);}
   if(!data){freshWorkspace=true;const p=blankProject();data={version:1,projects:[p],activeProject:p.id,preferences:{},trashProjects:[]};}
   data.trashProjects??=[];
-  for(const key of ['theme','font','typing','solidGlass','context','contextTab','prose','hintsVisible','typingGlow'])if(key in data.preferences)state[key]=data.preferences[key];state.focus=false;
+  for(const key of ['theme','font','typing','solidGlass','prose','typingGlow'])if(key in data.preferences)state[key]=data.preferences[key];state.focus=false;
   if(!data.projects.some(p=>p.id===data.activeProject))data.activeProject=data.projects[0].id;
   activateProject();
   if(!blocked)saveStatus('Ready · edits save locally');
  }
  function activateProject(){const p=project();p.characters??=[];chapters=p.chapters;state.type=p.type;state.genres=initializeGenreChoices(p.genres);state.selected=p.selected&&chapters.some(c=>c.id===p.selected)?p.selected:chapters[0].id;state.view='write';}
- function syncData(){const p=project();p.type=state.type;p.genres={...state.genres};p.selected=state.selected;data.preferences={studioPanel:studioReady?studioPanel:(data.preferences.studioPanel||studioPanel),studioChapters:studioReady?studioChapters:(data.preferences.studioChapters??studioChapters),studioTools:studioReady?studioTools:(data.preferences.studioTools??studioTools),theme:state.theme,typingGlow:state.typingGlow!==false,font:state.font,typing:state.typing,solidGlass:state.solidGlass,context:state.context,contextTab:state.contextTab,hintsVisible:state.hintsVisible,palette:WritingPalette.normalize(state.palette),prose:state.prose,personalDictionary:data.preferences.personalDictionary||[],dictionaryTrash:data.preferences.dictionaryTrash||[]};}
+ function syncData(){const p=project();p.type=state.type;p.genres={...state.genres};p.selected=state.selected;data.preferences={...data.preferences,studioChapters:studioReady?studioChapters:(data.preferences.studioChapters??studioChapters),theme:state.theme,typingGlow:state.typingGlow!==false,font:state.font,typing:state.typing,solidGlass:state.solidGlass,palette:WritingPalette.normalize(state.palette),prose:state.prose,personalDictionary:data.preferences.personalDictionary||[],dictionaryTrash:data.preferences.dictionaryTrash||[]};}
  function flushSave(){clearTimeout(saveTimer);if(!dirty)return !blocked;if(blocked){saveStatus('Saving paused. Download a backup or reopen the app.',true);return false;}syncData();try{WritingStore.save(data);dirty=false;queueFolderBackup();saveStatus('Saved locally · '+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}));return true;}catch(error){queueFolderBackup();saveStatus('Save failed · download a backup to keep your work',true);return false;}}
  function scheduleSave(){dirty=true;if(blocked){saveStatus('Saving paused · download a backup',true);return;}if(!root.querySelector('#w-save-status').classList.contains('w-error'))saveStatus('Saving…');clearTimeout(saveTimer);saveTimer=setTimeout(flushSave,500);}
  function snapshot(c,label='Saved draft'){const p=project();p.history.unshift({id:uid(),chapterId:c.id,at:new Date().toISOString(),title:label,text:c.text,note:c.note,planOutline:c.planOutline||'',alignment:c.alignment||'left',formats:clone(c.formats||[]),lineSpacing:c.lineSpacing||1.7});}
@@ -33,7 +33,7 @@
   root.querySelector('#w-project').innerHTML=data.projects.map(p=>`<option value="${p.id}" ${p.id===data.activeProject?'selected':''}>${escape(p.title)}</option>`).join('');
   if(state.view==='write'){
    const h=main.querySelector('h2');h.innerHTML=`<input id="w-title" aria-label="Chapter title" value="${escape(selected().title)}">`;
-   h.insertAdjacentHTML('afterend',`<div class="w-row w-editor-actions"><label>Text size<select id="w-prose">${[16,18,20,22].map(n=>`<option ${state.prose===n?'selected':''}>${n}</option>`).join('')}</select></label><button id="w-delete-chapter">Delete chapter</button><button id="w-toggle-context" aria-controls="w-context" aria-expanded="${!!state.context}">${state.context?'Hide':'Show'} chapter tools</button><button id="w-toggle-hints" aria-expanded="${!!state.hintsVisible}" aria-controls="w-context">${state.hintsVisible?'Hide':'Show'} chapter hints</button></div>`);
+   h.insertAdjacentHTML('afterend',`<div class="w-row w-editor-actions"><label>Text size<select id="w-prose">${[16,18,20,22].map(n=>`<option ${state.prose===n?'selected':''}>${n}</option>`).join('')}</select></label><button id="w-delete-chapter">Delete chapter</button></div>`);
    const chapterAlignment=['left','right','justify'].includes(selected().alignment)?selected().alignment:'left';
    main.querySelector('.w-editor-actions').insertAdjacentHTML('beforeend',`<label class="w-alignment-control" for="w-alignment">Draft alignment<select id="w-alignment">${['left','right','justify'].map(value=>`<option value="${value}" ${chapterAlignment===value?'selected':''}>${{left:'Left',right:'Right',justify:'Justified'}[value]}</option>`).join('')}</select></label>`);
    main.querySelector('#w-draft').style.textAlign=chapterAlignment;writingControls();
@@ -42,15 +42,7 @@
    const settings=document.createElement('details');settings.className='w-typing-settings';settings.innerHTML='<summary>Typing help · '+modeLabel+'</summary>';
    while(typing.firstChild){const child=typing.firstChild;if(child===status||child===actions){child.remove();}else settings.append(child);}
    typing.append(settings,status,actions);status.hidden=!lastCorrection&&!typingSuggestions.length;
-   if(!main.querySelector('#w-outline'))main.querySelector('#w-draft').insertAdjacentHTML('beforebegin',`<details class="w-outline"><summary>Your chapter outline</summary><textarea id="w-outline" aria-label="Chapter outline" placeholder="Plan this chapter here">${escape(selected().planOutline||'')}</textarea><button data-delete-field="planOutline">Delete outline</button></details>`);
-   else main.querySelector('#w-outline').insertAdjacentHTML('afterend','<button data-delete-field="planOutline">Delete outline</button>');
   }
-  if(state.contextTab==='notes'){
-   const note=context.querySelector('#w-note');if(note)note.insertAdjacentHTML('afterend','<button data-delete-field="note">Delete notes</button>');
-   // Replace the illustrative source with real project references.
-   const research=context.querySelector('#w-context-research');if(research)research.innerHTML=`<h3>Project research</h3><p class="w-secondary">${project().sources.length} saved records</p><button data-view="research">Open research</button>`;
-  }
-  if(state.contextTab==='ideas'){context.querySelector('#w-idea').value=selected().idea||'';context.querySelector('#w-saved').value=selected().saved||'';context.querySelector('#w-idea').insertAdjacentHTML('afterend','<button data-delete-field="idea">Delete idea</button>');context.querySelector('#w-saved').insertAdjacentHTML('afterend','<button data-delete-field="saved">Delete passage</button>');}
  }
  function backup(){syncData();const text=WritingStore.serialize(data);WritingExport.download(text,'writing-studio-backup-'+new Date().toISOString().slice(0,10)+'.json','application/json');saveStatus('Backup downloaded · keep it somewhere safe');}
  function remapProject(p){const ids=new Map();p.id=uid();for(const c of p.chapters){ids.set(c.id,uid());c.id=ids.get(c.id);}for(const t of p.trash){t.id=uid();if(t.kind==='chapter'){const old=t.item.id;if(!ids.has(old))ids.set(old,uid());t.item.id=ids.get(old);}}for(const t of p.trash){if(t.chapterId)t.chapterId=ids.get(t.chapterId)||t.chapterId;if(t.kind==='version'){t.item.id=uid();t.item.chapterId=ids.get(t.item.chapterId)||t.item.chapterId;}}for(const h of p.history){h.id=uid();h.chapterId=ids.get(h.chapterId)||h.chapterId;}for(const s of p.sources)s.id=uid();for(const c of p.characters||[])c.id=uid();for(const t of p.trash)if(t.kind==='character')t.item.id=uid();p.selected=ids.get(p.selected)||p.chapters[0].id;}
@@ -78,7 +70,6 @@
   else if(b.dataset.purgeTrash)confirmAction('Delete permanently?','This item cannot be restored afterward. Download a backup first if you want to keep a copy.',()=>p.trash=p.trash.filter(t=>t.id!==b.dataset.purgeTrash),'Delete permanently');
   else if(b.dataset.restoreProject){const i=data.trashProjects.findIndex(t=>t.id===b.dataset.restoreProject),t=data.trashProjects[i];data.projects.push(t.item);data.trashProjects.splice(i,1);data.activeProject=t.item.id;activateProject();render();}
   else if(b.dataset.purgeProject)confirmAction('Delete project permanently?','The project and all its contents will be removed from this workspace.',()=>data.trashProjects=data.trashProjects.filter(t=>t.id!==b.dataset.purgeProject),'Delete permanently');
-  else if(b.id==='w-toggle-context'){state.context=!state.context;render();}
   else if(b.id==='w-download'){
    const name=p.title.replace(/[\\/:*?"<>|]/g,'-')||'manuscript',format=state.format;
    if(format==='PDF'){try{WritingExport.download(WritingPDF.pdf(p),name+'.pdf','application/pdf');root.querySelector('#w-export-status').textContent='PDF download started.';}catch(error){const notice=root.querySelector('#w-export-status');notice.textContent=error.message;notice.classList.add('w-error');}}
@@ -89,7 +80,7 @@
   }else if(b.id==='w-print'){const win=window.open('','_blank');if(win){win.document.open();win.document.write(WritingExport.html(p));win.document.close();win.focus();win.print();}else saveStatus('Allow the reading window to print, or download Reading HTML.',true);}
   if(!['w-import','w-backup','w-backup-view','w-print','w-download'].includes(b.id))scheduleSave();
  });
- root.addEventListener('input',e=>{const el=e.target;if(el.id==='w-title'){selected().title=el.value;tree();const label=context.querySelector('label[for=w-note]');if(label)label.textContent=el.value;}if(el.id==='w-task')selected().task=el.value;if(!['w-search','w-import-file','w-find-text','w-replace-text'].includes(el.id))scheduleSave();});
+ root.addEventListener('input',e=>{const el=e.target;if(el.id==='w-title'){selected().title=el.value;tree();}if(el.id==='w-task')selected().task=el.value;if(!['w-search','w-import-file','w-find-text','w-replace-text'].includes(el.id))scheduleSave();});
  root.addEventListener('change',e=>{
   const el=e.target;
   if(el.id==='w-project'){syncData();data.activeProject=el.value;activateProject();render();}

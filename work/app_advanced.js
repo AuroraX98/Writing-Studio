@@ -151,7 +151,6 @@
   const b=e.target.closest('button');if(!b)return;
   if(b.id==='w-bold'||b.id==='w-italic')formatSelection(b.id==='w-bold'?'bold':'italic');
   else if(b.id==='w-editor-undo'||b.id==='w-editor-redo')editorUndo(b.id==='w-editor-redo');
-  else if(b.id==='w-toggle-hints'||b.id==='w-show-hints'){state.hintsVisible=b.id==='w-show-hints'||!state.hintsVisible;state.context=true;state.contextTab='guide';render();scheduleSave();}
   else if(b.id==='w-dictionary')openDictionary();
   else if(b.id==='w-thesaurus')openThesaurus();
   else if(b.id==='w-preview-replace')previewReplace();

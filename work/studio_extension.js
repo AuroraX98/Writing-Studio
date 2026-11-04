@@ -1,6 +1,6 @@
  // The editor retains its native textarea and existing storage/formatting model.
  let studioReady=false,studioGlow=null,studioFontLabel=null;
- let studioPanel='notes',studioChapters=window.innerWidth>900,studioTools=window.innerWidth>1100;
+ let studioChapters=window.innerWidth>900;
  let studioDrawer=null,studioDraftReturn=null;
  const narrowStudio=()=>window.matchMedia('(max-width:900px)').matches;
  function studioMenu(id,label){const el=document.createElement('details');el.id=id;el.className='w-menu';el.innerHTML='<summary>'+label+'</summary><div class="w-menu-panel"></div>';return el;}
@@ -22,7 +22,7 @@
   workspaceMenu.lastElementChild.innerHTML=groups.map(([title,views])=>'<section class="w-menu-group"><h3>'+title+'</h3>'+views.map(view=>'<button type="button" data-view="'+view+'">'+navigationViews[view]+'</button>').join('')+'</section>').join('');
   const actions=document.createElement('div');actions.className='w-top-actions';
   actions.append(root.querySelector('#w-focus'));
-  actions.insertAdjacentHTML('beforeend','<button type="button" id="w-studio-chapters" aria-controls="w-chapters-sidebar">Chapters</button><button type="button" id="w-studio-tools" aria-controls="w-context">Chapter tools</button>');
+  actions.insertAdjacentHTML('beforeend','<button type="button" id="w-studio-chapters" aria-controls="w-chapters-sidebar">Chapters</button>');
   header.replaceChildren(brand,projectMenu,workspaceMenu,appearanceMenu,actions);
   const notices=document.createElement('div');notices.className='w-save-notices';
   notices.append(root.querySelector('#w-save-status'),root.querySelector('#w-folder-status'));
@@ -30,8 +30,7 @@
   header.after(notices);
   root.querySelector('.w-tree').id='w-chapters-sidebar';
   root.querySelector('.w-nav').hidden=true;root.querySelector('.w-projectbar').hidden=true;root.querySelector('.w-folderbar').hidden=true;
-  studioPanel=data.preferences.studioPanel||(state.contextTab==='guide'&&!state.hintsVisible?'notes':state.contextTab);
-  studioChapters=data.preferences.studioChapters??studioChapters;studioTools=data.preferences.studioTools??studioTools;
+  studioChapters=data.preferences.studioChapters??studioChapters;
   root.querySelector('.w-tree').insertAdjacentHTML('afterbegin','<button type="button" id="w-close-chapters" class="w-drawer-close" aria-label="Close chapter list">Close</button>');
   root.insertAdjacentHTML('beforeend','<div class="w-drawer-backdrop" hidden></div>');
   const measureHeader=()=>root.style.setProperty('--w-header-height',Math.ceil(header.getBoundingClientRect().height)+'px');
@@ -44,9 +43,6 @@
   navigationViews.plan=isJournal()?'Entry board':'Chapter board';navigationViews.reading=isJournal()?'Read journal':'Read manuscript';
   studioGlow?.destroy();studioGlow=null;
   root.querySelector('#w-font-home').append(studioFontLabel);
-  // Existing chapter tools still render and save through their original handlers.
-  state.contextTab=['notes','ideas','guide'].includes(studioPanel)?studioPanel:'notes';
-  if(studioPanel==='guide')state.hintsVisible=true;
  }
  function studioAppearance(){
   root.classList.toggle('w-mint',state.theme==='mint');document.getElementById('w-dialog').classList.toggle('w-mint',state.theme==='mint');
@@ -55,21 +51,16 @@
  }
  function studioVisibility(){
   const writing=state.view==='write';
-  if(!writing&&studioDrawer==='tools')studioDrawer=null;
-  const narrow=narrowStudio(),showChapters=!state.focus&&(narrow?studioDrawer==='chapters':studioChapters),showTools=writing&&!state.focus&&(narrow?studioDrawer==='tools':studioTools);
+  const narrow=narrowStudio(),showChapters=!state.focus&&(narrow?studioDrawer==='chapters':studioChapters);
   root.classList.toggle('w-writing-view',writing);
   root.classList.toggle('w-chapters-hidden',!showChapters);
-  root.classList.toggle('w-tools-hidden',!showTools);
   root.querySelector('.w-tree').hidden=!showChapters;
-  context.hidden=!showTools;
   root.querySelector('#w-studio-chapters').setAttribute('aria-expanded',String(showChapters));
-  root.querySelector('#w-studio-tools').setAttribute('aria-expanded',String(showTools));
-  root.querySelector('#w-studio-tools').hidden=!writing;
-  const drawerOpen=narrow&&(showChapters||showTools);
+  const drawerOpen=narrow&&showChapters;
   root.classList.toggle('w-drawer-open',drawerOpen);
   root.querySelector('.w-drawer-backdrop').hidden=!drawerOpen;
   for(const el of [root.querySelector('.w-top'),main,root.querySelector('.w-footer')])el.inert=drawerOpen;
-  for(const [el,open,label] of [[root.querySelector('.w-tree'),showChapters,entryHeading(true)],[context,showTools,entryHeading()+' tools']]){
+  for(const [el,open,label] of [[root.querySelector('.w-tree'),showChapters,entryHeading(true)]]){
    if(narrow&&open){el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label',label);}
    else{el.removeAttribute('role');el.removeAttribute('aria-modal');}
   }
@@ -89,7 +80,6 @@
   studioVisibility();studioAppearance();
   if(state.view!=='write'){enrichJournal();return;}
   const draft=main.querySelector('#w-draft'),toolbar=main.querySelector('.w-writing-toolbar');
-  main.querySelector('#w-toggle-context')?.remove();main.querySelector('#w-toggle-hints')?.remove();
   const tools=studioMenu('w-writing-tools','Writing tools');tools.classList.add('w-writing-tools');
   for(const el of [main.querySelector('.w-typing-settings'),main.querySelector('#w-dictionary'),main.querySelector('#w-thesaurus'),main.querySelector('.w-shortcuts')])if(el)tools.lastElementChild.append(el);
   tools.lastElementChild.append(main.querySelector('#w-delete-chapter'));
@@ -100,23 +90,12 @@
   toolbar.replaceChildren(main.querySelector('#w-editor-undo'),main.querySelector('#w-editor-redo'),main.querySelector('#w-bold'),main.querySelector('#w-italic'),format,tools);
   toolbar.insertAdjacentHTML('beforeend','<button type="button" id="w-open-preview">Preview</button>');
   const status=main.querySelector('#w-formatting-status');status.textContent='';status.classList.add('w-visually-hidden');
-  const outline=main.querySelector('.w-outline');
-  // Only one copy of each editable field exists, so existing input handlers and IDs remain valid.
-  context.querySelector('.w-board-tabs')?.remove();
-  if(studioPanel==='outline'){
-   context.replaceChildren(outline);outline.open=true;
-  }else if(studioPanel==='assistant'){
-   context.innerHTML=assistantView();outline?.remove();
-  }else outline?.remove();
-  context.insertAdjacentHTML('afterbegin','<div class="w-panel-heading"><label for="w-panel-choice">Chapter tools<select id="w-panel-choice"><option value="notes">Chapter notes</option><option value="outline">Outline</option><option value="guide">Hints</option><option value="ideas">Ideas &amp; saved passages</option><option value="assistant">Assistant</option></select></label><button type="button" id="w-close-tools" aria-label="Close chapter tools">×</button></div>');
-  context.querySelector('#w-panel-choice').value=studioPanel;
   // Place all toolbar controls directly against the draft. Help/status follows it.
   draft.before(toolbar);draft.after(status);
   for(const id of ['w-new-project','w-ai-generate','w-download'])root.querySelector('#'+id)?.classList.add('w-primary');
   const typing=main.querySelector('.w-typing-tools');status.after(typing);
   main.querySelector('.w-sequence')?.remove();
   studioGlow=globalThis.WritingGlow?.attach(draft,state.typingGlow!==false);
-  if(studioPanel==='assistant')updateAssistantStatus(assistantClient.state);
   enrichJournal();updateFormattingState();
   fitText();
  }
@@ -130,10 +109,10 @@
    button.setAttribute('aria-pressed',!enabled?'false':enabled===runs.length?'true':'mixed');
   }
  }
- function openStudioDrawer(which){
+ function openStudioDrawer(){
   const draft=root.querySelector('#w-draft');studioDraftReturn=draft?{id:selected().id,start:draft.selectionStart,end:draft.selectionEnd,x:scrollX,y:scrollY}:null;
-  studioDrawer=which;studioVisibility();fitText();
-  root.querySelector(which==='chapters'?'#w-search':'#w-panel-choice')?.focus({preventScroll:true});
+  studioDrawer='chapters';studioVisibility();fitText();
+  root.querySelector('#w-search')?.focus({preventScroll:true});
  }
  function closeStudioDrawer(returnToDraft=true){
   studioDrawer=null;studioVisibility();
@@ -143,7 +122,7 @@
  }
  function closeStudioMenus(except=null){root.querySelectorAll('details.w-menu[open]').forEach(menu=>{if(menu!==except)menu.open=false;});}
  function captureStudioSelection(){
-  if(state.view!=='write'||studioPanel!=='assistant')return;
+  if(state.view!=='write')return;
   const draft=root.querySelector('#w-draft');if(!draft)return;
   const c=selected(),work=assistantWorkspace();
   work.selection=draft.selectionEnd>draft.selectionStart?{projectId:project().id,chapterId:c.id,start:draft.selectionStart,end:draft.selectionEnd,text:c.text,formatFingerprint:WritingRevision.formatFingerprint(c),contextFingerprint:assistantContextFingerprint()}:null;
@@ -163,7 +142,7 @@
   if(studioDrawer&&narrowStudio()){
    if(event.key==='Escape'){event.preventDefault();event.stopPropagation();closeStudioDrawer();return;}
    if(event.key==='Tab'){
-    const panel=studioDrawer==='chapters'?root.querySelector('.w-tree'):context;
+    const panel=root.querySelector('.w-tree');
     const focusable=[...panel.querySelectorAll('button,input,textarea,select,a,summary')].filter(el=>!el.disabled&&el.getClientRects().length);
     const first=focusable[0],last=focusable.at(-1);
     if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
@@ -177,8 +156,7 @@
  root.addEventListener('click',event=>{
   if(event.target.matches('.w-drawer-backdrop')){closeStudioDrawer();return;}
   const button=event.target.closest('button');if(!button)return;
-  if(button.id==='w-studio-chapters'){if(narrowStudio())openStudioDrawer('chapters');else{studioChapters=!studioChapters;studioVisibility();if(studioChapters)root.querySelector('#w-search').focus();}scheduleSave();}
-  else if(button.id==='w-studio-tools'||button.id==='w-close-tools'){if(narrowStudio()){button.id==='w-close-tools'?closeStudioDrawer():openStudioDrawer('tools');}else{studioTools=button.id==='w-close-tools'?false:!studioTools;studioVisibility();fitText();(studioTools?root.querySelector('#w-panel-choice'):root.querySelector('#w-studio-tools')).focus();}scheduleSave();}
+  if(button.id==='w-studio-chapters'){if(narrowStudio())openStudioDrawer();else{studioChapters=!studioChapters;studioVisibility();if(studioChapters)root.querySelector('#w-search').focus();}scheduleSave();}
   else if(button.id==='w-close-chapters')closeStudioDrawer();
   else if(button.dataset.chapter&&studioDrawer){closeStudioDrawer(false);root.querySelector('#w-draft')?.focus({preventScroll:true});}
   else if(button.id==='w-rescue-backup')backup();
@@ -187,13 +165,9 @@
   if(button.closest('.w-menu')&&(button.dataset.view||['w-save-details','w-new-project','w-rename-project','w-delete-project','w-delete-chapter','w-import','w-backup','w-folder-backups','w-colors','w-dictionary','w-thesaurus'].includes(button.id))){
    const summary=button.closest('.w-menu').querySelector('summary');closeStudioMenus();queueMicrotask(()=>{if(document.activeElement===button||document.activeElement===document.body)summary.focus();});
   }
-  if(button.id==='w-save-guide'){const before=selected().planOutline;setTimeout(()=>{if(selected().planOutline!==before){studioPanel='outline';studioTools=true;render();context.querySelector('#w-outline')?.focus();}});}
  });
  root.addEventListener('change',event=>{
-  if(event.target.id==='w-panel-choice'){
-   const range=selectionForDraft();if(event.target.value==='assistant'&&range&&range.end>range.start){const work=assistantWorkspace(),c=selected();work.selection={projectId:project().id,chapterId:c.id,start:range.start,end:range.end,text:c.text,formatFingerprint:WritingRevision.formatFingerprint(c),contextFingerprint:assistantContextFingerprint()};}
-   studioPanel=event.target.value;render();context.querySelector('#w-panel-choice').focus();scheduleSave();
-  }else if(event.target.id==='w-typing-glow'){state.typingGlow=event.target.checked;studioGlow?.setEnabled(state.typingGlow);scheduleSave();}
+  if(event.target.id==='w-typing-glow'){state.typingGlow=event.target.checked;studioGlow?.setEnabled(state.typingGlow);scheduleSave();}
   queueMicrotask(()=>{studioAppearance();studioGlow?.refresh();});
  });
 

@@ -12,7 +12,6 @@
   root.querySelector('#w-add-chapter').setAttribute('aria-label','Add '+entryWord());
   root.querySelector('.w-tree h3').textContent=journal?'Journal':'Manuscript';
   root.querySelector('#w-studio-chapters').textContent=plural;
-  root.querySelector('#w-studio-tools').textContent=word+' tools';
   root.querySelector('#w-search').labels[0].firstChild.textContent=journal?'Find in the journal':'Find in the manuscript';
   root.querySelector('#w-search').placeholder='Search '+entryWord()+' titles, notes, and draft text';
   root.querySelector('#w-search-help').textContent=`Search ${entryWord()} titles, notes, and draft text. Sources, characters, and outlines are not included.`;
@@ -29,13 +28,5 @@
    main.querySelector('#w-draft').placeholder=journal?'What is on your mind?':'Begin writing here…';
    main.querySelector('.w-chapter-number').nextElementSibling.hidden=journal;
    main.querySelector('#w-delete-chapter').textContent='Delete '+entryWord();
-   const note=context.querySelector('.w-context-section h3');if(note)note.textContent=word+' notes';
-   context.querySelector('label[for="w-panel-choice"]').firstChild.textContent=word+' tools';
-   context.querySelector('#w-panel-choice option[value=notes]').textContent=word+' notes';
-   context.querySelector('#w-close-tools').setAttribute('aria-label','Close '+entryWord()+' tools');
-   if(journal){
-    context.querySelector('#w-note')?.setAttribute('aria-label','Entry notes');
-    context.querySelector('.w-guide h3')?.replaceChildren('Journal prompts');
-   }
   }
  }

@@ -27,15 +27,17 @@ const note=(name,details)=>{evidence.push({name,details});process.stdout.write('
  await page.locator('#w-project-menu>summary').click();await page.locator('#w-new-project').click();
  await page.locator('dialog input[name=title]').fill('QA journal');await page.locator('#w-new-type').selectOption('journaling');await page.locator('#w-dialog-save').click();
  assert.equal(await page.locator('#w-title').inputValue(),'Untitled entry');
- await page.locator('#w-title').fill('A quiet morning');await page.locator('#w-draft').fill('The harbor was quiet. A small boat crossed the water.');await page.locator('#w-note').fill('PRIVATE QA JOURNAL NOTE');await saved();
+ await page.locator('#w-title').fill('A quiet morning');await page.locator('#w-draft').fill('The harbor was quiet. A small boat crossed the water.');await saved();
+ // Simulate an existing workspace from the version that offered the tools panel.
+ await page.evaluate(()=>{const key='writing-desk-v1',data=JSON.parse(localStorage.getItem(key)),p=data.projects.find(p=>p.id===data.activeProject),c=p.chapters.find(c=>c.id===p.selected)||p.chapters[0];Object.assign(c,{note:'PRIVATE QA JOURNAL NOTE',planOutline:'LEGACY OUTLINE',idea:'LEGACY IDEA',saved:'LEGACY PASSAGE'});Object.assign(data.preferences,{studioTools:true,studioPanel:'outline',context:true});localStorage.setItem(key,JSON.stringify(data));});
  const created=await page.locator('.w-entry-created time').getAttribute('datetime');assert.ok(Number.isFinite(Date.parse(created)));
  await page.reload();assert.equal(await page.locator('#w-title').inputValue(),'A quiet morning');assert.equal(await page.locator('.w-entry-created time').getAttribute('datetime'),created);
- assert.equal(await page.locator('#w-note').inputValue(),'PRIVATE QA JOURNAL NOTE');assert.equal(await page.locator('#w-save-status').isVisible(),false);
- note('Journal title, original timestamp and notes persist; routine save is hidden',{created});
- await page.locator('#w-panel-choice').selectOption('outline');await saved();await page.reload();assert.equal(await page.locator('#w-panel-choice').inputValue(),'outline');
- await page.locator('#w-studio-tools').click();await saved();await page.reload();assert.equal(await page.locator('#w-context').isHidden(),true);
- await page.locator('#w-studio-tools').click();await page.locator('#w-panel-choice').selectOption('notes');
- note('Desktop tool choice and visibility persist',true);
+ assert.equal(await page.locator('#w-context,#w-studio-tools,#w-panel-choice').count(),0);assert.equal(await page.locator('#w-save-status').isVisible(),false);
+ note('Journal title and original timestamp persist; routine save is hidden',{created});
+ await page.locator('#w-studio-chapters').click();await saved();await page.reload();assert.equal(await page.locator('#w-chapters-sidebar').isHidden(),true);await page.locator('#w-studio-chapters').click();
+ for(const type of ['journaling','fiction','nonfiction','memoir','poetry','screenplay','essays','academic']){await page.locator('#w-project-menu>summary').click();await page.locator('#w-type').selectOption(type);await page.keyboard.press('Escape');assert.equal(await page.locator('#w-context,#w-studio-tools,#w-panel-choice,#w-note,#w-outline,#w-idea,#w-saved').count(),0);assert.equal(await page.locator('#w-draft').inputValue(),'The harbor was quiet. A small boat crossed the water.');}
+ await page.locator('#w-project-menu>summary').click();await page.locator('#w-type').selectOption('journaling');await page.keyboard.press('Escape');
+ note('Tools panel is absent in every project type; chapter list visibility persists',true);
  await page.locator('#w-draft').evaluate(e=>{e.focus();e.setSelectionRange(0,10);e.dispatchEvent(new Event('select',{bubbles:true}));});
  await page.locator('#w-bold').click();assert.equal(await page.locator('#w-bold').getAttribute('aria-pressed'),'true');
  await page.locator('#w-open-preview').click();assert.equal(await page.locator('dialog strong').innerText(),'The harbor');await page.locator('#w-dialog-save').click();
@@ -59,9 +61,8 @@ const note=(name,details)=>{evidence.push({name,details});process.stdout.write('
  note('Long-entry typing and autosave do not move the viewport',{initial,scroll:start,positions,afterSave:final,bars});
  await page.screenshot({path:path.join(out,'long-entry-mobile.png')});
  const selection=await page.locator('#w-draft').evaluate(e=>[e.selectionStart,e.selectionEnd]);
- await page.locator('#w-studio-tools').click();assert.equal(await page.locator('#w-context').getAttribute('role'),'dialog');assert.equal(await page.locator('#w-main').getAttribute('inert'),'');
- await page.locator('#w-panel-choice').selectOption('outline');await page.locator('#w-outline').fill('Remember the sound of the water.');await page.keyboard.press('Escape');
- assert.equal(await page.locator('#w-context').isHidden(),true);assert.deepEqual(await page.locator('#w-draft').evaluate(e=>[e.selectionStart,e.selectionEnd]),selection);assert.equal(await page.evaluate(()=>scrollY),start);
+ await page.locator('#w-studio-chapters').click();assert.equal(await page.locator('#w-chapters-sidebar').getAttribute('role'),'dialog');assert.equal(await page.locator('#w-main').getAttribute('inert'),'');await page.keyboard.press('Escape');
+ assert.equal(await page.locator('#w-chapters-sidebar').isHidden(),true);assert.deepEqual(await page.locator('#w-draft').evaluate(e=>[e.selectionStart,e.selectionEnd]),selection);assert.equal(await page.evaluate(()=>scrollY),start);
  note('Mobile drawer returns focus, caret and scroll',true);
  await page.locator('#w-draft').fill('The harbor was quiet. A small boat crossed the water.');await page.setViewportSize({width:1440,height:1000});await page.reload();
  await page.locator('#w-add-chapter').click();assert.match(await page.locator('dialog h2').innerText(),/Add entry/);await page.locator('dialog input[name=title]').fill('An evening thought');await page.locator('#w-dialog-save').click();await page.locator('#w-draft').fill('A later reflection.');
@@ -72,7 +73,7 @@ const note=(name,details)=>{evidence.push({name,details});process.stdout.write('
  await go('export');const exports=[];
  for(const format of ['PDF','Markdown','TXT','DOCX','Reading HTML']){await page.locator('#w-format').selectOption(format);const pending=page.waitForEvent('download');await page.locator('#w-download').click();const download=await pending;await download.saveAs(path.join(out,download.suggestedFilename()));exports.push(download.suggestedFilename());}
  const pending=page.waitForEvent('download');await page.locator('#w-backup-view').click();const download=await pending;await download.saveAs(path.join(out,'backup.json'));
- const backup=JSON.parse(await fs.readFile(path.join(out,'backup.json'),'utf8'));assert.ok(backup.projects.some(p=>p.chapters.some(c=>c.note==='PRIVATE QA JOURNAL NOTE')));
+ const backup=JSON.parse(await fs.readFile(path.join(out,'backup.json'),'utf8'));assert.ok(backup.projects.some(p=>p.chapters.some(c=>c.note==='PRIVATE QA JOURNAL NOTE'&&c.planOutline==='LEGACY OUTLINE'&&c.idea==='LEGACY IDEA'&&c.saved==='LEGACY PASSAGE')));
  note('All manuscript formats and full backup download',{exports});
  const scans=[],reflow=[];await page.addScriptTag({content:axe.source});
  for(const view of ['write','plan','characters','research','revise','reading','assistant','help','export','backups','trash']){

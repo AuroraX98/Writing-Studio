@@ -341,7 +341,7 @@ body{padding:16px}
 #writer-hybrid .w-menu-panel .w-settings{display:block}
 #writer-hybrid .w-menu-panel .w-settings label{margin:10px 0}
 #writer-hybrid .w-menu-panel .w-settings select{font:inherit;min-width:0}
-#writer-hybrid .w-shell{grid-template-columns:220px minmax(0,1fr) 280px;gap:0;padding-top:20px;align-items:start}
+#writer-hybrid .w-shell{grid-template-columns:220px minmax(0,1fr);gap:0;padding-top:20px;align-items:start}
 #writer-hybrid .w-tree{padding:0 16px 24px;min-width:0}
 #writer-hybrid .w-tree h3{font-size:11px;text-transform:uppercase;letter-spacing:1.3px;color:var(--w-muted)}
 #writer-hybrid #w-chapters{display:block;margin-top:14px}
@@ -368,48 +368,37 @@ body{padding:16px}
 #writer-hybrid #w-draft::selection{background:var(--w-selected);color:var(--w-text)}
 #writer-hybrid #w-draft:focus-visible{outline:1px solid var(--w-line);outline-offset:10px;border-radius:2px}
 #writer-hybrid .w-reading-text{max-width:65ch;margin-inline:auto}
-#writer-hybrid .w-context{padding:0 16px 24px;min-width:0;grid-column:auto}
-#writer-hybrid .w-panel-heading{padding-bottom:14px;margin-bottom:18px;border-bottom:1px solid var(--w-line)}
-#writer-hybrid .w-panel-heading label{font-size:11px;color:var(--w-muted);margin:0 0 6px}
-#writer-hybrid .w-panel-body{font-size:13px}
-#writer-hybrid .w-panel-section{min-width:0}
-#writer-hybrid .w-panel-section h3:first-child{margin-top:0}
-#writer-hybrid .w-panel-section .w-outline{border:0;padding:0;margin:0}
-#writer-hybrid .w-context .w-idea-card{box-shadow:none;background:transparent;border-color:var(--w-line)}
-#writer-hybrid .w-context .w-idea-card::before{display:none}
-#writer-hybrid .w-context .w-assistant-grid{grid-template-columns:minmax(0,1fr)}
-#writer-hybrid.w-chapters-hidden .w-tree,#writer-hybrid.w-tools-hidden .w-context{display:none}
-#writer-hybrid.w-chapters-hidden .w-shell{grid-template-columns:minmax(0,1fr) 280px}
-#writer-hybrid.w-tools-hidden .w-shell,#writer-hybrid.w-no-context:not(.w-focus) .w-shell,#writer-hybrid.w-board-mode:not(.w-focus) .w-shell,#writer-hybrid.w-characters-mode .w-shell{grid-template-columns:220px minmax(0,1fr)}
-#writer-hybrid.w-chapters-hidden.w-tools-hidden .w-shell,#writer-hybrid.w-chapters-hidden.w-no-context .w-shell,#writer-hybrid.w-chapters-hidden.w-board-mode .w-shell,#writer-hybrid.w-chapters-hidden.w-characters-mode .w-shell,#writer-hybrid.w-focus .w-shell{grid-template-columns:minmax(0,1fr)}
-#writer-hybrid.w-chapters-hidden #w-main,#writer-hybrid.w-tools-hidden #w-main{margin-inline:auto}
-#writer-hybrid.w-focus .w-tree,#writer-hybrid.w-focus .w-context{display:none}
+#writer-hybrid.w-chapters-hidden .w-tree{display:none}
+#writer-hybrid.w-chapters-hidden .w-shell{grid-template-columns:minmax(0,1fr)}
+#writer-hybrid.w-no-context:not(.w-focus) .w-shell,#writer-hybrid.w-board-mode:not(.w-focus) .w-shell,#writer-hybrid.w-characters-mode .w-shell{grid-template-columns:220px minmax(0,1fr)}
+#writer-hybrid.w-chapters-hidden.w-no-context .w-shell,#writer-hybrid.w-chapters-hidden.w-board-mode .w-shell,#writer-hybrid.w-chapters-hidden.w-characters-mode .w-shell,#writer-hybrid.w-focus .w-shell{grid-template-columns:minmax(0,1fr)}
+#writer-hybrid.w-chapters-hidden #w-main{margin-inline:auto}
+#writer-hybrid.w-focus .w-tree{display:none}
 #writer-hybrid.w-focus #w-main{width:calc(100% - 32px);max-width:800px;margin:0 auto 24px}
 #writer-hybrid .w-footer{padding:12px 20px;background:var(--w-panel,var(--w-bg));border-radius:0 0 16px 16px}
 #writer-hybrid .w-footer .w-navigation-tools{padding:0;border:0;width:100%;gap:8px}
 #writer-hybrid .w-footer .w-navigation-tools button{font-size:11px;min-height:30px;padding:5px 9px}
 #writer-hybrid #w-navigation-status:empty{display:none}
 #writer-hybrid .w-mobile-nav{display:none!important}
-#writer-hybrid .w-menu-panel [hidden],#writer-hybrid .w-panel-section[hidden]{display:none!important}
+#writer-hybrid .w-menu-panel [hidden]{display:none!important}
 #w-dialog.w-mint{font-family:system-ui,sans-serif;color:#f3f7f5;background:#191f1d;border-color:#35433c;border-radius:16px;--w-line:#35433c;--w-paper:#191f1d;--w-text:#f3f7f5;--w-accent:#8ce8c3}
 #w-dialog.w-mint input,#w-dialog.w-mint textarea,#w-dialog.w-mint select{background:#101413;color:#f3f7f5;border-color:#35433c}
 #w-dialog.w-mint button{background:#243f33;color:#f3f7f5;border-color:#456a58}
 #w-dialog.w-mint button[type=submit]{background:#8ce8c3;color:#10251b}
 #w-dialog.w-mint #w-dialog-error{color:#ffb5a9}
 @media(max-width:1100px){
- #writer-hybrid .w-shell{grid-template-columns:190px minmax(0,1fr) 245px}
- #writer-hybrid.w-chapters-hidden .w-shell{grid-template-columns:minmax(0,1fr) 245px}
- #writer-hybrid.w-tools-hidden .w-shell,#writer-hybrid.w-no-context:not(.w-focus) .w-shell,#writer-hybrid.w-board-mode:not(.w-focus) .w-shell,#writer-hybrid.w-characters-mode .w-shell{grid-template-columns:190px minmax(0,1fr)}
+ #writer-hybrid .w-shell{grid-template-columns:190px minmax(0,1fr)}
+ #writer-hybrid.w-chapters-hidden .w-shell{grid-template-columns:minmax(0,1fr)}
+#writer-hybrid.w-no-context:not(.w-focus) .w-shell,#writer-hybrid.w-board-mode:not(.w-focus) .w-shell,#writer-hybrid.w-characters-mode .w-shell{grid-template-columns:190px minmax(0,1fr)}
  #writer-hybrid.w-writing-view #w-main{padding-inline:24px}
  #writer-hybrid .w-brand{flex-basis:100%}
 }
 @media(max-width:900px){
  body{padding:8px}
- #writer-hybrid .w-shell,#writer-hybrid.w-chapters-hidden .w-shell,#writer-hybrid.w-tools-hidden .w-shell,#writer-hybrid.w-no-context:not(.w-focus) .w-shell,#writer-hybrid.w-board-mode:not(.w-focus) .w-shell,#writer-hybrid.w-characters-mode .w-shell{display:flex;flex-direction:column;padding:14px;gap:16px}
- #writer-hybrid .w-tree,#writer-hybrid .w-context{width:100%;padding:14px;border:1px solid var(--w-line);border-radius:10px;grid-column:auto;background:var(--w-panel,var(--w-bg))}
+ #writer-hybrid .w-shell,#writer-hybrid.w-chapters-hidden .w-shell,#writer-hybrid.w-no-context:not(.w-focus) .w-shell,#writer-hybrid.w-board-mode:not(.w-focus) .w-shell,#writer-hybrid.w-characters-mode .w-shell{display:flex;flex-direction:column;padding:14px;gap:16px}
+ #writer-hybrid .w-tree{width:100%;padding:14px;border:1px solid var(--w-line);border-radius:10px;grid-column:auto;background:var(--w-panel,var(--w-bg))}
  #writer-hybrid .w-tree{max-height:330px;overflow:auto}
  #writer-hybrid #w-main,#writer-hybrid.w-focus #w-main{width:100%;margin:0 auto;min-height:520px}
- #writer-hybrid .w-context{border-top:1px solid var(--w-line)}
  #writer-hybrid .w-brand{flex-basis:auto}
  #writer-hybrid .w-top-actions{margin-left:0}
  #writer-hybrid .w-menu-panel{max-width:calc(100vw - 54px)}
@@ -442,8 +431,6 @@ body{padding:16px}
 @media(prefers-reduced-motion:reduce){#writer-hybrid button{transition:none}}
 
 /* Compact panel heading and quiet empty notices. */
-#writer-hybrid .w-panel-heading{display:flex;align-items:end;gap:8px}
-#writer-hybrid .w-panel-heading label{flex:1;min-width:0;margin:0}
 #writer-hybrid .w-typing-tools:has(#w-typing-status[hidden]):has(#w-typing-actions:empty){display:none}
 #writer-hybrid #w-formatting-status:empty{display:none}
 #writer-hybrid .w-glow-wrap{max-width:min(65ch,660px);margin-inline:auto;font-family:var(--w-draft-font);font-size:var(--w-prose,18px)}
@@ -478,9 +465,8 @@ body{padding:16px}
 #writer-hybrid #w-draft:focus-visible{outline:2px solid var(--w-accent);outline-offset:5px}
 #w-dialog .w-reading-text{white-space:normal;max-height:65dvh;overflow:auto;padding:8px}
 @media(max-width:900px){
- #writer-hybrid .w-tree:not([hidden]),#writer-hybrid .w-context:not([hidden]){position:fixed;top:12px;right:12px;bottom:12px;left:auto;width:min(420px,calc(100vw - 24px));height:auto;max-height:calc(100dvh - 24px);overflow:auto;overscroll-behavior:contain;z-index:40;background:var(--w-paper);box-shadow:0 15px 50px #0007;padding:18px;}
+ #writer-hybrid .w-tree:not([hidden]){position:fixed;top:12px;right:12px;bottom:12px;left:auto;width:min(420px,calc(100vw - 24px));height:auto;max-height:calc(100dvh - 24px);overflow:auto;overscroll-behavior:contain;z-index:40;background:var(--w-paper);box-shadow:0 15px 50px #0007;padding:18px;}
  #writer-hybrid .w-drawer-close{display:block;margin:0 0 16px auto}
- #writer-hybrid .w-panel-heading{position:sticky;top:-18px;background:var(--w-paper);z-index:1;padding-top:12px}
  #writer-hybrid .w-tree h3{margin-top:12px}
 }
 @media(max-width:540px){

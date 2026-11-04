@@ -13,7 +13,7 @@ test('profile and request explicitly include only the author-approved context an
   assert.match(messages[1].content, /A small fictional sample/);
   assert.doesNotMatch(JSON.stringify(messages), /Excluded|EXCLUDED_SECRET/);
   assert.equal(Assistant.buildRequest(request({ text: '' })).text, '');
-  for (const projectType of ['fiction', 'nonfiction', 'memoir', 'poetry', 'screenplay', 'essays', 'academic']) assert.equal(Assistant.buildRequest(request({ projectType })).projectType, projectType);
+  for (const projectType of ['journaling', 'fiction', 'nonfiction', 'memoir', 'poetry', 'screenplay', 'essays', 'academic']) assert.equal(Assistant.buildRequest(request({ projectType })).projectType, projectType);
 });
 
 test('prompt limits, model selection, profile enums and unknown profile secrets reject', () => {

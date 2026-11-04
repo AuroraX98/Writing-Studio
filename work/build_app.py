@@ -72,8 +72,6 @@ js=js.replace('checkTypedWord(e);setDraftText', 'typingInput=true;try{checkTyped
 js=js.replace("if(a==='ca'&&b==='n'){","if(isPersonalWord(left)||isPersonalWord(right)){updateTyping();return;}\n   if(a==='ca'&&b==='n'){")
 assert js.count("  if(word){") == 1, "Expected one completed-word correction guard"
 js=js.replace("  if(word){", "  if(word&&!isPersonalWord(word[1])){")
-js=js.replace("context:true,prose:18","context:true,hintsVisible:false,prose:18")
-js=js.replace("context.innerHTML=guide(c);","context.innerHTML=state.hintsVisible?guide(c):'<section class=\"w-guide\"><p class=\"w-secondary\">Chapter hints are tucked away.</p><button type=\"button\" id=\"w-show-hints\">Show chapter hints</button></section>';")
 js=js.replace(' initialize();\n render();',' initialize();\n initializePalette();\n initializeNavigation();\n initializeAssistant();\n initializeStudio();\n render();\n connectFolderBackups();')
 js=js.replace('\"Chalkboard SE\",\"Chalkboard\",cursive','\"Chalkboard SE\",\"Chalkboard\",\"Segoe Print\",\"Comic Sans MS\",cursive')
 js=js.replace("sans:'system-ui,sans-serif'",'sans:\'system-ui,sans-serif\',caveat:\'"Studio Caveat",cursive\',georgia:\'Georgia,serif\',palatino:\'Palatino,"Palatino Linotype","Book Antiqua",serif\',garamond:\'Garamond,Baskerville,Georgia,serif\',times:\'"Times New Roman",Times,serif\',courier:\'"Courier New",Courier,monospace\',trebuchet:\'"Trebuchet MS",Arial,sans-serif\',verdana:\'Verdana,Geneva,sans-serif\'')
