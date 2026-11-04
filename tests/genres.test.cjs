@@ -10,7 +10,7 @@ const legacyIds = {
 
 test("catalog retains legacy genres and includes the requested project types", () => {
   const typeIds = WritingGenres.types.map(({ id }) => id);
-  assert.deepEqual(typeIds, ["fiction", "nonfiction", "memoir", "poetry", "screenplay", "essays", "academic"]);
+  assert.deepEqual(typeIds, ["journaling", "fiction", "nonfiction", "memoir", "poetry", "screenplay", "essays", "academic"]);
   for (const [type, ids] of Object.entries(legacyIds)) {
     for (const id of ids) assert.ok(WritingGenres.library[type][id], `${type}.${id} remains available`);
   }

@@ -86,10 +86,17 @@ class BackupStoreTests(unittest.TestCase):
         for name in ('../latest.json', '/etc/passwd', 'other.json', 'latest.json/../latest.json'):
             with self.assertRaises(ValueError):
                 self.store.read(name)
+    def test_symlinks_are_rejected(self):
+        self.save('safe')
         outside = Path(self.temp.name) / 'outside.json'
         outside.write_text(sample('outside'))
         linked = Path(self.temp.name) / 'previous.json'
-        linked.symlink_to(outside)
+        try:
+            linked.symlink_to(outside)
+        except OSError as error:
+            if getattr(error, 'winerror', None) == 1314:
+                self.skipTest('Windows does not permit this test process to create symbolic links')
+            raise
         with self.assertRaises(ValueError):
             self.store.read('previous.json')
     def test_restarted_store_keeps_revision_and_recent_snapshot(self):

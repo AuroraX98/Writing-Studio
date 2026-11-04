@@ -65,7 +65,7 @@ def messages_for(value):
         raise AssistantError('The assistant request is invalid.')
     if value.get('model') not in MODELS or value.get('goal') not in GOALS:
         raise AssistantError('Choose a supported model and writing goal.')
-    if value.get('projectType') not in ('fiction', 'nonfiction', 'memoir', 'poetry', 'screenplay', 'essays', 'academic'):
+    if value.get('projectType') not in ('journaling', 'fiction', 'nonfiction', 'memoir', 'poetry', 'screenplay', 'essays', 'academic'):
         raise AssistantError('Choose a supported project type.')
     brief = _text(value.get('brief'), 'instruction', 2000, required=True)
     text = _text(value.get('text'), 'excerpt', 10000)

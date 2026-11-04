@@ -57,9 +57,10 @@ js=js[:a]+'''  }else if(state.view==='research'){
 js=js.replace('${Object.entries(library[state.type]).map(([id,g])=>`<option value="${id}" ${state.genres[state.type]===id?\'selected\':\'\'}>${escape(g.name)}</option>`).join(\'\')}','${genreOptions(state.type,state.genres[state.type])}')
 # Textarea borders add to the measured height; retain auto-fit without a tiny scrollbar.
 js=js.replace("el.style.height=el.scrollHeight+'px'","el.style.height=(el.scrollHeight+el.offsetHeight-el.clientHeight)+'px'")
+js=js.replace("function fitText(){root.querySelectorAll('textarea').forEach(el=>{el.style.height='auto';el.style.height=(el.scrollHeight+el.offsetHeight-el.clientHeight)+'px';});}", "function fitText(){root.querySelectorAll('textarea').forEach(WritingLayout.fit);}")
 # Initial data, reliable persistence and new interactions inserted before event handlers.
 pos=js.index(" root.addEventListener('click'")
-js=js[:pos]+''.join(Path(path).read_text(encoding='utf-8') for path in ['work/genre_extension.js','work/app_extension.js','work/app_advanced.js','work/theme_extension.js','work/characters_extension.js','work/assistant_extension.js','work/help_extension.js','work/navigation_extension.js','work/studio_extension.js'])+js[pos:]
+js=js[:pos]+''.join(Path(path).read_text(encoding='utf-8') for path in ['work/genre_extension.js','work/journal_extension.js','work/app_extension.js','work/app_advanced.js','work/theme_extension.js','work/characters_extension.js','work/assistant_extension.js','work/help_extension.js','work/navigation_extension.js','work/studio_extension.js'])+js[pos:]
 
 js=js.replace('selected().text=draft.value','setDraftText(draft.value)').replace('selected().text=e.target.value','setDraftText(e.target.value)')
 js=js.replace("const before=draft.value,caret=draft.selectionStart;draft.setRangeText","const beforeFormats=clone(selected().formats||[]);if(!typingInput)recordEditorUndo();\n  const before=draft.value,caret=draft.selectionStart;draft.setRangeText")
@@ -82,13 +83,20 @@ js=js.replace("[state.font]);}","[state.font]);onPaletteAppearance();}")
 js=js.replace(' function render(){', ' function render(){\n  prepareStudioRender();')
 js=js.replace("theme:'glass',font:'chalkboard'", "theme:'mint',font:'georgia',typingGlow:true")
 js=js.replace('onPaletteAppearance();}', 'onPaletteAppearance();studioAppearance();}')
+js=js.replace(' chapter words · ', ' ${entryWord()} words · ')
+js=js.replace("matches.length===1?'chapter':'chapters'", "matches.length===1?entryWord():entryWord(true)")
+js=js.replace("chapters.length===1?'chapter':'chapters'", "chapters.length===1?entryWord():entryWord(true)")
+js=js.replace('No chapters match this search.', 'No entries or chapters match this search.')
+js=js.replace('Suggested book structure · ${escape(genre().name)}', "${isJournal()?'Optional journaling prompts':'Suggested book structure'} · ${escape(genre().name)}")
+js=js.replace('Flexible movements, not fixed chapter numbers. A movement can span several chapters; a chapter can serve several purposes.', "${isJournal()?'Pick any prompt that helps, or write freely. There is no required order.':'Flexible movements, not fixed chapter numbers. A movement can span several chapters; a chapter can serve several purposes.'}")
+
 Path('app/styles.css').write_text(css+'\n'+Path('work/app_extra.css').read_text(encoding='utf-8')+'\n'+Path('work/studio-design.css').read_text(encoding='utf-8')+'\n'+Path('work/typing-glow.css').read_text(encoding='utf-8'), encoding='utf-8')
 Path('app/main.js').write_text(js, encoding='utf-8')
 Path('app/index.html').write_text('''<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><title>Writing Studio</title><link rel="icon" href="data:,"><link rel="stylesheet" href="styles.css"></head><body>'''+markup+'''<script src="vendor/wordnet-data.js"></script><script src="thesaurus.js"></script><script src="theme-palette.js"></script><script src="genres.js"></script><script src="assistant.js"></script><script src="text-tools.js"></script><script src="storage.js"></script><script src="revision.js"></script><script src="local-backup.js"></script><script src="export.js"></script><script src="vendor/pdf-font.js"></script><script src="pdf.js"></script><script src="typing-glow.js"></script><script src="main.js"></script></body></html>''', encoding='utf-8')
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><title>Writing Studio</title><link rel="icon" href="data:,"><link rel="stylesheet" href="styles.css"></head><body>'''+markup+'''<script src="vendor/wordnet-data.js"></script><script src="thesaurus.js"></script><script src="theme-palette.js"></script><script src="genres.js"></script><script src="assistant.js"></script><script src="text-tools.js"></script><script src="journal.js"></script><script src="editor-layout.js"></script><script src="storage.js"></script><script src="revision.js"></script><script src="local-backup.js"></script><script src="export.js"></script><script src="vendor/pdf-font.js"></script><script src="pdf.js"></script><script src="typing-glow.js"></script><script src="main.js"></script></body></html>''', encoding='utf-8')
 # Keep the portable single-file edition in step with the app build.
 portable=Path('app/index.html').read_text(encoding='utf-8').replace('<link rel="stylesheet" href="styles.css">','<style>'+Path('app/styles.css').read_text(encoding='utf-8')+'</style>')
-for asset in ['vendor/wordnet-data.js','thesaurus.js','theme-palette.js','genres.js','assistant.js','text-tools.js','storage.js','revision.js','local-backup.js','export.js','vendor/pdf-font.js','pdf.js','typing-glow.js','main.js']:
+for asset in ['vendor/wordnet-data.js','thesaurus.js','theme-palette.js','genres.js','assistant.js','text-tools.js','journal.js','editor-layout.js','storage.js','revision.js','local-backup.js','export.js','vendor/pdf-font.js','pdf.js','typing-glow.js','main.js']:
     portable=portable.replace('<script src="'+asset+'"></script>','<script>'+Path('app',asset).read_text(encoding='utf-8').replace('</script','<\\/script')+'</script>')
 portable=portable.replace('vendor/Caveat-Variable.ttf', 'data:font/ttf;base64,'+base64.b64encode(Path('app/vendor/Caveat-Variable.ttf').read_bytes()).decode('ascii'))
 before,closing,after=portable.rpartition('</body>')
@@ -102,7 +110,7 @@ for notice_id, notice_path in [('writing-studio-license', 'LICENSE'), ('writing-
 Path('Writing Studio.html').write_text(portable, encoding='utf-8')
 # Content fingerprints keep every browser on matching scripts after an update.
 index=Path('app/index.html').read_text(encoding='utf-8')
-for asset in ['styles.css','vendor/wordnet-data.js','thesaurus.js','theme-palette.js','genres.js','assistant.js','text-tools.js','storage.js','revision.js','local-backup.js','export.js','vendor/pdf-font.js','pdf.js','typing-glow.js','main.js']:
+for asset in ['styles.css','vendor/wordnet-data.js','thesaurus.js','theme-palette.js','genres.js','assistant.js','text-tools.js','journal.js','editor-layout.js','storage.js','revision.js','local-backup.js','export.js','vendor/pdf-font.js','pdf.js','typing-glow.js','main.js']:
     fingerprint=hashlib.sha256(Path('app',asset).read_bytes()).hexdigest()[:12]
     index=index.replace('"'+asset+'"', '"'+asset+'?v='+fingerprint+'"')
 Path('app/index.html').write_text(index, encoding='utf-8')

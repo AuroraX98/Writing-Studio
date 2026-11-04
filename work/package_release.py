@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parent.parent
 RUNTIME = [
     'app/index.html', 'app/styles.css', 'app/main.js', 'app/storage.js',
     'app/text-tools.js', 'app/revision.js', 'app/local-backup.js', 'app/theme-palette.js', 'app/genres.js',
-    'app/export.js', 'app/pdf.js', 'app/vendor/pdf-font.js',
+    'app/journal.js', 'app/editor-layout.js', 'app/export.js', 'app/pdf.js', 'app/vendor/pdf-font.js',
     'app/vendor/DejaVu-LICENSE.txt', 'app/thesaurus.js', 'app/assistant.js',
     'app/vendor/wordnet-data.js', 'app/vendor/WordNet-LICENSE.txt',
     'app/typing-glow.js', 'app/vendor/Caveat-Variable.ttf', 'app/vendor/Caveat-OFL.txt',
@@ -24,7 +24,7 @@ SOURCE = [
     'app/mockup-source.html', 'work/build_app.py', 'work/app_extension.js',
     'work/app_advanced.js', 'work/app_extra.css', 'work/package_release.py',
     'work/theme_extension.js', 'tests/theme-palette.test.cjs',
-    'work/genre_extension.js', 'tests/genres.test.cjs',
+    'work/genre_extension.js', 'work/journal_extension.js', 'tests/journal.test.cjs', 'tests/browser-quality.cjs', 'tests/genres.test.cjs',
     'work/assistant_extension.js', 'tests/assistant.test.cjs', 'tests/assistant-drafts.test.cjs',
     'work/help_extension.js', 'work/navigation_extension.js', 'tests/revision-ui.test.cjs',
     'work/characters_extension.js', 'work/studio_extension.js', 'work/studio-design.css',
@@ -56,8 +56,8 @@ def start_here(platform, version):
                   'Without Python, double-click Writing Studio.html and use Back up projects\r\n'
                   'to download JSON copies. Use the same browser and keep the HTML file in\r\n'
                   'the same location. File-based browser storage varies by browser.\r\n\r\n'
-                  'Windows launch logic has been checked, but this beta has not yet been\r\n'
-                  'tested on an actual Windows computer.\r\n')
+                  'The Python launcher and browser workflows were checked on Windows.\r\n'
+                  'The double-click installation flow still needs a clean-machine test.\r\n')
     elif platform == 'mac':
         launch = ('MAC\r\nDouble-click Open Writing Studio.command. Python 3.8 or newer must be\r\n'
                   'installed for the launcher and automatic folder backups. Keep the\r\n'

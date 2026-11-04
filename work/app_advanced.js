@@ -6,8 +6,8 @@
   if(status.available&&!folderConnected){folderConnected=true;if(status.lastBackup)folderHold=true;}
   const el=root.querySelector('#w-folder-status');if(!el)return;
   const date=status.lastBackup?new Date(status.lastBackup).toLocaleString():'';
-  el.textContent=status.conflict?'Folder backup paused · another window saved changes':status.error?'Folder backup needs attention · '+status.error:status.available?(folderHold?'Folder copy differs · open Folder backups to choose a workspace':date?'Folder backup · '+date:'Folder backup ready · waiting for an edit'):'Folder backups need the local launcher';
-  el.classList.toggle('w-error',!!status.error||!!status.conflict);
+  el.textContent=status.conflict?'Folder backup paused · another window saved changes':status.error&&status.available?'Folder backup needs attention · '+status.error:status.available?(folderHold?'Folder copy differs · open Folder backups to choose a workspace':date?'Folder backup · '+date:'Folder backup ready · waiting for an edit'):'Automatic folder backups need the desktop launcher · Use Project → Back up projects here';
+  el.classList.toggle('w-error',!!(status.error&&status.available)||!!status.conflict);el.hidden=!(status.error&&status.available||status.conflict||(status.available&&folderHold));el.setAttribute('aria-live',el.hidden?'off':'polite');
   if(state.view==='backups')renderFolderDetails();
  }
  async function connectFolderBackups(){
@@ -87,6 +87,7 @@
  }
  function updateFormattedPreview(){
   if(typeof studioGlow!=='undefined')studioGlow?.refresh();
+  updateFormattingState();
   const preview=root.querySelector('#w-formatted-preview');if(!preview||!selected())return;const c=selected();preview.innerHTML=c.text?WritingTextTools.html(c.text,c.formats):'<span class="w-secondary">Your formatted chapter will appear here.</span>';preview.style.textAlign=c.alignment||'left';preview.style.lineHeight=c.lineSpacing||1.7;
  }
  function writingControls(){
@@ -136,9 +137,9 @@
   const version=project().history.find(item=>item.id===id);if(!version)return;const comparison=WritingRevision.diff(version.text,selected().text),display=WritingRevision.displayDiff(comparison),panel=root.querySelector('#w-version-comparison');
   panel.innerHTML=`<h3>Saved version → current draft</h3><p class="w-secondary">${escape(new Date(version.at).toLocaleString())}. Removed lines are rose; added lines are mint. ${comparison.approximate?'Large changed sections are shown as complete removed/added blocks.':''}</p><div class="w-diff-legend"><span>− Removed</span><span>+ Added</span></div><div class="w-diff">${display.rows.map(row=>`<div class="w-diff-${row.kind}"><span aria-label="${row.kind}">${{same:' ',added:'+',removed:'−',omitted:'…'}[row.kind]}</span><pre>${escape(row.text)}${row.truncated?'\n[Display shortened; full text remains in the saved version.]':''}</pre></div>`).join('')}</div><p class="w-secondary">${display.omittedRows?display.omittedRows+' rows omitted from this view. ':''}${display.omittedChanges?display.omittedChanges+' changed rows omitted; narrow your comparison or inspect the saved wording. ':''}${display.truncatedText?display.truncatedText+' long rows shortened. ':''}Comparison shows wording. Saved versions also retain formatting, spacing, and alignment.</p>`;
  }
- function readingView(){const p=project();return `<h2>${escape(p.title)}</h2><p class="w-secondary">Whole manuscript · ${chapters.reduce((n,c)=>n+words(c.text),0)} words</p><details class="w-reading-toc"><summary>Jump to a chapter</summary>${chapters.map(c=>`<a href="#w-read-${c.id}">${escape(c.title)}</a>`).join('')}</details>${chapters.map((c,i)=>`<section id="w-read-${c.id}" class="w-reading-chapter"><div class="w-row"><div><p class="w-chapter-number">Chapter ${String(i+1).padStart(2,'0')}</p><h3>${escape(c.title)}</h3></div><button data-edit-reading="${c.id}">Edit chapter</button></div><div class="w-reading-text" style="text-align:${['left','right','justify'].includes(c.alignment)?c.alignment:'left'};line-height:${[1.4,1.7,2].includes(c.lineSpacing)?c.lineSpacing:1.7}">${WritingTextTools.html(c.text,c.formats)||'<span class="w-secondary">This chapter is empty.</span>'}</div></section>`).join('')}`;}
+ function readingView(){const p=project();return `<h2>${escape(p.title)}</h2><p class="w-secondary">Whole manuscript · ${chapters.reduce((n,c)=>n+words(c.text),0)} words</p><details class="w-reading-toc"><summary>Jump to ${entryWord()}</summary>${chapters.map(c=>`<a href="#w-read-${c.id}">${escape(c.title)}</a>`).join('')}</details>${chapters.map((c,i)=>`<section id="w-read-${c.id}" class="w-reading-chapter"><div class="w-row"><div><p class="w-chapter-number">${isJournal()?'Journal entry':'Chapter '+String(i+1).padStart(2,'0')}</p><h3>${escape(c.title)}</h3>${createdMarkup(c)}</div><button data-edit-reading="${c.id}">Edit ${entryWord()}</button></div><div class="w-reading-text" style="text-align:${['left','right','justify'].includes(c.alignment)?c.alignment:'left'};line-height:${[1.4,1.7,2].includes(c.lineSpacing)?c.lineSpacing:1.7}">${WritingTextTools.html(c.text,c.formats)||'<span class="w-secondary">This chapter is empty.</span>'}</div></section>`).join('')}`;}
  root.addEventListener('mousedown',e=>{if(e.target.closest('#w-bold,#w-italic'))e.preventDefault();});
- root.addEventListener('select',e=>{if(e.target.id==='w-draft')draftSelection={chapterId:selected().id,start:e.target.selectionStart,end:e.target.selectionEnd};},true);
+ root.addEventListener('select',e=>{if(e.target.id==='w-draft'){draftSelection={chapterId:selected().id,start:e.target.selectionStart,end:e.target.selectionEnd};updateFormattingState();}},true);
  root.addEventListener('beforeinput',e=>{if(e.target.id!=='w-draft')return;if(e.inputType==='historyUndo'||e.inputType==='historyRedo'){e.preventDefault();editorUndo(e.inputType==='historyRedo');return;}recordEditorUndo(e.inputType);});
  root.addEventListener('keydown',e=>{
   if(!(e.ctrlKey||e.metaKey)||e.altKey||e.isComposing)return;const key=e.key.toLowerCase();

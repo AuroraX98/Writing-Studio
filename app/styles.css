@@ -450,6 +450,72 @@ body{padding:16px}
 #writer-hybrid #w-appearance-menu .w-check:has(input:checked) span{text-decoration:none;color:var(--w-text)}
 #writer-hybrid .w-menu-panel button[aria-current="page"]{background:var(--w-selected);color:var(--w-accent);border-color:var(--w-line);box-shadow:inset 3px 0 var(--w-accent)}
 
+/* Quiet autosave and a writing bar that remains reachable in long drafts. */
+#writer-hybrid{overflow:visible;--w-header-height:70px}
+#writer-hybrid .w-top{position:sticky;top:0;z-index:30}
+#writer-hybrid .w-writing-toolbar{position:sticky;top:var(--w-header-height);z-index:22;background:var(--w-paper);padding:8px 0;margin:12px 0 18px;box-shadow:0 7px 10px var(--w-paper)}
+#writer-hybrid .w-writing-tools{margin-left:0}
+#writer-hybrid #w-open-preview{margin-left:auto}
+#writer-hybrid .w-writing-toolbar button[aria-pressed=true]{background:var(--w-selected);border-color:var(--w-accent);color:var(--w-accent)}
+#writer-hybrid .w-writing-toolbar button[aria-pressed=mixed]{border-color:var(--w-accent);border-style:dashed}
+#writer-hybrid .w-glow-wrap{overflow-anchor:none}
+#writer-hybrid #w-main,#writer-hybrid #w-main h2,#writer-hybrid #w-draft{scroll-margin-top:calc(var(--w-header-height) + 65px)}
+#writer-hybrid .w-save-notices{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:25;max-width:min(90vw,680px);padding:12px 16px;background:var(--w-paper);border:1px solid var(--w-error,#a32929);border-radius:10px;box-shadow:0 4px 24px #0004;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+#writer-hybrid .w-save-notices:has(#w-save-status[hidden]):has(#w-folder-status[hidden]){display:none}
+#writer-hybrid .w-save-notices [hidden]{display:none!important}
+#writer-hybrid .w-save-notices #w-save-status{margin:0;color:var(--w-error,#a32929);font-size:14px}
+#writer-hybrid .w-visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important}
+#writer-hybrid .w-drawer-close{display:none}
+#writer-hybrid .w-entry-created{font-size:12px;color:var(--w-muted);margin:-10px 0 14px;font-variant-numeric:tabular-nums}
+#writer-hybrid .w-reading-chapter .w-entry-created{margin:4px 0 10px}
+#writer-hybrid #w-format-menu .w-menu-panel{width:260px}
+#writer-hybrid #w-format-menu label{display:block;margin:10px 0}
+#writer-hybrid #w-format-menu select{width:100%;max-width:none}
+#writer-hybrid #w-format-menu .w-menu-panel p{font-size:12px;line-height:1.5}
+#writer-hybrid .w-drawer-backdrop{position:fixed;inset:0;background:#0009;z-index:39}
+#writer-hybrid .w-drawer-backdrop[hidden]{display:none}
+#writer-hybrid #w-draft:focus-visible{outline:2px solid var(--w-accent);outline-offset:5px}
+#w-dialog .w-reading-text{white-space:normal;max-height:65dvh;overflow:auto;padding:8px}
+@media(max-width:900px){
+ #writer-hybrid .w-tree:not([hidden]),#writer-hybrid .w-context:not([hidden]){position:fixed;top:12px;right:12px;bottom:12px;left:auto;width:min(420px,calc(100vw - 24px));height:auto;max-height:calc(100dvh - 24px);overflow:auto;overscroll-behavior:contain;z-index:40;background:var(--w-paper);box-shadow:0 15px 50px #0007;padding:18px;}
+ #writer-hybrid .w-drawer-close{display:block;margin:0 0 16px auto}
+ #writer-hybrid .w-panel-heading{position:sticky;top:-18px;background:var(--w-paper);z-index:1;padding-top:12px}
+ #writer-hybrid .w-tree h3{margin-top:12px}
+}
+@media(max-width:540px){
+ #writer-hybrid .w-top{display:grid;grid-template-columns:38px minmax(0,1fr) 94px;padding:7px 10px;gap:5px;align-items:center}
+ #writer-hybrid .w-brand{flex-basis:auto;margin:0;gap:0}
+ #writer-hybrid .w-brand>div{display:none}
+ #writer-hybrid .w-brand strong{display:none}
+ #writer-hybrid .w-brand .w-monogram{padding:4px 5px;white-space:nowrap}
+ #writer-hybrid #w-project-menu{max-width:100%;width:100%;grid-column:2;grid-row:1}
+ #writer-hybrid #w-project-menu>summary{position:relative;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;padding-right:20px}
+ #writer-hybrid #w-project-menu>summary:after{position:absolute;right:7px}
+ #writer-hybrid #w-workspace-menu{grid-column:1 / -1;grid-row:2;width:100%}
+ #writer-hybrid #w-workspace-menu>summary{white-space:nowrap}
+ #writer-hybrid #w-appearance-menu{grid-column:3;grid-row:1}
+ #writer-hybrid .w-top-actions{grid-column:1 / -1;grid-row:3;width:auto;margin:0;gap:5px}
+ #writer-hybrid .w-top-actions button{font-size:11px;padding:6px 8px;min-height:34px}
+ #writer-hybrid .w-menu>summary{min-height:34px}
+ #writer-hybrid .w-writing-toolbar{gap:4px;top:var(--w-header-height);flex-wrap:wrap;padding:8px 0}
+ #writer-hybrid .w-writing-toolbar button{font-size:11px;padding:6px;min-width:28px;white-space:nowrap}
+ #writer-hybrid .w-writing-toolbar #w-bold{font-size:0}
+ #writer-hybrid .w-writing-toolbar #w-bold strong{font-size:0}
+ #writer-hybrid .w-writing-toolbar #w-bold:after{content:'B';font-size:13px;font-weight:700}
+ #writer-hybrid .w-writing-toolbar #w-italic{font-size:0}
+ #writer-hybrid .w-writing-toolbar #w-italic em{font-size:0}
+ #writer-hybrid .w-writing-toolbar #w-italic:after{content:'I';font-size:13px;font-style:italic}
+ #writer-hybrid .w-writing-tools{position:static}
+ #writer-hybrid .w-writing-tools>summary{font-size:0;padding:6px;white-space:nowrap}
+ #writer-hybrid .w-writing-tools>summary:before{content:'Tools';font-size:11px}
+ #writer-hybrid .w-writing-tools>summary:after{font-size:11px}
+ #writer-hybrid #w-format-menu>summary{font-size:11px;padding:6px;white-space:nowrap}
+ #writer-hybrid .w-writing-toolbar .w-menu-panel{top:100%;left:0;right:0;width:auto;max-height:55dvh}
+ #writer-hybrid .w-writing-toolbar #w-open-preview{font-size:11px;margin-left:auto}
+ #writer-hybrid.w-writing-view #w-main{padding-top:18px}
+ #writer-hybrid.w-writing-view #w-main h2{margin-bottom:14px}
+}
+
 .w-glow-wrap { position:relative; min-width:0; }
 .w-glow-wrap > textarea { display:block; }
 .w-glow-viewport { position:absolute; overflow:hidden; pointer-events:none; user-select:none; z-index:1; }

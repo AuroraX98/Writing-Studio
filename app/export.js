@@ -1,10 +1,13 @@
 (function (root, factory) {
   const formatting = typeof module === 'object' && module.exports ? require('./text-tools.js') : root.WritingTextTools;
-  const api = factory(formatting);
+  const journal = typeof module === 'object' && module.exports ? require('./journal.js') : root.WritingJournal;
+  const api = factory(formatting, journal);
   if (typeof module === 'object' && module.exports) module.exports = api;
   if (root) root.WritingExport = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (formatting) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (formatting, journal) {
   'use strict';
+
+  function entryDate(project, chapter) { return journal.isJournal(project) ? journal.createdLabel(chapter) : ''; }
 
   function value(value) {
     return value == null ? '' : String(value);
@@ -35,7 +38,7 @@
   function text(project) {
     const title = value(project && project.title);
     const sections = chaptersOf(project).map(function (chapter) {
-      return [value(chapter && chapter.title), value(chapter && chapter.text)].filter(Boolean).join('\n\n');
+      return [value(chapter && chapter.title), entryDate(project, chapter), value(chapter && chapter.text)].filter(Boolean).join('\n\n');
     });
     return [title, ...sections].filter(Boolean).join('\n\n');
   }
@@ -43,7 +46,7 @@
   function markdown(project) {
     const title = value(project && project.title);
     const sections = chaptersOf(project).map(function (chapter) {
-      return '## ' + value(chapter && chapter.title) + '\n\n' + formatting.markdown(value(chapter && chapter.text), chapter && chapter.formats);
+      return '## ' + value(chapter && chapter.title) + '\n\n' + (entryDate(project,chapter) ? entryDate(project,chapter)+'\n\n' : '') + formatting.markdown(value(chapter && chapter.text), chapter && chapter.formats);
     });
     return [title ? '# ' + title : '', ...sections].filter(Boolean).join('\n\n');
   }
@@ -69,7 +72,7 @@
         return '<p style="text-align:' + alignment(chapter) + ';line-height:' + lineSpacing(chapter) + '">' + markup + '</p>';
       }).join('\n');
       return '<section class="chapter' + (index ? ' chapter-break' : '') + '">\n' +
-        '  <h2>' + escapeHtml(chapter && chapter.title) + '</h2>\n' + paragraphs + '\n</section>';
+        '  <h2>' + escapeHtml(chapter && chapter.title) + '</h2>\n' + (entryDate(project,chapter) ? '<p class="entry-created">'+escapeHtml(entryDate(project,chapter))+'</p>\n' : '') + paragraphs + '\n</section>';
     }).join('\n');
     return '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n' +
       '<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
@@ -119,6 +122,7 @@
     if (title) body.push('<w:p><w:pPr><w:pStyle w:val="Title"/></w:pPr><w:r><w:t>' + escapeXml(title) + '</w:t></w:r></w:p>');
     chaptersOf(project).forEach(function (chapter, index) {
       body.push('<w:p><w:pPr><w:pStyle w:val="Heading1"/>' + (index ? '<w:pageBreakBefore/>' : '') + '</w:pPr><w:r><w:t>' + escapeXml(chapter && chapter.title) + '</w:t></w:r></w:p>');
+      if(entryDate(project,chapter)) body.push('<w:p><w:r><w:t>'+escapeXml(entryDate(project,chapter))+'</w:t></w:r></w:p>');
       body.push(wordText(chapter));
     });
     const documentXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +

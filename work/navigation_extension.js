@@ -63,7 +63,7 @@
  },true);
  root.addEventListener('change',event=>{captureNavigation();navigationTrigger={id:event.target.id};if(event.target.id==='w-mobile-view'){event.stopImmediatePropagation();state.view=event.target.value;render();scheduleSave();if(state.view==='backups')loadFolderFiles();}},true);
  root.addEventListener('input',event=>{if(event.target.id==='w-title'){main.querySelector('h2')?.setAttribute('aria-label',event.target.value||'Untitled chapter');document.title=project().title+' · '+event.target.value+' · Writing Studio';}});
- document.getElementById('w-dialog').addEventListener('close',()=>{if(document.activeElement===document.body)focusWorkspace(state.view==='write');});
+ document.getElementById('w-dialog').addEventListener('close',()=>{requestAnimationFrame(()=>{const target=dialogReturn?.isConnected&&dialogReturn.getClientRects().length?dialogReturn:root.querySelector('#w-draft')||main;target.focus({preventScroll:true});});});
  window.addEventListener('popstate',event=>{captureNavigation();navigationApplying=true;navigationTrigger={id:'history'};navigationIndex=Number.isInteger(event.state?.writingStudioIndex)?event.state.writingStudioIndex:0;if(applyNavigationURL()){render();scheduleSave();}navigationApplying=false;});
  window.addEventListener('hashchange',()=>{if(location.hash.startsWith('#studio?')&&location.hash!==navigationURL(navigationRoute())){captureNavigation();navigationApplying=true;navigationTrigger={id:'location-link'};if(applyNavigationURL()){render();scheduleSave();}navigationApplying=false;}});
 

@@ -1,4 +1,4 @@
-(function(root,factory){const font=typeof module==='object'&&module.exports?require('./vendor/pdf-font.js'):root.WritingPDFFont;const formatting=typeof module==='object'&&module.exports?require('./text-tools.js'):root.WritingTextTools;const api=factory(font,formatting);if(typeof module==='object'&&module.exports)module.exports=api;root.WritingPDF=api;})(globalThis,function(font,formatting){
+(function(root,factory){const font=typeof module==='object'&&module.exports?require('./vendor/pdf-font.js'):root.WritingPDFFont;const formatting=typeof module==='object'&&module.exports?require('./text-tools.js'):root.WritingTextTools;const journal=typeof module==='object'&&module.exports?require('./journal.js'):root.WritingJournal;const api=factory(font,formatting,journal);if(typeof module==='object'&&module.exports)module.exports=api;root.WritingPDF=api;})(globalThis,function(font,formatting,journal){
  'use strict';
  const encoder=new TextEncoder();
  const bytes=s=>encoder.encode(s);
@@ -7,8 +7,8 @@
  const normalize=s=>String(s??'').replace(/\r\n?/g,'\n').replace(/\t/g,'    ').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,'').normalize('NFC');
  function pdf(project){
   if(!font)throw new Error('The PDF font could not be loaded. Reopen the app and try again.');
-  const title=normalize(project.title),chapters=(project.chapters||[]).map(c=>{const runs=formatting.runs(c.text,c.formats).map(run=>({...run,text:normalize(run.text)}));return {title:normalize(c.title),text:runs.map(run=>run.text).join(''),runs,leading:12*([1.4,1.7,2].includes(c.lineSpacing)?c.lineSpacing:1.7),alignment:['left','right','justify'].includes(c.alignment)?c.alignment:'left'};});
-  const characters=new Set(Array.from(title+chapters.map(c=>c.title+c.text).join('')+'0123456789 '));characters.delete('\n');
+  const title=normalize(project.title),chapters=(project.chapters||[]).map(c=>{const runs=formatting.runs(c.text,c.formats).map(run=>({...run,text:normalize(run.text)}));return {created:journal.isJournal(project)?normalize(journal.createdLabel(c)):'',title:normalize(c.title),text:runs.map(run=>run.text).join(''),runs,leading:12*([1.4,1.7,2].includes(c.lineSpacing)?c.lineSpacing:1.7),alignment:['left','right','justify'].includes(c.alignment)?c.alignment:'left'};});
+  const characters=new Set(Array.from(title+chapters.map(c=>c.title+c.created+c.text).join('')+'0123456789 '));characters.delete('\n');
   const unsupported=[...characters].filter(c=>!font.glyphs[c.codePointAt(0)]);
   if(unsupported.length)throw new Error('The PDF font cannot display '+unsupported.slice(0,5).map(c=>'“'+c+'”').join(', ')+'. Use Print / save as PDF for this manuscript.');
   const characterIDs=new Map([...characters].map((c,i)=>[c,i+1]));
@@ -93,6 +93,7 @@
    const nextLines=chapter.text.trim()?2:0;
    if(y-(Math.min(headingLines.length,8)*24+nextLines*chapter.leading+14)<margin)newPage();
    for(const heading of headingLines)line(heading,17,24);
+   if(chapter.created){y-=4;block(chapter.created,10,15);}
    y-=14;styledBlock(chapter);
   });
   pages.forEach((commands,i)=>{const number=String(i+1),x=(pageWidth-width(number,10))/2;commands.push(`BT /F1 10 Tf 1 0 0 1 ${x.toFixed(2)} 36 Tm <${encoded(number)}> Tj ET`);});

@@ -6,6 +6,7 @@
   "use strict";
 
   const types = [
+    { id: "journaling", label: "Journaling", defaultGenre: "journaling", note: "Private entries with your own titles, dates, and optional reflection prompts." },
     { id: "fiction", label: "Fiction", defaultGenre: "novel", note: "Novels, short stories, and genre fiction." },
     { id: "nonfiction", label: "Nonfiction", defaultGenre: "reflective", note: "Explanatory, practical, and reflective books." },
     { id: "memoir", label: "Memoir", defaultGenre: "chronological", note: "Life stories shaped by time, theme, or connected strands." },
@@ -26,6 +27,7 @@
   };
 
   const rolePrompts = {
+    journaling: {opening:"What is on your mind right now?",development:"What details do you want to remember?",turning:"Has your perspective shifted?",application:"Is there anything you want to try?",closing:"What would you like to carry with you?"},
     fiction: {
       opening: "Ground us in a character and situation. What draws us in or feels unsettled?",
       development: "What is the character trying now, and how does the situation change?",
@@ -81,6 +83,11 @@
   // New entries extend the app's existing library. Legacy entries remain in the app
   // and take precedence when mergeIntoLibrary combines the two catalogs.
   const library = {
+    journaling: {journaling: {
+      name: "Journaling",
+      items: [["This moment","What happened, or what is on your mind?"],["Feelings","What are you feeling, in your own words?"],["Details to keep","Which small detail would you like to remember?"],["A question","Is there something you want to explore without needing an answer today?"],["Looking ahead","Is there anything you want to carry into tomorrow?"]],
+      map: [["Free writing","Start anywhere and follow your thoughts."],["A moment","Describe one moment you want to keep."],["Gratitude","Notice something you appreciate, if that feels useful."],["Reflection","Look at an experience from another angle."],["A question to revisit","Leave a question for a future entry."],["A gentle intention","Choose a small intention, or simply stop here."]]
+    }},
     fiction: {
       novel: entry("General / literary", [
         ["Point of view & setting", "Whose experience are we following? Where and when are we?"],
