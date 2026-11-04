@@ -292,7 +292,10 @@
   const status=root.querySelector('#w-search-status'),clear=root.querySelector('#w-clear-search');
   status.textContent=q?`${matches.length} matching ${matches.length===1?'chapter':'chapters'} of ${chapters.length}.`:`${chapters.length} ${chapters.length===1?'chapter':'chapters'}.`;
   clear.hidden=!q;
-  root.querySelector('#w-chapters').innerHTML=matches.length?matches.map(({chapter:c,where,excerpt:match})=>`<button type="button" class="w-chapter" data-chapter="${c.id}" aria-pressed="${c.id===state.selected}">${escape(c.title)}<span>${escape(c.status)}${q?' · '+escape(where)+': “'+escape(match)+'”':''}</span></button>`).join(''):'<div class="w-search-empty"><p role="status">No chapters match this search.</p><p class="w-secondary">Try a shorter phrase or use Clear search to browse every chapter.</p></div>';
+  root.querySelector('#w-chapters').innerHTML=matches.length?matches.map(({chapter:c,where,excerpt:match})=>{
+   const meta=[state.type==='journaling'?'':c.status,q?where+': “'+match+'”':''].filter(Boolean).join(' · ');
+   return `<button type="button" class="w-chapter" data-chapter="${c.id}" aria-pressed="${c.id===state.selected}">${escape(c.title)}${meta?'<span>'+escape(meta)+'</span>':''}</button>`;
+  }).join(''):'<div class="w-search-empty"><p role="status">No chapters match this search.</p><p class="w-secondary">Try a shorter phrase or use Clear search to browse every chapter.</p></div>';
  }
  function render(){
   const c=selected();

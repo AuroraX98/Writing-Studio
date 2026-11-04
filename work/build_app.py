@@ -87,6 +87,7 @@ js=js.replace(' chapter words · ', ' ${entryWord()} words · ')
 js=js.replace("matches.length===1?'chapter':'chapters'", "matches.length===1?entryWord():entryWord(true)")
 js=js.replace("chapters.length===1?'chapter':'chapters'", "chapters.length===1?entryWord():entryWord(true)")
 js=js.replace('No chapters match this search.', 'No entries or chapters match this search.')
+js=js.replace('${x.status} · ${roleNames[chapterRole(x)]}', "${isJournal()?'':escape(x.status)+' · '}${roleNames[chapterRole(x)]}")
 js=js.replace('Suggested book structure · ${escape(genre().name)}', "${isJournal()?'Optional journaling prompts':'Suggested book structure'} · ${escape(genre().name)}")
 js=js.replace('Flexible movements, not fixed chapter numbers. A movement can span several chapters; a chapter can serve several purposes.', "${isJournal()?'Pick any prompt that helps, or write freely. There is no required order.':'Flexible movements, not fixed chapter numbers. A movement can span several chapters; a chapter can serve several purposes.'}")
 
