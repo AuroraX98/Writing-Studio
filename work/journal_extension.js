@@ -17,7 +17,6 @@
    main.querySelector('h2').insertAdjacentHTML('afterend',createdMarkup(selected()));
    main.querySelector('#w-draft').setAttribute('aria-label',word+' draft');
    main.querySelector('#w-draft').placeholder=journal?'What is on your mind?':'Begin writing here…';
-   main.querySelector('.w-chapter-number').nextElementSibling.hidden=journal;
    main.querySelector('#w-delete-chapter').textContent='Delete '+entryWord();
   }
  }
