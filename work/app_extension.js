@@ -33,7 +33,7 @@
   root.querySelector('#w-project').innerHTML=data.projects.map(p=>`<option value="${p.id}" ${p.id===data.activeProject?'selected':''}>${escape(p.title)}</option>`).join('');
   if(state.view==='write'){
    const h=main.querySelector('h2');h.innerHTML=`<input id="w-title" aria-label="Chapter title" value="${escape(selected().title)}">`;
-   h.insertAdjacentHTML('afterend',`<div class="w-row w-editor-actions"><details class="w-metadata"><summary>Chapter settings</summary><label>Chapter status<select id="w-status">${['Outlined','Drafting','Revising','Complete'].map(x=>`<option ${selected().status===x?'selected':''}>${x}</option>`).join('')}</select></label><label for="w-project-genre">${genreLabel(state.type)}<select id="w-project-genre">${genreOptions(state.type,state.genres[state.type])}</select></label><label>Text size<select id="w-prose">${[16,18,20,22].map(n=>`<option ${state.prose===n?'selected':''}>${n}</option>`).join('')}</select></label><label class="w-secondary">Chapter synopsis<textarea id="w-summary" aria-label="Chapter synopsis" placeholder="A sentence to orient your next session">${escape(selected().summary)}</textarea></label></details><button id="w-delete-chapter">Delete chapter</button><button id="w-toggle-context" aria-controls="w-context" aria-expanded="${!!state.context}">${state.context?'Hide':'Show'} chapter tools</button><button id="w-toggle-hints" aria-expanded="${!!state.hintsVisible}" aria-controls="w-context">${state.hintsVisible?'Hide':'Show'} chapter hints</button></div>`);
+   h.insertAdjacentHTML('afterend',`<div class="w-row w-editor-actions"><label>Text size<select id="w-prose">${[16,18,20,22].map(n=>`<option ${state.prose===n?'selected':''}>${n}</option>`).join('')}</select></label><button id="w-delete-chapter">Delete chapter</button><button id="w-toggle-context" aria-controls="w-context" aria-expanded="${!!state.context}">${state.context?'Hide':'Show'} chapter tools</button><button id="w-toggle-hints" aria-expanded="${!!state.hintsVisible}" aria-controls="w-context">${state.hintsVisible?'Hide':'Show'} chapter hints</button></div>`);
    const chapterAlignment=['left','right','justify'].includes(selected().alignment)?selected().alignment:'left';
    main.querySelector('.w-editor-actions').insertAdjacentHTML('beforeend',`<label class="w-alignment-control" for="w-alignment">Draft alignment<select id="w-alignment">${['left','right','justify'].map(value=>`<option value="${value}" ${chapterAlignment===value?'selected':''}>${{left:'Left',right:'Right',justify:'Justified'}[value]}</option>`).join('')}</select></label>`);
    main.querySelector('#w-draft').style.textAlign=chapterAlignment;writingControls();
@@ -89,12 +89,11 @@
   }else if(b.id==='w-print'){const win=window.open('','_blank');if(win){win.document.open();win.document.write(WritingExport.html(p));win.document.close();win.focus();win.print();}else saveStatus('Allow the reading window to print, or download Reading HTML.',true);}
   if(!['w-import','w-backup','w-backup-view','w-print','w-download'].includes(b.id))scheduleSave();
  });
- root.addEventListener('input',e=>{const el=e.target;if(el.id==='w-title'){selected().title=el.value;tree();const label=context.querySelector('label[for=w-note]');if(label)label.textContent=el.value;}if(el.id==='w-summary')selected().summary=el.value;if(el.id==='w-task')selected().task=el.value;if(!['w-search','w-import-file','w-find-text','w-replace-text'].includes(el.id))scheduleSave();});
+ root.addEventListener('input',e=>{const el=e.target;if(el.id==='w-title'){selected().title=el.value;tree();const label=context.querySelector('label[for=w-note]');if(label)label.textContent=el.value;}if(el.id==='w-task')selected().task=el.value;if(!['w-search','w-import-file','w-find-text','w-replace-text'].includes(el.id))scheduleSave();});
  root.addEventListener('change',e=>{
   const el=e.target;
   if(el.id==='w-project'){syncData();data.activeProject=el.value;activateProject();render();}
   else if(el.id==='w-alignment'){selected().alignment=el.value;root.querySelector('#w-draft').style.textAlign=el.value;}
-  else if(el.id==='w-status'){selected().status=el.value;tree();}
   else if(el.id==='w-prose'){state.prose=Number(el.value);root.style.setProperty('--w-prose',state.prose+'px');fitText();}
   else if(el.id==='w-format'){state.format=el.value;const notice=root.querySelector('#w-export-status');if(notice){notice.textContent='';notice.classList.remove('w-error');}}
   if(!['w-import-file','w-replace-scope','w-match-case','w-whole-word'].includes(el.id))scheduleSave();

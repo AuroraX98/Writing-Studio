@@ -11,6 +11,7 @@
   for(const id of ['w-project','w-new-project','w-rename-project','w-type','w-import','w-backup','w-folder-backups','w-delete-project']){
    const el=root.querySelector('#'+id);projectPanel.append(el.matches('select')?el.closest('label'):el);
   }
+  projectPanel.querySelector('#w-type').closest('label').insertAdjacentHTML('afterend','<label id="w-project-genre-label" for="w-project-genre"></label>');
   projectPanel.insertAdjacentHTML('beforeend','<button type="button" data-view="export">Export manuscript</button><button type="button" data-view="trash">Trash</button>');
   projectPanel.insertAdjacentHTML('beforeend','<button type="button" id="w-save-details">Save details</button>');
   for(const id of ['w-theme','w-colors','w-transparency-control']){const el=root.querySelector('#'+id);appearancePanel.append(el.matches('select')?el.closest('label'):el);}
@@ -79,6 +80,7 @@
  function enrichStudio(){
   if(!studioReady)return;
   root.querySelector('#w-project-menu>summary').textContent=project().title;
+  root.querySelector('#w-project-genre-label').innerHTML=`${genreLabel(state.type)}<select id="w-project-genre">${genreOptions(state.type,state.genres[state.type])}</select>`;
   root.querySelector('#w-workspace-menu>summary').textContent='Workspace: '+navigationViews[state.view];
   root.querySelector('#w-typing-glow').checked=state.typingGlow!==false;
   root.querySelectorAll('.w-menu [data-view]').forEach(el=>el.setAttribute('aria-current',el.dataset.view===state.view?'page':'false'));
@@ -86,11 +88,11 @@
   const navigation=root.querySelector('#w-navigation-tools');if(navigation)root.querySelector('.w-footer').append(navigation);
   studioVisibility();studioAppearance();
   if(state.view!=='write'){enrichJournal();return;}
-  const draft=main.querySelector('#w-draft'),toolbar=main.querySelector('.w-writing-toolbar'),settings=main.querySelector('.w-metadata');
-  settings.append(main.querySelector('#w-delete-chapter'));
+  const draft=main.querySelector('#w-draft'),toolbar=main.querySelector('.w-writing-toolbar');
   main.querySelector('#w-toggle-context')?.remove();main.querySelector('#w-toggle-hints')?.remove();
   const tools=studioMenu('w-writing-tools','Writing tools');tools.classList.add('w-writing-tools');
   for(const el of [main.querySelector('.w-typing-settings'),main.querySelector('#w-dictionary'),main.querySelector('#w-thesaurus'),main.querySelector('.w-shortcuts')])if(el)tools.lastElementChild.append(el);
+  tools.lastElementChild.append(main.querySelector('#w-delete-chapter'));
   const size=main.querySelector('#w-prose').closest('label'),alignment=main.querySelector('#w-alignment').closest('label'),spacing=main.querySelector('#w-spacing').closest('label');
   const format=studioMenu('w-format-menu','Format');
   format.lastElementChild.append(studioFontLabel,size,alignment,spacing);
@@ -182,7 +184,7 @@
   else if(button.id==='w-rescue-backup')backup();
   else if(button.id==='w-save-details'){showDialog('Save details','<p>Changes autosave in the background after a short pause. Ordinary saving never changes your writing layout.</p><p>'+escape(root.querySelector('#w-save-status').textContent)+'</p><p>'+escape(root.querySelector('#w-folder-status').textContent)+'</p>',()=>{},'Close',{render:false});}
   else if(button.id==='w-open-preview'){showDialog('Formatted preview',`<div class="w-reading-text" style="text-align:${selected().alignment||'left'};line-height:${selected().lineSpacing||1.7}">${WritingTextTools.html(selected().text,selected().formats)||'Start writing to see a preview.'}</div>`,()=>{},'Back to writing',{render:false});}
-  if(button.closest('.w-menu')&&(button.dataset.view||['w-save-details','w-new-project','w-rename-project','w-delete-project','w-import','w-backup','w-folder-backups','w-colors','w-dictionary','w-thesaurus'].includes(button.id))){
+  if(button.closest('.w-menu')&&(button.dataset.view||['w-save-details','w-new-project','w-rename-project','w-delete-project','w-delete-chapter','w-import','w-backup','w-folder-backups','w-colors','w-dictionary','w-thesaurus'].includes(button.id))){
    const summary=button.closest('.w-menu').querySelector('summary');closeStudioMenus();queueMicrotask(()=>{if(document.activeElement===button||document.activeElement===document.body)summary.focus();});
   }
   if(button.id==='w-save-guide'){const before=selected().planOutline;setTimeout(()=>{if(selected().planOutline!==before){studioPanel='outline';studioTools=true;render();context.querySelector('#w-outline')?.focus();}});}

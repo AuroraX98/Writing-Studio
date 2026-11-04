@@ -231,7 +231,6 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
   root.querySelector('#w-search').placeholder='Search '+entryWord()+' titles, notes, and draft text';
   root.querySelector('#w-search-help').textContent=`Search ${entryWord()} titles, notes, and draft text. Sources, characters, and outlines are not included.`;
   for(const view of ['plan','reading'])root.querySelectorAll('.w-menu [data-view="'+view+'"]').forEach(el=>el.textContent=navigationViews[view]);
-  root.querySelector('.w-tree>p')?.replaceChildren(journal?'Your entries, notes, and reflections in one place.':'One project. Connected chapters, notes, sources, and revision tasks.');
   if(journal&&state.view==='plan'){
    main.querySelector('h2').textContent='Your journal entries.';
    main.querySelectorAll('.w-chapter-number').forEach(el=>el.textContent=el.textContent.replace(/Chapter/i,'Entry'));
@@ -242,18 +241,13 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
    main.querySelector('h2').insertAdjacentHTML('afterend',createdMarkup(selected()));
    main.querySelector('#w-draft').setAttribute('aria-label',word+' draft');
    main.querySelector('#w-draft').placeholder=journal?'What is on your mind?':'Begin writing here…';
-   main.querySelector('.w-format-preview>summary').textContent='Formatted '+entryWord()+' preview';
    main.querySelector('.w-chapter-number').nextElementSibling.hidden=journal;
-   main.querySelector('.w-metadata>summary').textContent=word+' settings';
    main.querySelector('#w-delete-chapter').textContent='Delete '+entryWord();
    const note=context.querySelector('.w-context-section h3');if(note)note.textContent=word+' notes';
    context.querySelector('label[for="w-panel-choice"]').firstChild.textContent=word+' tools';
    context.querySelector('#w-panel-choice option[value=notes]').textContent=word+' notes';
    context.querySelector('#w-close-tools').setAttribute('aria-label','Close '+entryWord()+' tools');
    if(journal){
-    main.querySelector('#w-status').closest('label').firstChild.textContent='Entry status';
-    main.querySelector('#w-summary').setAttribute('aria-label','Entry summary');
-    main.querySelector('#w-summary').closest('label').firstChild.textContent='Entry summary';
     context.querySelector('#w-note')?.setAttribute('aria-label','Entry notes');
     context.querySelector('.w-guide h3')?.replaceChildren('Journal prompts');
    }
@@ -294,7 +288,7 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
   root.querySelector('#w-project').innerHTML=data.projects.map(p=>`<option value="${p.id}" ${p.id===data.activeProject?'selected':''}>${escape(p.title)}</option>`).join('');
   if(state.view==='write'){
    const h=main.querySelector('h2');h.innerHTML=`<input id="w-title" aria-label="Chapter title" value="${escape(selected().title)}">`;
-   h.insertAdjacentHTML('afterend',`<div class="w-row w-editor-actions"><details class="w-metadata"><summary>Chapter settings</summary><label>Chapter status<select id="w-status">${['Outlined','Drafting','Revising','Complete'].map(x=>`<option ${selected().status===x?'selected':''}>${x}</option>`).join('')}</select></label><label for="w-project-genre">${genreLabel(state.type)}<select id="w-project-genre">${genreOptions(state.type,state.genres[state.type])}</select></label><label>Text size<select id="w-prose">${[16,18,20,22].map(n=>`<option ${state.prose===n?'selected':''}>${n}</option>`).join('')}</select></label><label class="w-secondary">Chapter synopsis<textarea id="w-summary" aria-label="Chapter synopsis" placeholder="A sentence to orient your next session">${escape(selected().summary)}</textarea></label></details><button id="w-delete-chapter">Delete chapter</button><button id="w-toggle-context" aria-controls="w-context" aria-expanded="${!!state.context}">${state.context?'Hide':'Show'} chapter tools</button><button id="w-toggle-hints" aria-expanded="${!!state.hintsVisible}" aria-controls="w-context">${state.hintsVisible?'Hide':'Show'} chapter hints</button></div>`);
+   h.insertAdjacentHTML('afterend',`<div class="w-row w-editor-actions"><label>Text size<select id="w-prose">${[16,18,20,22].map(n=>`<option ${state.prose===n?'selected':''}>${n}</option>`).join('')}</select></label><button id="w-delete-chapter">Delete chapter</button><button id="w-toggle-context" aria-controls="w-context" aria-expanded="${!!state.context}">${state.context?'Hide':'Show'} chapter tools</button><button id="w-toggle-hints" aria-expanded="${!!state.hintsVisible}" aria-controls="w-context">${state.hintsVisible?'Hide':'Show'} chapter hints</button></div>`);
    const chapterAlignment=['left','right','justify'].includes(selected().alignment)?selected().alignment:'left';
    main.querySelector('.w-editor-actions').insertAdjacentHTML('beforeend',`<label class="w-alignment-control" for="w-alignment">Draft alignment<select id="w-alignment">${['left','right','justify'].map(value=>`<option value="${value}" ${chapterAlignment===value?'selected':''}>${{left:'Left',right:'Right',justify:'Justified'}[value]}</option>`).join('')}</select></label>`);
    main.querySelector('#w-draft').style.textAlign=chapterAlignment;writingControls();
@@ -350,12 +344,11 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
   }else if(b.id==='w-print'){const win=window.open('','_blank');if(win){win.document.open();win.document.write(WritingExport.html(p));win.document.close();win.focus();win.print();}else saveStatus('Allow the reading window to print, or download Reading HTML.',true);}
   if(!['w-import','w-backup','w-backup-view','w-print','w-download'].includes(b.id))scheduleSave();
  });
- root.addEventListener('input',e=>{const el=e.target;if(el.id==='w-title'){selected().title=el.value;tree();const label=context.querySelector('label[for=w-note]');if(label)label.textContent=el.value;}if(el.id==='w-summary')selected().summary=el.value;if(el.id==='w-task')selected().task=el.value;if(!['w-search','w-import-file','w-find-text','w-replace-text'].includes(el.id))scheduleSave();});
+ root.addEventListener('input',e=>{const el=e.target;if(el.id==='w-title'){selected().title=el.value;tree();const label=context.querySelector('label[for=w-note]');if(label)label.textContent=el.value;}if(el.id==='w-task')selected().task=el.value;if(!['w-search','w-import-file','w-find-text','w-replace-text'].includes(el.id))scheduleSave();});
  root.addEventListener('change',e=>{
   const el=e.target;
   if(el.id==='w-project'){syncData();data.activeProject=el.value;activateProject();render();}
   else if(el.id==='w-alignment'){selected().alignment=el.value;root.querySelector('#w-draft').style.textAlign=el.value;}
-  else if(el.id==='w-status'){selected().status=el.value;tree();}
   else if(el.id==='w-prose'){state.prose=Number(el.value);root.style.setProperty('--w-prose',state.prose+'px');fitText();}
   else if(el.id==='w-format'){state.format=el.value;const notice=root.querySelector('#w-export-status');if(notice){notice.textContent='';notice.classList.remove('w-error');}}
   if(!['w-import-file','w-replace-scope','w-match-case','w-whole-word'].includes(el.id))scheduleSave();
@@ -466,7 +459,6 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
  function updateFormattedPreview(){
   if(typeof studioGlow!=='undefined')studioGlow?.refresh();
   updateFormattingState();
-  const preview=root.querySelector('#w-formatted-preview');if(!preview||!selected())return;const c=selected();preview.innerHTML=c.text?WritingTextTools.html(c.text,c.formats):'<span class="w-secondary">Your formatted chapter will appear here.</span>';preview.style.textAlign=c.alignment||'left';preview.style.lineHeight=c.lineSpacing||1.7;
  }
  function writingControls(){
   draftSelection=null;
@@ -474,7 +466,7 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
   main.querySelector('.w-editor-actions').insertAdjacentHTML('beforeend',`<label class="w-alignment-control" for="w-spacing">Line spacing<select id="w-spacing">${[1.4,1.7,2].map(value=>`<option value="${value}" ${(c.lineSpacing||1.7)===value?'selected':''}>${value===1.4?'Compact':value===1.7?'Comfortable':'Double'}</option>`).join('')}</select></label>`);
   draft.style.lineHeight=c.lineSpacing||1.7;
   draft.insertAdjacentHTML('beforebegin','<div class="w-writing-toolbar" role="group" aria-label="Writing controls"><button id="w-bold" title="Bold selected words (Ctrl/Cmd+B)"><strong>Bold</strong></button><button id="w-italic" title="Italic selected words (Ctrl/Cmd+I)"><em>Italic</em></button><button id="w-editor-undo">Undo</button><button id="w-editor-redo">Redo</button><button id="w-dictionary">Personal dictionary</button><button id="w-thesaurus">Thesaurus</button><details class="w-shortcuts"><summary>Keyboard shortcuts</summary><p>Ctrl/Cmd+B: bold selection<br>Ctrl/Cmd+I: italic selection<br>Ctrl/Cmd+Z: undo draft edit<br>Ctrl/Cmd+Shift+Z: redo<br>Ctrl/Cmd+S: save<br>Ctrl/Cmd+Shift+F: find and replace<br>Ctrl/Cmd+Shift+R: read manuscript</p></details></div><p id="w-formatting-status" class="w-secondary" role="status">Select words to format them. The preview shows how they will look in Word, PDF, Markdown, and reading copies.</p>');
-  draft.insertAdjacentHTML('afterend','<details class="w-format-preview"><summary>Formatted chapter preview</summary><div id="w-formatted-preview" class="w-reading-text"></div></details>');updateFormattedPreview();
+  updateFormattedPreview();
  }
  function revisionDraft(){return {find:'',replacement:'',scope:'chapter',caseSensitive:false,wholeWord:false,previewRequested:false,...(selected().uiDrafts?.revision||{})};}
  function revisionContextKey(){return JSON.stringify([project().id,selected().id]);}
@@ -850,6 +842,7 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
   for(const id of ['w-project','w-new-project','w-rename-project','w-type','w-import','w-backup','w-folder-backups','w-delete-project']){
    const el=root.querySelector('#'+id);projectPanel.append(el.matches('select')?el.closest('label'):el);
   }
+  projectPanel.querySelector('#w-type').closest('label').insertAdjacentHTML('afterend','<label id="w-project-genre-label" for="w-project-genre"></label>');
   projectPanel.insertAdjacentHTML('beforeend','<button type="button" data-view="export">Export manuscript</button><button type="button" data-view="trash">Trash</button>');
   projectPanel.insertAdjacentHTML('beforeend','<button type="button" id="w-save-details">Save details</button>');
   for(const id of ['w-theme','w-colors','w-transparency-control']){const el=root.querySelector('#'+id);appearancePanel.append(el.matches('select')?el.closest('label'):el);}
@@ -918,6 +911,7 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
  function enrichStudio(){
   if(!studioReady)return;
   root.querySelector('#w-project-menu>summary').textContent=project().title;
+  root.querySelector('#w-project-genre-label').innerHTML=`${genreLabel(state.type)}<select id="w-project-genre">${genreOptions(state.type,state.genres[state.type])}</select>`;
   root.querySelector('#w-workspace-menu>summary').textContent='Workspace: '+navigationViews[state.view];
   root.querySelector('#w-typing-glow').checked=state.typingGlow!==false;
   root.querySelectorAll('.w-menu [data-view]').forEach(el=>el.setAttribute('aria-current',el.dataset.view===state.view?'page':'false'));
@@ -925,11 +919,11 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
   const navigation=root.querySelector('#w-navigation-tools');if(navigation)root.querySelector('.w-footer').append(navigation);
   studioVisibility();studioAppearance();
   if(state.view!=='write'){enrichJournal();return;}
-  const draft=main.querySelector('#w-draft'),toolbar=main.querySelector('.w-writing-toolbar'),settings=main.querySelector('.w-metadata');
-  settings.append(main.querySelector('#w-delete-chapter'));
+  const draft=main.querySelector('#w-draft'),toolbar=main.querySelector('.w-writing-toolbar');
   main.querySelector('#w-toggle-context')?.remove();main.querySelector('#w-toggle-hints')?.remove();
   const tools=studioMenu('w-writing-tools','Writing tools');tools.classList.add('w-writing-tools');
   for(const el of [main.querySelector('.w-typing-settings'),main.querySelector('#w-dictionary'),main.querySelector('#w-thesaurus'),main.querySelector('.w-shortcuts')])if(el)tools.lastElementChild.append(el);
+  tools.lastElementChild.append(main.querySelector('#w-delete-chapter'));
   const size=main.querySelector('#w-prose').closest('label'),alignment=main.querySelector('#w-alignment').closest('label'),spacing=main.querySelector('#w-spacing').closest('label');
   const format=studioMenu('w-format-menu','Format');
   format.lastElementChild.append(studioFontLabel,size,alignment,spacing);
@@ -1021,7 +1015,7 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
   else if(button.id==='w-rescue-backup')backup();
   else if(button.id==='w-save-details'){showDialog('Save details','<p>Changes autosave in the background after a short pause. Ordinary saving never changes your writing layout.</p><p>'+escape(root.querySelector('#w-save-status').textContent)+'</p><p>'+escape(root.querySelector('#w-folder-status').textContent)+'</p>',()=>{},'Close',{render:false});}
   else if(button.id==='w-open-preview'){showDialog('Formatted preview',`<div class="w-reading-text" style="text-align:${selected().alignment||'left'};line-height:${selected().lineSpacing||1.7}">${WritingTextTools.html(selected().text,selected().formats)||'Start writing to see a preview.'}</div>`,()=>{},'Back to writing',{render:false});}
-  if(button.closest('.w-menu')&&(button.dataset.view||['w-save-details','w-new-project','w-rename-project','w-delete-project','w-import','w-backup','w-folder-backups','w-colors','w-dictionary','w-thesaurus'].includes(button.id))){
+  if(button.closest('.w-menu')&&(button.dataset.view||['w-save-details','w-new-project','w-rename-project','w-delete-project','w-delete-chapter','w-import','w-backup','w-folder-backups','w-colors','w-dictionary','w-thesaurus'].includes(button.id))){
    const summary=button.closest('.w-menu').querySelector('summary');closeStudioMenus();queueMicrotask(()=>{if(document.activeElement===button||document.activeElement===document.body)summary.focus();});
   }
   if(button.id==='w-save-guide'){const before=selected().planOutline;setTimeout(()=>{if(selected().planOutline!==before){studioPanel='outline';studioTools=true;render();context.querySelector('#w-outline')?.focus();}});}

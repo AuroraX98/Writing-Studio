@@ -17,7 +17,6 @@
   root.querySelector('#w-search').placeholder='Search '+entryWord()+' titles, notes, and draft text';
   root.querySelector('#w-search-help').textContent=`Search ${entryWord()} titles, notes, and draft text. Sources, characters, and outlines are not included.`;
   for(const view of ['plan','reading'])root.querySelectorAll('.w-menu [data-view="'+view+'"]').forEach(el=>el.textContent=navigationViews[view]);
-  root.querySelector('.w-tree>p')?.replaceChildren(journal?'Your entries, notes, and reflections in one place.':'One project. Connected chapters, notes, sources, and revision tasks.');
   if(journal&&state.view==='plan'){
    main.querySelector('h2').textContent='Your journal entries.';
    main.querySelectorAll('.w-chapter-number').forEach(el=>el.textContent=el.textContent.replace(/Chapter/i,'Entry'));
@@ -28,18 +27,13 @@
    main.querySelector('h2').insertAdjacentHTML('afterend',createdMarkup(selected()));
    main.querySelector('#w-draft').setAttribute('aria-label',word+' draft');
    main.querySelector('#w-draft').placeholder=journal?'What is on your mind?':'Begin writing here…';
-   main.querySelector('.w-format-preview>summary').textContent='Formatted '+entryWord()+' preview';
    main.querySelector('.w-chapter-number').nextElementSibling.hidden=journal;
-   main.querySelector('.w-metadata>summary').textContent=word+' settings';
    main.querySelector('#w-delete-chapter').textContent='Delete '+entryWord();
    const note=context.querySelector('.w-context-section h3');if(note)note.textContent=word+' notes';
    context.querySelector('label[for="w-panel-choice"]').firstChild.textContent=word+' tools';
    context.querySelector('#w-panel-choice option[value=notes]').textContent=word+' notes';
    context.querySelector('#w-close-tools').setAttribute('aria-label','Close '+entryWord()+' tools');
    if(journal){
-    main.querySelector('#w-status').closest('label').firstChild.textContent='Entry status';
-    main.querySelector('#w-summary').setAttribute('aria-label','Entry summary');
-    main.querySelector('#w-summary').closest('label').firstChild.textContent='Entry summary';
     context.querySelector('#w-note')?.setAttribute('aria-label','Entry notes');
     context.querySelector('.w-guide h3')?.replaceChildren('Journal prompts');
    }

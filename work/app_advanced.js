@@ -88,7 +88,6 @@
  function updateFormattedPreview(){
   if(typeof studioGlow!=='undefined')studioGlow?.refresh();
   updateFormattingState();
-  const preview=root.querySelector('#w-formatted-preview');if(!preview||!selected())return;const c=selected();preview.innerHTML=c.text?WritingTextTools.html(c.text,c.formats):'<span class="w-secondary">Your formatted chapter will appear here.</span>';preview.style.textAlign=c.alignment||'left';preview.style.lineHeight=c.lineSpacing||1.7;
  }
  function writingControls(){
   draftSelection=null;
@@ -96,7 +95,7 @@
   main.querySelector('.w-editor-actions').insertAdjacentHTML('beforeend',`<label class="w-alignment-control" for="w-spacing">Line spacing<select id="w-spacing">${[1.4,1.7,2].map(value=>`<option value="${value}" ${(c.lineSpacing||1.7)===value?'selected':''}>${value===1.4?'Compact':value===1.7?'Comfortable':'Double'}</option>`).join('')}</select></label>`);
   draft.style.lineHeight=c.lineSpacing||1.7;
   draft.insertAdjacentHTML('beforebegin','<div class="w-writing-toolbar" role="group" aria-label="Writing controls"><button id="w-bold" title="Bold selected words (Ctrl/Cmd+B)"><strong>Bold</strong></button><button id="w-italic" title="Italic selected words (Ctrl/Cmd+I)"><em>Italic</em></button><button id="w-editor-undo">Undo</button><button id="w-editor-redo">Redo</button><button id="w-dictionary">Personal dictionary</button><button id="w-thesaurus">Thesaurus</button><details class="w-shortcuts"><summary>Keyboard shortcuts</summary><p>Ctrl/Cmd+B: bold selection<br>Ctrl/Cmd+I: italic selection<br>Ctrl/Cmd+Z: undo draft edit<br>Ctrl/Cmd+Shift+Z: redo<br>Ctrl/Cmd+S: save<br>Ctrl/Cmd+Shift+F: find and replace<br>Ctrl/Cmd+Shift+R: read manuscript</p></details></div><p id="w-formatting-status" class="w-secondary" role="status">Select words to format them. The preview shows how they will look in Word, PDF, Markdown, and reading copies.</p>');
-  draft.insertAdjacentHTML('afterend','<details class="w-format-preview"><summary>Formatted chapter preview</summary><div id="w-formatted-preview" class="w-reading-text"></div></details>');updateFormattedPreview();
+  updateFormattedPreview();
  }
  function revisionDraft(){return {find:'',replacement:'',scope:'chapter',caseSensitive:false,wholeWord:false,previewRequested:false,...(selected().uiDrafts?.revision||{})};}
  function revisionContextKey(){return JSON.stringify([project().id,selected().id]);}
