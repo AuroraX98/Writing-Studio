@@ -86,10 +86,17 @@ class BackupStoreTests(unittest.TestCase):
         for name in ('../latest.json', '/etc/passwd', 'other.json', 'latest.json/../latest.json'):
             with self.assertRaises(ValueError):
                 self.store.read(name)
+    def test_symlinks_are_rejected(self):
+        self.save('safe')
         outside = Path(self.temp.name) / 'outside.json'
         outside.write_text(sample('outside'))
         linked = Path(self.temp.name) / 'previous.json'
-        linked.symlink_to(outside)
+        try:
+            linked.symlink_to(outside)
+        except OSError as error:
+            if getattr(error, 'winerror', None) == 1314:
+                self.skipTest('Windows does not permit this test process to create symbolic links')
+            raise
         with self.assertRaises(ValueError):
             self.store.read('previous.json')
     def test_restarted_store_keeps_revision_and_recent_snapshot(self):
@@ -142,7 +149,7 @@ class BackupHTTPTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.temp = tempfile.TemporaryDirectory()
-        cls.server = launch.WritingServer(('127.0.0.1', 0), cls.temp.name, key_file=Path(cls.temp.name) / 'keys' / 'deepseek-key.json')
+        cls.server = launch.WritingServer(('127.0.0.1', 0), cls.temp.name)
         cls.thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
         cls.thread.start()
     @classmethod
@@ -187,6 +194,14 @@ class BackupHTTPTests(unittest.TestCase):
         self.assertEqual(self.post({'data': sample()}, headers)[0], 403)
         headers['Origin'] = 'null'
         self.assertEqual(self.post({'data': sample()}, headers)[0], 403)
+    def test_retired_assistant_endpoints_are_unavailable(self):
+        self.assertFalse(hasattr(self.server, 'assistant'))
+        self.assertFalse(hasattr(self.server, 'key_file'))
+        self.assertEqual(self.request('GET', '/__ai/status', headers=self.auth())[0], 404)
+        for action in ('connect', 'disconnect', 'generate', 'key-file/create', 'key-file/settings', 'key-file/reload', 'key-file/clear'):
+            self.assertEqual(self.request('POST', '/__ai/' + action, '{}', self.auth())[0], 404)
+        for asset in ('assistant.js', 'revision.js'):
+            self.assertEqual(self.request('GET', '/' + asset)[0], 404)
     def test_missing_csrf_and_invalid_inputs_rejected(self):
         headers = self.auth()
         headers['X-Writing-Token'] = 'wrong'

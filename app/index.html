@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><title>Writing Studio</title><link rel="icon" href="data:,"><link rel="stylesheet" href="styles.css?v=fed39ea102b8"></head><body><div id="writer-hybrid" aria-label="Writing Studio">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><title>Writing Studio</title><link rel="icon" href="data:,"><link rel="stylesheet" href="styles.css?v=d5530ce07c49"></head><body><div id="writer-hybrid" aria-label="Writing Studio">
   <header class="w-top">
     <div class="w-brand"><span class="w-monogram" aria-hidden="true">Ws.</span><div><strong>Writing Studio</strong></div></div>
     <div class="w-settings">
@@ -11,9 +11,7 @@
   </header>
   <section class="w-projectbar"><label for="w-project">Project<select id="w-project"></select></label><button id="w-new-project">New project</button><button id="w-rename-project">Rename</button><button id="w-delete-project">Delete project</button><button id="w-backup">Back up projects</button><button id="w-import">Import</button><span id="w-save-status" role="status" aria-live="polite">Opening…</span><input type="file" id="w-import-file" accept=".json,.txt,.md" hidden></section><div class="w-folderbar"><span id="w-folder-status" role="status" aria-live="polite">Folder backups…</span><button id="w-folder-backups">Folder backups</button></div><nav class="w-nav" aria-label="Workspace views">
     <button type="button" data-view="write" aria-pressed="true">Studio</button>
-    <button type="button" data-view="plan" aria-pressed="false">Chapter board</button>
     <button type="button" data-view="research" aria-pressed="false">Research</button>
-    <button type="button" data-view="revise" aria-pressed="false">Revise</button>
     <button type="button" data-view="export" aria-pressed="false">Export</button>
   <button type="button" data-view="characters">Characters</button><button type="button" data-view="reading">Read manuscript</button><button type="button" data-view="trash">Trash</button></nav>
   <div class="w-shell">
@@ -26,13 +24,11 @@
       <div class="w-row"><h3>Manuscript</h3><button id="w-add-chapter" aria-label="Add chapter">＋</button></div>
       <div id="w-chapters"></div>
       <hr>
-      <p class="w-secondary">One project. Connected chapters, notes, sources, and revision tasks.</p>
     </aside>
     <main id="w-main" aria-label="Selected workspace view"></main>
-    <aside class="w-context" id="w-context" aria-label="Chapter context"></aside>
   </div>
   <footer class="w-footer"><span id="w-wordcount"></span><label id="w-transparency-control" hidden><input type="checkbox" id="w-solid"> Reduce transparency</label><span>Local mode · No ChatGPT account needed</span></footer>
 </div>
 
 <dialog id="w-dialog" aria-labelledby="w-dialog-title"><form id="w-form"><h2 id="w-dialog-title"></h2><div id="w-dialog-fields"></div><div class="w-row"><button type="button" id="w-dialog-cancel">Cancel</button><button type="submit" id="w-dialog-save">Save</button></div></form></dialog>
-<script src="vendor/wordnet-data.js?v=23f93b14f4b0"></script><script src="thesaurus.js?v=68d50bc6657c"></script><script src="theme-palette.js?v=f0da7c18052c"></script><script src="genres.js?v=3a56b3089390"></script><script src="assistant.js?v=8a25deca9a1e"></script><script src="text-tools.js?v=3ba1b2b093f7"></script><script src="storage.js?v=8b326abfb772"></script><script src="revision.js?v=c1f601d87ebf"></script><script src="local-backup.js?v=fb3df6b9e571"></script><script src="export.js?v=beb9bb6c3dd6"></script><script src="vendor/pdf-font.js?v=0961b78ec662"></script><script src="pdf.js?v=b3cd25cd3148"></script><script src="typing-glow.js?v=1896f8e9106b"></script><script src="main.js?v=c6eb6b05151c"></script></body></html>
+<script src="vendor/wordnet-data.js?v=23f93b14f4b0"></script><script src="thesaurus.js?v=68d50bc6657c"></script><script src="theme-palette.js?v=f0da7c18052c"></script><script src="genres.js?v=3ed0758873df"></script><script src="text-tools.js?v=3ba1b2b093f7"></script><script src="journal.js?v=4e070458f180"></script><script src="editor-layout.js?v=e43bd684cf89"></script><script src="storage.js?v=d2261a32b668"></script><script src="local-backup.js?v=fb3df6b9e571"></script><script src="export.js?v=0a530321bb43"></script><script src="vendor/pdf-font.js?v=0961b78ec662"></script><script src="pdf.js?v=13b659efba9a"></script><script src="typing-glow.js?v=1896f8e9106b"></script><script src="main.js?v=d4de12951b5f"></script></body></html>

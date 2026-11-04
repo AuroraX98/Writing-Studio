@@ -87,6 +87,7 @@
     requireRecord(chapter, label);
     requireId(chapter.id, label + ".id");
     validateAlignment(chapter, label);
+    if ("createdAt" in chapter && (typeof chapter.createdAt !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(chapter.createdAt) || !Number.isFinite(Date.parse(chapter.createdAt)) || new Date(chapter.createdAt).toISOString() !== chapter.createdAt)) fail(label + ".createdAt must be an ISO creation timestamp");
     for (const field of ["title", "text", "note", "summary", "task", "status"]) requireString(chapter[field], label + "." + field);
     validateFormatting(chapter, label);
     if ("assistantDraft" in chapter) validateAssistantDraft(chapter.assistantDraft, label + ".assistantDraft");
@@ -318,11 +319,12 @@
       font: new Set(["chalkboard", "serif", "sans", "caveat", "georgia", "palatino", "garamond", "times", "courier", "trebuchet", "verdana"]),
       typing: new Set(["off", "suggest", "auto"]),
       contextTab: new Set(["guide", "ideas", "notes"]),
+      studioPanel: new Set(["guide", "ideas", "notes", "outline", "assistant"]),
     };
     for (const [field, values] of Object.entries(preferenceEnums)) {
       if (field in data.preferences && !values.has(data.preferences[field])) fail("preferences." + field + " is unsupported");
     }
-    for (const field of ["solidGlass", "context", "hintsVisible", "typingGlow"]) {
+    for (const field of ["solidGlass", "context", "hintsVisible", "typingGlow", "studioChapters", "studioTools"]) {
       if (field in data.preferences && typeof data.preferences[field] !== "boolean") fail("preferences." + field + " must be a boolean");
     }
     if ("prose" in data.preferences && ![16, 18, 20, 22].includes(data.preferences.prose)) fail("preferences.prose must be 16, 18, 20, or 22");

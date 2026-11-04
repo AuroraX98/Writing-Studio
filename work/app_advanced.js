@@ -1,13 +1,12 @@
- let freshWorkspace=false,folderHold=true,folderConnected=false,folderFiles=[],folderLoading=false,replacePreview=null,pendingFolderSave=false;
- const replacementPreviews=new Map();
+ let freshWorkspace=false,folderHold=true,folderConnected=false,folderFiles=[],folderLoading=false,pendingFolderSave=false;
  const editHistory=new Map();let draftSelection=null,typingInput=false,thesaurusSelection=null,thesaurusChoices=[];
  const folderBackups=WritingLocalBackup.createClient({onStatus:updateFolderStatus,onConflict:updateFolderStatus});
  function updateFolderStatus(status){
   if(status.available&&!folderConnected){folderConnected=true;if(status.lastBackup)folderHold=true;}
   const el=root.querySelector('#w-folder-status');if(!el)return;
   const date=status.lastBackup?new Date(status.lastBackup).toLocaleString():'';
-  el.textContent=status.conflict?'Folder backup paused · another window saved changes':status.error?'Folder backup needs attention · '+status.error:status.available?(folderHold?'Folder copy differs · open Folder backups to choose a workspace':date?'Folder backup · '+date:'Folder backup ready · waiting for an edit'):'Folder backups need the local launcher';
-  el.classList.toggle('w-error',!!status.error||!!status.conflict);
+  el.textContent=status.conflict?'Folder backup paused · another window saved changes':status.error&&status.available?'Folder backup needs attention · '+status.error:status.available?(folderHold?'Folder copy differs · open Folder backups to choose a workspace':date?'Folder backup · '+date:'Folder backup ready · waiting for an edit'):'Automatic folder backups need the desktop launcher · Use Project → Back up projects here';
+  el.classList.toggle('w-error',!!(status.error&&status.available)||!!status.conflict);el.hidden=!(status.error&&status.available||status.conflict||(status.available&&folderHold));el.setAttribute('aria-live',el.hidden?'off':'polite');
   if(state.view==='backups')renderFolderDetails();
  }
  async function connectFolderBackups(){
@@ -87,63 +86,23 @@
  }
  function updateFormattedPreview(){
   if(typeof studioGlow!=='undefined')studioGlow?.refresh();
-  const preview=root.querySelector('#w-formatted-preview');if(!preview||!selected())return;const c=selected();preview.innerHTML=c.text?WritingTextTools.html(c.text,c.formats):'<span class="w-secondary">Your formatted chapter will appear here.</span>';preview.style.textAlign=c.alignment||'left';preview.style.lineHeight=c.lineSpacing||1.7;
+  updateFormattingState();
  }
  function writingControls(){
   draftSelection=null;
   const c=selected(),draft=main.querySelector('#w-draft');
   main.querySelector('.w-editor-actions').insertAdjacentHTML('beforeend',`<label class="w-alignment-control" for="w-spacing">Line spacing<select id="w-spacing">${[1.4,1.7,2].map(value=>`<option value="${value}" ${(c.lineSpacing||1.7)===value?'selected':''}>${value===1.4?'Compact':value===1.7?'Comfortable':'Double'}</option>`).join('')}</select></label>`);
   draft.style.lineHeight=c.lineSpacing||1.7;
-  draft.insertAdjacentHTML('beforebegin','<div class="w-writing-toolbar" role="group" aria-label="Writing controls"><button id="w-bold" title="Bold selected words (Ctrl/Cmd+B)"><strong>Bold</strong></button><button id="w-italic" title="Italic selected words (Ctrl/Cmd+I)"><em>Italic</em></button><button id="w-editor-undo">Undo</button><button id="w-editor-redo">Redo</button><button id="w-dictionary">Personal dictionary</button><button id="w-thesaurus">Thesaurus</button><details class="w-shortcuts"><summary>Keyboard shortcuts</summary><p>Ctrl/Cmd+B: bold selection<br>Ctrl/Cmd+I: italic selection<br>Ctrl/Cmd+Z: undo draft edit<br>Ctrl/Cmd+Shift+Z: redo<br>Ctrl/Cmd+S: save<br>Ctrl/Cmd+Shift+F: find and replace<br>Ctrl/Cmd+Shift+R: read manuscript</p></details></div><p id="w-formatting-status" class="w-secondary" role="status">Select words to format them. The preview shows how they will look in Word, PDF, Markdown, and reading copies.</p>');
-  draft.insertAdjacentHTML('afterend','<details class="w-format-preview"><summary>Formatted chapter preview</summary><div id="w-formatted-preview" class="w-reading-text"></div></details>');updateFormattedPreview();
+  draft.insertAdjacentHTML('beforebegin','<div class="w-writing-toolbar" role="group" aria-label="Writing controls"><button id="w-bold" title="Bold selected words (Ctrl/Cmd+B)"><strong>Bold</strong></button><button id="w-italic" title="Italic selected words (Ctrl/Cmd+I)"><em>Italic</em></button><button id="w-editor-undo">Undo</button><button id="w-editor-redo">Redo</button><button id="w-dictionary">Personal dictionary</button><button id="w-thesaurus">Thesaurus</button><details class="w-shortcuts"><summary>Keyboard shortcuts</summary><p>Ctrl/Cmd+B: bold selection<br>Ctrl/Cmd+I: italic selection<br>Ctrl/Cmd+Z: undo draft edit<br>Ctrl/Cmd+Shift+Z: redo<br>Ctrl/Cmd+S: save<br>Ctrl/Cmd+Shift+R: read manuscript</p></details></div><p id="w-formatting-status" class="w-secondary" role="status">Select words to format them. The preview shows how they will look in Word, PDF, Markdown, and reading copies.</p>');
+  updateFormattedPreview();
  }
- function revisionDraft(){return {find:'',replacement:'',scope:'chapter',caseSensitive:false,wholeWord:false,previewRequested:false,...(selected().uiDrafts?.revision||{})};}
- function revisionContextKey(){return JSON.stringify([project().id,selected().id]);}
- function revisionOptions(draft){return {caseSensitive:draft.caseSensitive,wholeWord:draft.wholeWord,scope:draft.scope,chapterId:selected().id};}
- function currentReplacementPreview(){
-  replacePreview=null;const key=revisionContextKey(),candidate=replacementPreviews.get(key),draft=revisionDraft();
-  if(!candidate||!draft.previewRequested)return null;
-  if(candidate.query!==draft.find||candidate.replacement!==draft.replacement||candidate.options.scope!==draft.scope||candidate.options.caseSensitive!==draft.caseSensitive||candidate.options.wholeWord!==draft.wholeWord){replacementPreviews.delete(key);return null;}
-  try{WritingRevision.apply(project(),candidate);replacePreview=candidate;return candidate;}catch(_){replacementPreviews.delete(key);return null;}
- }
- function replacementPreviewMarkup(preview){return `<p role="status">${preview.total} matches in ${preview.chapters.length} chapters. Applying saves a version of every changed chapter first.</p>${preview.chapters.slice(0,20).map(c=>`<details class="w-replace-chapter"><summary>${escape(c.title)} · ${c.matches.length} matches</summary>${c.matches.slice(0,20).map(m=>`<p class="w-replace-example">${escape(c.before.slice(Math.max(0,m.start-40),m.start))}<del>${escape(m.original)}</del><ins>${escape(m.replacement)||'(delete)'}</ins>${escape(c.before.slice(m.end,m.end+40))}</p>`).join('')}${c.matches.length>20?'<p>Showing the first 20 matches in this chapter.</p>':''}</details>`).join('')}${preview.chapters.length>20?'<p>Showing the first 20 chapters.</p>':''}${preview.total?'<button id="w-apply-replace">Apply previewed replacements</button>':''}`;}
- function findReplacePanel(){
-  const draft=revisionDraft(),preview=currentReplacementPreview(),notice=preview?replacementPreviewMarkup(preview):draft.previewRequested?'<p role="status">Your search settings are saved. Preview again to check the current manuscript before applying.</p>':'';
-  return `<details class="w-find-panel" open><summary>Find and replace</summary><div class="w-find-grid"><label>Find<input id="w-find-text" type="text" maxlength="100000" value="${escape(draft.find)}" placeholder="Word or phrase"></label><label>Replace with<input id="w-replace-text" type="text" maxlength="100000" value="${escape(draft.replacement)}" placeholder="Replacement (can be empty)"></label><label>Look in<select id="w-replace-scope"><option value="chapter" ${draft.scope==='chapter'?'selected':''}>This chapter</option><option value="project" ${draft.scope==='project'?'selected':''}>Whole manuscript</option></select></label><label class="w-check"><input id="w-match-case" type="checkbox" ${draft.caseSensitive?'checked':''}><span>Match case</span></label><label class="w-check"><input id="w-whole-word" type="checkbox" ${draft.wholeWord?'checked':''}><span>Whole words</span></label></div><button id="w-preview-replace">Preview replacements</button><div id="w-replace-preview" role="region" aria-label="Replacement preview">${notice}</div></details>`;
- }
- function rememberReplacementFields(message){
-  const el=id=>root.querySelector('#'+id),c=selected();if(!el('w-find-text'))return;
-  c.uiDrafts??={};c.uiDrafts.revision={find:el('w-find-text').value.slice(0,100000),replacement:el('w-replace-text').value.slice(0,100000),scope:el('w-replace-scope').value==='project'?'project':'chapter',caseSensitive:el('w-match-case').checked,wholeWord:el('w-whole-word').checked,previewRequested:false};
-  replacementPreviews.delete(revisionContextKey());replacePreview=null;
-  const panel=el('w-replace-preview');if(panel&&message)panel.textContent=message;scheduleSave();
- }
- function previewReplace(){
-  rememberReplacementFields();const panel=root.querySelector('#w-replace-preview'),draft=revisionDraft();
-  try{replacePreview=WritingRevision.preview(project(),draft.find,draft.replacement,revisionOptions(draft));
-   selected().uiDrafts.revision.previewRequested=true;replacementPreviews.set(revisionContextKey(),replacePreview);while(replacementPreviews.size>5)replacementPreviews.delete(replacementPreviews.keys().next().value);panel.innerHTML=replacementPreviewMarkup(replacePreview);scheduleSave();
-  }catch(error){panel.textContent=error.message;}
- }
- function applyReplace(){
-  const preview=currentReplacementPreview(),key=revisionContextKey();
-  if(!preview){root.querySelector('#w-replace-preview').textContent='The manuscript or search settings changed. Preview replacements again.';return;}
-  confirmAction('Apply replacements?',`${preview.total} matches were previewed. Each changed chapter will be saved as a version before applying.`,()=>{
-   if(revisionContextKey()!==key)throw new Error('This preview belongs to a different chapter. Return to that chapter and preview again.');
-   const result=WritingRevision.apply(project(),preview);for(const id of result.changedChapterIds)snapshot(chapters.find(c=>c.id===id),'Before find and replace');
-   for(const replacement of result.chapters){const index=chapters.findIndex(c=>c.id===replacement.id);chapters[index]=replacement;editHistory.delete(replacement.id);}replacementPreviews.delete(key);replacePreview=null;selected().uiDrafts.revision.previewRequested=false;
-  },'Apply replacements');
- }
- function compareVersion(id){
-  const version=project().history.find(item=>item.id===id);if(!version)return;const comparison=WritingRevision.diff(version.text,selected().text),display=WritingRevision.displayDiff(comparison),panel=root.querySelector('#w-version-comparison');
-  panel.innerHTML=`<h3>Saved version → current draft</h3><p class="w-secondary">${escape(new Date(version.at).toLocaleString())}. Removed lines are rose; added lines are mint. ${comparison.approximate?'Large changed sections are shown as complete removed/added blocks.':''}</p><div class="w-diff-legend"><span>− Removed</span><span>+ Added</span></div><div class="w-diff">${display.rows.map(row=>`<div class="w-diff-${row.kind}"><span aria-label="${row.kind}">${{same:' ',added:'+',removed:'−',omitted:'…'}[row.kind]}</span><pre>${escape(row.text)}${row.truncated?'\n[Display shortened; full text remains in the saved version.]':''}</pre></div>`).join('')}</div><p class="w-secondary">${display.omittedRows?display.omittedRows+' rows omitted from this view. ':''}${display.omittedChanges?display.omittedChanges+' changed rows omitted; narrow your comparison or inspect the saved wording. ':''}${display.truncatedText?display.truncatedText+' long rows shortened. ':''}Comparison shows wording. Saved versions also retain formatting, spacing, and alignment.</p>`;
- }
- function readingView(){const p=project();return `<h2>${escape(p.title)}</h2><p class="w-secondary">Whole manuscript · ${chapters.reduce((n,c)=>n+words(c.text),0)} words</p><details class="w-reading-toc"><summary>Jump to a chapter</summary>${chapters.map(c=>`<a href="#w-read-${c.id}">${escape(c.title)}</a>`).join('')}</details>${chapters.map((c,i)=>`<section id="w-read-${c.id}" class="w-reading-chapter"><div class="w-row"><div><p class="w-chapter-number">Chapter ${String(i+1).padStart(2,'0')}</p><h3>${escape(c.title)}</h3></div><button data-edit-reading="${c.id}">Edit chapter</button></div><div class="w-reading-text" style="text-align:${['left','right','justify'].includes(c.alignment)?c.alignment:'left'};line-height:${[1.4,1.7,2].includes(c.lineSpacing)?c.lineSpacing:1.7}">${WritingTextTools.html(c.text,c.formats)||'<span class="w-secondary">This chapter is empty.</span>'}</div></section>`).join('')}`;}
+ function readingView(){const p=project();return `<h2>${escape(p.title)}</h2><p class="w-secondary">Whole manuscript · ${chapters.reduce((n,c)=>n+words(c.text),0)} words</p><details class="w-reading-toc"><summary>Jump to ${entryWord()}</summary>${chapters.map(c=>`<a href="#w-read-${c.id}">${escape(c.title)}</a>`).join('')}</details>${chapters.map((c,i)=>`<section id="w-read-${c.id}" class="w-reading-chapter"><div class="w-row"><div><p class="w-chapter-number">${isJournal()?'Journal entry':'Chapter '+String(i+1).padStart(2,'0')}</p><h3>${escape(c.title)}</h3>${createdMarkup(c)}</div><button data-edit-reading="${c.id}">Edit ${entryWord()}</button></div><div class="w-reading-text" style="text-align:${['left','right','justify'].includes(c.alignment)?c.alignment:'left'};line-height:${[1.4,1.7,2].includes(c.lineSpacing)?c.lineSpacing:1.7}">${WritingTextTools.html(c.text,c.formats)||'<span class="w-secondary">This chapter is empty.</span>'}</div></section>`).join('')}`;}
  root.addEventListener('mousedown',e=>{if(e.target.closest('#w-bold,#w-italic'))e.preventDefault();});
- root.addEventListener('select',e=>{if(e.target.id==='w-draft')draftSelection={chapterId:selected().id,start:e.target.selectionStart,end:e.target.selectionEnd};},true);
+ root.addEventListener('select',e=>{if(e.target.id==='w-draft'){draftSelection={chapterId:selected().id,start:e.target.selectionStart,end:e.target.selectionEnd};updateFormattingState();}},true);
  root.addEventListener('beforeinput',e=>{if(e.target.id!=='w-draft')return;if(e.inputType==='historyUndo'||e.inputType==='historyRedo'){e.preventDefault();editorUndo(e.inputType==='historyRedo');return;}recordEditorUndo(e.inputType);});
  root.addEventListener('keydown',e=>{
   if(!(e.ctrlKey||e.metaKey)||e.altKey||e.isComposing)return;const key=e.key.toLowerCase();
-  if(e.shiftKey&&key==='f'){e.preventDefault();e.stopImmediatePropagation();state.view='revise';render();root.querySelector('#w-find-text').focus();}
-  else if(e.shiftKey&&key==='r'){e.preventDefault();e.stopImmediatePropagation();state.view='reading';render();}
+  if(e.shiftKey&&key==='r'){e.preventDefault();e.stopImmediatePropagation();state.view='reading';render();}
   else if(key==='s'){e.preventDefault();e.stopImmediatePropagation();flushSave();}
   else if(e.target.id==='w-draft'&&['b','i','z','y'].includes(key)){e.preventDefault();e.stopImmediatePropagation();if(key==='b'||key==='i')formatSelection(key==='b'?'bold':'italic');else editorUndo(key==='y'||e.shiftKey);}
  },true);
@@ -151,12 +110,8 @@
   const b=e.target.closest('button');if(!b)return;
   if(b.id==='w-bold'||b.id==='w-italic')formatSelection(b.id==='w-bold'?'bold':'italic');
   else if(b.id==='w-editor-undo'||b.id==='w-editor-redo')editorUndo(b.id==='w-editor-redo');
-  else if(b.id==='w-toggle-hints'||b.id==='w-show-hints'){state.hintsVisible=b.id==='w-show-hints'||!state.hintsVisible;state.context=true;state.contextTab='guide';render();scheduleSave();}
   else if(b.id==='w-dictionary')openDictionary();
   else if(b.id==='w-thesaurus')openThesaurus();
-  else if(b.id==='w-preview-replace')previewReplace();
-  else if(b.id==='w-apply-replace')applyReplace();
-  else if(b.dataset.compareVersion)compareVersion(b.dataset.compareVersion);
   else if(b.dataset.editReading){state.selected=b.dataset.editReading;state.view='write';render();scheduleSave();}
   else if(b.id==='w-folder-backups'){state.view='backups';render();loadFolderFiles();}
   else if(b.id==='w-folder-refresh')loadFolderFiles();
@@ -166,5 +121,3 @@
   else if(b.id==='w-folder-now'){syncData();folderBackups.backupNow(WritingStore.serialize(data)).then(loadFolderFiles).catch(error=>saveStatus('Folder backup failed: '+error.message,true));}
  });
  root.addEventListener('change',e=>{if(e.target.id==='w-spacing'){selected().lineSpacing=Number(e.target.value);root.querySelector('#w-draft').style.lineHeight=e.target.value;updateFormattedPreview();fitText();scheduleSave();}else if(e.target.id==='w-alignment')updateFormattedPreview();});
- root.addEventListener('input',e=>{if(['w-find-text','w-replace-text'].includes(e.target.id))rememberReplacementFields('Preview again after changing the search or replacement.');});
- root.addEventListener('change',e=>{if(['w-replace-scope','w-match-case','w-whole-word'].includes(e.target.id))rememberReplacementFields('Preview again after changing the search options.');});
