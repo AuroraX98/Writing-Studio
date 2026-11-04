@@ -12,7 +12,6 @@
   root.querySelector('#w-search-help').textContent=`Search ${entryWord()} titles, notes, and draft text. Sources, characters, and outlines are not included.`;
   for(const view of ['reading'])root.querySelectorAll('.w-menu [data-view="'+view+'"]').forEach(el=>el.textContent=navigationViews[view]);
   if(state.view==='write'){
-   main.querySelector('.w-chapter-number').textContent=journal?'Journal entry':'Chapter '+String(chapters.indexOf(selected())+1).padStart(2,'0');
    const title=main.querySelector('#w-title');title.setAttribute('aria-label',word+' title');title.placeholder=journal?'Give this entry a title':'Chapter title';
    main.querySelector('h2').insertAdjacentHTML('afterend',createdMarkup(selected()));
    main.querySelector('#w-draft').setAttribute('aria-label',word+' draft');
