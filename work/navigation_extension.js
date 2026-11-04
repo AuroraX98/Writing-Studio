@@ -1,4 +1,4 @@
- const navigationViews={write:'Studio',plan:'Chapter board',research:'Research',revise:'Revise',export:'Export',characters:'Characters',reading:'Read manuscript',trash:'Trash',assistant:'Assistant',backups:'Folder backups',help:'Help'};
+ const navigationViews={write:'Studio',research:'Research',export:'Export',characters:'Characters',reading:'Read manuscript',trash:'Trash',backups:'Folder backups',help:'Help'};
  const navigationContexts=new Map(),navigationWorkspacePositions=new Map();let navigationCurrent=null,navigationReady=false,navigationApplying=false,navigationIndex=0,navigationMax=0,navigationTrigger=null,mobileSettings=false;
  function navigationRoute(){return {project:project().id,chapter:selected().id,view:state.view};}
  function navigationKey(route){return route.project+':'+route.chapter+':'+route.view;}
@@ -15,10 +15,13 @@
  function applyNavigationURL(){
   if(!location.hash.startsWith('#studio?'))return false;
   const query=new URLSearchParams(location.hash.slice(8)),p=data.projects.find(item=>item.id===query.get('project'));
-  const chapter=p?.chapters.find(item=>item.id===query.get('chapter')),view=query.get('view');
+  const chapter=p?.chapters.find(item=>item.id===query.get('chapter')),requestedView=query.get('view');
+  const retired=['plan','revise','assistant'].includes(requestedView),view=retired?'write':requestedView;
   if(!p||!chapter||!Object.hasOwn(navigationViews,view)){navigationNotice('This saved location is unavailable. Choose a project or chapter from the workspace.');return false;}
   if(p.id!==data.activeProject){syncData();data.activeProject=p.id;activateProject();}
-  state.selected=chapter.id;state.view=view;return true;
+  state.selected=chapter.id;state.view=view;
+  if(retired)history.replaceState(history.state,'',navigationURL(navigationRoute()));
+  return true;
  }
  function initializeNavigation(){
   navigationApplying=true;applyNavigationURL();navigationApplying=false;
@@ -53,7 +56,7 @@
   navigationCurrent=route;navigationTrigger=null;
  }
  root.addEventListener('click',event=>{
-  const button=event.target.closest('button,a');if(!button)return;captureNavigation();navigationTrigger={id:button.id,draft:!!button.dataset.open||!!button.dataset.editReading||button.id==='w-jump-draft'||button.id==='w-skip-draft'};
+  const button=event.target.closest('button,a');if(!button)return;captureNavigation();navigationTrigger={id:button.id,draft:!!button.dataset.editReading||button.id==='w-jump-draft'||button.id==='w-skip-draft'};
   if(button.id==='w-skip-workspace'||button.id==='w-skip-draft'){event.preventDefault();event.stopImmediatePropagation();if(button.id==='w-skip-draft'&&state.view!=='write'){state.view='write';render();}else focusWorkspace(button.id==='w-skip-draft');}
   else if(button.id==='w-jump-draft'){event.stopImmediatePropagation();state.view='write';render();focusWorkspace(true);}
   else if(button.id==='w-mobile-settings'){event.stopImmediatePropagation();mobileSettings=!mobileSettings;root.classList.toggle('w-mobile-settings-hidden',!mobileSettings);button.setAttribute('aria-expanded',String(mobileSettings));}

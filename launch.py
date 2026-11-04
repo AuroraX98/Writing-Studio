@@ -16,8 +16,6 @@ import time
 from urllib.parse import parse_qs, urlsplit
 import urllib.request
 import webbrowser
-from ai_proxy import DeepSeekSession, AssistantError, key_from_value, MAX_BODY as MAX_AI_BODY
-from key_file import SecretKeyFile, KeyFileError
 
 APP = Path(__file__).resolve().parent / 'app'
 MAX_DATA_BYTES = 20 * 1024 * 1024
@@ -203,97 +201,12 @@ class BackupStore:
 
 class WritingServer(ThreadingHTTPServer):
     daemon_threads = True
-    def __init__(self, address, folder, key_file=None):
-        folder_path = Path(folder).expanduser().resolve()
-        key_path = Path(key_file if key_file is not None else folder_path.parent / 'deepseek-key.json').expanduser().absolute()
-        served = APP.resolve()
-        for private_path in (key_path, key_path.parent / 'deepseek-key-settings.json'):
-            for candidate in (private_path, private_path.resolve()):
-                try:
-                    candidate.relative_to(served)
-                except ValueError:
-                    pass
-                else:
-                    raise ValueError('Keep the key file and its settings outside the app folder served to the browser.')
-                if candidate.parent.resolve() == folder_path and (candidate.name in ('latest.json', 'previous.json') or SNAPSHOT_RE.fullmatch(candidate.name)):
-                    raise ValueError('The key file cannot replace a Writing Studio recovery backup.')
+    def __init__(self, address, folder):
         self.backups = BackupStore(folder)
-        self.assistant = DeepSeekSession()
-        self.key_file = SecretKeyFile(key_path)
-        try:
-            with self.assistant.control():
-                self.refresh_assistant_key()
-        except AssistantError:
-            pass  # A missing/invalid credential never prevents local writing.
         self.token = secrets.token_urlsafe(32)
         super().__init__(address, partial(WritingHandler, directory=str(APP)))
         self.origin = 'http://127.0.0.1:' + str(self.server_port)
         self.host = '127.0.0.1:' + str(self.server_port)
-
-    def server_close(self):
-        self.assistant.disconnect()
-        super().server_close()
-
-    def assistant_status(self):
-        with self.assistant.control():
-            return dict(self.assistant.status(), keyFile=self.key_file.status())
-
-    def refresh_assistant_key(self):
-        """Called while holding session control, including before each generate."""
-        if self.key_file.read_enabled:
-            try:
-                self.assistant.replace_key(self.key_file.load_key())
-            except KeyFileError as error:
-                self.assistant.disconnect()
-                raise AssistantError(str(error), 400) from None
-
-    def assistant_action(self, route, value):
-        with self.assistant.control():
-            try:
-                if route == '/__ai/connect':
-                    key_from_value(value)
-                    if self.assistant.status()['busy']:
-                        raise AssistantError('Wait for the current request before reconnecting.', 409)
-                    self.key_file.set_enabled(False)
-                    self.assistant.connect(value)
-                elif route == '/__ai/disconnect':
-                    if value != {}:
-                        raise AssistantError('The disconnect request is invalid.')
-                    self.assistant.disconnect()
-                    self.key_file.set_enabled(False)
-                elif route == '/__ai/key-file/create':
-                    if value != {}:
-                        raise AssistantError('The key-file request is invalid.')
-                    created = self.key_file.create_empty()
-                    if self.key_file.read_enabled:
-                        self.refresh_assistant_key()
-                    return dict(self.assistant_status(), created=created)
-                elif route == '/__ai/key-file/settings':
-                    if not isinstance(value, dict) or set(value) != {'readEnabled'} or type(value['readEnabled']) is not bool:
-                        raise AssistantError('Choose whether key-file reading is enabled.')
-                    self.key_file.set_enabled(value['readEnabled'])
-                    if value['readEnabled']:
-                        self.refresh_assistant_key()
-                    else:
-                        self.assistant.disconnect()
-                elif route == '/__ai/key-file/reload':
-                    if value != {}:
-                        raise AssistantError('The key-file request is invalid.')
-                    if not self.key_file.read_enabled:
-                        raise AssistantError('Enable key-file reading before loading the saved key.', 409)
-                    self.refresh_assistant_key()
-                elif route == '/__ai/key-file/clear':
-                    if value != {}:
-                        raise AssistantError('The key-file request is invalid.')
-                    self.assistant.disconnect()
-                    self.key_file.clear_saved_key()
-                else:
-                    raise AssistantError('Assistant action not found.', 404)
-                return self.assistant_status()
-            except KeyFileError as error:
-                self.assistant.disconnect()
-                raise AssistantError(str(error), 503) from None
-
 
 class WritingHandler(SimpleHTTPRequestHandler):
     def log_message(self, *_):
@@ -331,31 +244,15 @@ class WritingHandler(SimpleHTTPRequestHandler):
         return True
 
     def do_HEAD(self):
-        if self._allowed() and not self._static_secret():
+        if self._allowed():
             super().do_HEAD()
-
-    def _static_secret(self):
-        requested = Path(self.translate_path(self.path))
-        for private_path in (self.server.key_file.path, self.server.key_file.settings_path):
-            try:
-                same = requested.resolve() == private_path.resolve() or (requested.exists() and private_path.exists() and requested.samefile(private_path))
-            except OSError:
-                same = False
-            if same:
-                self.send_error(404)
-                return True
-        return False
 
     def do_GET(self):
         route = urlsplit(self.path)
-        if not self._allowed(token=(route.path.startswith('/__backup/') and route.path != '/__backup/config') or route.path.startswith('/__ai/')):
+        if not self._allowed(token=(route.path.startswith('/__backup/') and route.path != '/__backup/config')):
             return
         try:
-            if route.path == '/__ai/status':
-                self._reply(200, self.server.assistant_status())
-            elif route.path.startswith('/__ai/'):
-                self._reply(404, {'error': 'Assistant action not found.'})
-            elif route.path == '/__backup/config':
+            if route.path == '/__backup/config':
                 self._reply(200, dict(self.server.backups.status(), token=self.server.token, app='Writing Studio', backupProtocol=1))
             elif route.path == '/__backup/list':
                 self._reply(200, {'snapshots': self.server.backups.list()})
@@ -375,8 +272,7 @@ class WritingHandler(SimpleHTTPRequestHandler):
             elif route.path.startswith('/__backup/'):
                 self._reply(404, {'error': 'Backup action not found.'})
             else:
-                if not self._static_secret():
-                    super().do_GET()
+                super().do_GET()
         except FileNotFoundError:
             self._reply(404, {'error': 'That backup is no longer available.'})
         except (ValueError, UnicodeError):
@@ -386,9 +282,6 @@ class WritingHandler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
         if not self._allowed(token=True, mutation=True):
-            return
-        if urlsplit(self.path).path.startswith('/__ai/'):
-            self._assistant_post()
             return
         if urlsplit(self.path).path != '/__backup/save':
             self._reply(404, {'error': 'Backup action not found.'})
@@ -421,48 +314,17 @@ class WritingHandler(SimpleHTTPRequestHandler):
         except OSError:
             self._reply(503, {'error': 'The folder backup could not be saved. Your browser copy is still available.'})
 
-    def _assistant_post(self):
-        route = urlsplit(self.path).path
-        if route not in ('/__ai/connect', '/__ai/disconnect', '/__ai/generate', '/__ai/key-file/create', '/__ai/key-file/settings', '/__ai/key-file/reload', '/__ai/key-file/clear'):
-            self._reply(404, {'error': 'Assistant action not found.'})
-            return
-        try:
-            lengths = self.headers.get_all('Content-Length', [])
-            if self.headers.get('Transfer-Encoding') or len(lengths) != 1 or not lengths[0].isdigit():
-                raise AssistantError('A fixed JSON request size is required.')
-            length = int(lengths[0])
-            if not 0 < length <= MAX_AI_BODY:
-                raise AssistantError('The assistant request is too large.', 413)
-            if self.headers.get_content_type() != 'application/json':
-                raise AssistantError('A JSON assistant request is required.')
-            self.connection.settimeout(15)
-            raw = self.rfile.read(length)
-            if len(raw) != length:
-                raise AssistantError('The assistant request was incomplete.')
-            value = parse_json(raw.decode('utf-8'))
-            if route == '/__ai/generate':
-                result = self.server.assistant.generate(value, prepare=self.server.refresh_assistant_key)
-            else:
-                result = self.server.assistant_action(route, value)
-            self._reply(200, result)
-        except AssistantError as error:
-            self._reply(error.status, dict(self.server.assistant_status(), error=str(error)))
-        except (ValueError, UnicodeError, RecursionError, TimeoutError, OSError):
-            self._reply(400, {'error': 'The assistant request could not be read.'})
-
-
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--no-browser', action='store_true')
     parser.add_argument('--port', type=int, default=8766)
     parser.add_argument('--backup-dir', type=Path, default=default_backup_dir())
-    parser.add_argument('--key-file', type=Path, default=None, help='Optional JSON key file; defaults to deepseek-key.json beside the backup folder.')
     args = parser.parse_args(argv)
     if not 1 <= args.port <= 65535:
         parser.error('The port must be between 1 and 65535.')
     url = 'http://127.0.0.1:' + str(args.port) + '/'
     try:
-        server = WritingServer(('127.0.0.1', args.port), args.backup_dir, key_file=args.key_file)
+        server = WritingServer(('127.0.0.1', args.port), args.backup_dir)
     except ValueError as error:
         parser.error(str(error))
     except OSError as error:
@@ -473,12 +335,6 @@ def main(argv=None):
                 raise RuntimeError('This address is already used by another app.')
             if Path(config.get('folder', '')).resolve() != args.backup_dir.expanduser().resolve():
                 raise RuntimeError('Another Writing Studio window uses a different backup folder. Close it or choose another port.')
-            if args.key_file is not None:
-                local_status = urllib.request.Request(url + '__ai/status', headers={'X-Writing-Token': config.get('token', '')})
-                with urllib.request.urlopen(local_status, timeout=2) as response:
-                    current = json.loads(response.read(16384))
-                if Path(current.get('keyFile', {}).get('path', '')).resolve() != args.key_file.expanduser().resolve():
-                    raise RuntimeError('Another Writing Studio window uses a different key file. Close it or choose another port.')
             if not args.no_browser:
                 webbrowser.open(url)
             print('Writing Studio is already running at ' + url)

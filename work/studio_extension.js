@@ -18,7 +18,7 @@
   const theme=appearancePanel.querySelector('#w-theme');theme.insertAdjacentHTML('afterbegin','<option value="mint">Mint charcoal</option>');
   appearancePanel.insertAdjacentHTML('beforeend','<label class="w-check"><input type="checkbox" id="w-typing-glow"><span>Typing glow</span></label><p class="w-secondary">A mint glow fades after each letter. Animation is off when your device requests reduced motion.</p><div id="w-font-home"></div>');
   studioFontLabel=root.querySelector('#w-font').closest('label');appearancePanel.querySelector('#w-font-home').append(studioFontLabel);
-  const groups=[['Write',['write','reading']],['Plan',['plan','characters','research']],['Review',['revise','assistant']],['Help',['help']]];
+  const groups=[['Write',['write','reading']],['Plan',['characters','research']],['Help',['help']]];
   workspaceMenu.lastElementChild.innerHTML=groups.map(([title,views])=>'<section class="w-menu-group"><h3>'+title+'</h3>'+views.map(view=>'<button type="button" data-view="'+view+'">'+navigationViews[view]+'</button>').join('')+'</section>').join('');
   const actions=document.createElement('div');actions.className='w-top-actions';
   actions.append(root.querySelector('#w-focus'));
@@ -40,7 +40,7 @@
  }
  function prepareStudioRender(){
   if(!studioReady)return;
-  navigationViews.plan=isJournal()?'Entry board':'Chapter board';navigationViews.reading=isJournal()?'Read journal':'Read manuscript';
+  navigationViews.reading=isJournal()?'Read journal':'Read manuscript';
   studioGlow?.destroy();studioGlow=null;
   root.querySelector('#w-font-home').append(studioFontLabel);
  }
@@ -92,7 +92,7 @@
   const status=main.querySelector('#w-formatting-status');status.textContent='';status.classList.add('w-visually-hidden');
   // Place all toolbar controls directly against the draft. Help/status follows it.
   draft.before(toolbar);draft.after(status);
-  for(const id of ['w-new-project','w-ai-generate','w-download'])root.querySelector('#'+id)?.classList.add('w-primary');
+  for(const id of ['w-new-project','w-download'])root.querySelector('#'+id)?.classList.add('w-primary');
   const typing=main.querySelector('.w-typing-tools');status.after(typing);
   main.querySelector('.w-sequence')?.remove();
   studioGlow=globalThis.WritingGlow?.attach(draft,state.typingGlow!==false);
@@ -120,17 +120,8 @@
   if(returnToDraft&&draft&&saved?.id===selected().id){draft.focus({preventScroll:true});draft.setSelectionRange(saved.start,saved.end);window.scrollTo(saved.x,saved.y);}
   else if(returnToDraft)root.querySelector('#w-studio-chapters').focus({preventScroll:true});
  }
+ root.addEventListener('input',event=>{if(event.target.id==='w-draft')queueMicrotask(()=>studioGlow?.refresh());});
  function closeStudioMenus(except=null){root.querySelectorAll('details.w-menu[open]').forEach(menu=>{if(menu!==except)menu.open=false;});}
- function captureStudioSelection(){
-  if(state.view!=='write')return;
-  const draft=root.querySelector('#w-draft');if(!draft)return;
-  const c=selected(),work=assistantWorkspace();
-  work.selection=draft.selectionEnd>draft.selectionStart?{projectId:project().id,chapterId:c.id,start:draft.selectionStart,end:draft.selectionEnd,text:c.text,formatFingerprint:WritingRevision.formatFingerprint(c),contextFingerprint:assistantContextFingerprint()}:null;
-  const button=root.querySelector('#w-ai-use-selection');if(button)button.disabled=!work.selection;
- }
- root.addEventListener('select',event=>{if(event.target.id==='w-draft')captureStudioSelection();},true);
- root.addEventListener('input',event=>{if(event.target.id==='w-draft')queueMicrotask(()=>{studioGlow?.refresh();captureStudioSelection();});});
- root.addEventListener('click',event=>{if(event.target.closest('#w-ai-use-selection'))captureStudioSelection();},true);
  root.addEventListener('toggle',event=>{
   const menu=event.target;if(!menu.matches?.('details.w-menu'))return;
   menu.querySelector('summary').setAttribute('aria-expanded',String(menu.open));

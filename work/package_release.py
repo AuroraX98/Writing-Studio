@@ -12,27 +12,27 @@ from urllib.parse import urlsplit
 ROOT = Path(__file__).resolve().parent.parent
 RUNTIME = [
     'app/index.html', 'app/styles.css', 'app/main.js', 'app/storage.js',
-    'app/text-tools.js', 'app/revision.js', 'app/local-backup.js', 'app/theme-palette.js', 'app/genres.js',
+    'app/text-tools.js', 'app/local-backup.js', 'app/theme-palette.js', 'app/genres.js',
     'app/journal.js', 'app/editor-layout.js', 'app/export.js', 'app/pdf.js', 'app/vendor/pdf-font.js',
-    'app/vendor/DejaVu-LICENSE.txt', 'app/thesaurus.js', 'app/assistant.js',
+    'app/vendor/DejaVu-LICENSE.txt', 'app/thesaurus.js',
     'app/vendor/wordnet-data.js', 'app/vendor/WordNet-LICENSE.txt',
     'app/typing-glow.js', 'app/vendor/Caveat-Variable.ttf', 'app/vendor/Caveat-OFL.txt',
 ]
-COMMON = ['launch.py', 'ai_proxy.py', 'key_file.py', 'deepseek-key.example.json', 'KEY_FILE_SETUP.md', 'Writing Studio.html', 'README.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'VERSION', 'docs/mint-writing-workspace.png', 'docs/grouped-navigation.png'] + RUNTIME
+COMMON = ['launch.py', 'Writing Studio.html', 'README.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'VERSION', 'docs/mint-writing-workspace.png', 'docs/grouped-navigation.png'] + RUNTIME
 SOURCE = [
     '.gitignore', 'Open Writing Studio.command', 'Open Writing Studio.bat',
     'app/mockup-source.html', 'work/build_app.py', 'work/app_extension.js',
     'work/app_advanced.js', 'work/app_extra.css', 'work/package_release.py',
     'work/theme_extension.js', 'tests/theme-palette.test.cjs',
     'work/genre_extension.js', 'work/journal_extension.js', 'tests/journal.test.cjs', 'tests/browser-quality.cjs', 'tests/genres.test.cjs',
-    'work/assistant_extension.js', 'tests/assistant.test.cjs', 'tests/assistant-drafts.test.cjs',
-    'work/help_extension.js', 'work/navigation_extension.js', 'tests/revision-ui.test.cjs',
+
+    'work/help_extension.js', 'work/navigation_extension.js',
     'work/characters_extension.js', 'work/studio_extension.js', 'work/studio-design.css',
     'work/typing-glow.css', 'tests/typing-glow.test.cjs',
-    'tests/test_ai_proxy.py', 'tests/mock_ai_server.py', 'tests/test_key_file.py',
+
     'work/build_thesaurus.py', 'tests/thesaurus.test.cjs',
     'tests/backup-fixture.json', 'tests/storage.test.cjs', 'tests/export.test.cjs',
-    'tests/pdf.test.cjs', 'tests/revision.test.cjs', 'tests/text-tools.test.cjs',
+    'tests/pdf.test.cjs', 'tests/text-tools.test.cjs',
     'tests/local-backup.test.cjs', 'tests/test_local_backup.py', 'tests/autocorrect.test.cjs',
 ]
 
@@ -41,9 +41,8 @@ def start_here(platform, version):
     introduction = ('Writing Studio ' + version + '\r\n\r\n'
                     'LOCAL MODE - NO CHATGPT ACCOUNT NEEDED\r\n'
                     'The downloaded app runs on your computer without ChatGPT, Codex, or\r\n'
-                    'any sign-in. Writing, autosave, revision, the thesaurus, and exports\r\n'
-                    'work offline. The optional DeepSeek assistant needs your own DeepSeek\r\n'
-                    'API key and internet access only when you choose Generate.\r\n\r\n'
+                    'any sign-in. Writing, autosave, the thesaurus, and exports\r\n'
+                    'work offline.\r\n\r\n'
                     'Writing Studio is free to use, modify, and share under the MIT License.\r\n'
                     'Commercial use is allowed. Keep the copyright and license notices.\r\n'
                     'Bundled fonts and WordNet data retain their separate licenses;\r\n'
@@ -69,7 +68,7 @@ def start_here(platform, version):
     else:
         launch = ('SOURCE\r\nRead README.md for the source build, checks, and release packaging.\r\n'
                   'Runtime files and build inputs are both included. Core writing works\r\n'
-                  'offline; the DeepSeek assistant is optional.\r\n'
+                  'offline.\r\n'
                   'Repository: https://github.com/AuroraX98/Writing-Studio\r\n'
                   'Downloads: https://github.com/AuroraX98/Writing-Studio/tree/main/downloads\r\n')
     return (introduction + launch + '\r\nKeep a JSON backup on another drive before updates.\r\n'
@@ -78,8 +77,7 @@ def start_here(platform, version):
             'Windows: https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-' + version + '-windows.zip\r\n'
             'Mac: https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-' + version + '-mac.zip\r\n'
             'Source: https://github.com/AuroraX98/Writing-Studio/raw/refs/heads/main/downloads/Writing-Studio-' + version + '-source.zip\r\n'
-            'For optional saved DeepSeek keys, read KEY_FILE_SETUP.md. The example\r\n'
-            'key file is blank; keep your private copy outside the app folder.\r\n').encode('utf-8')
+            '').encode('utf-8')
 
 
 def checked_bytes(relative):
@@ -87,9 +85,6 @@ def checked_bytes(relative):
     if not path.is_file() or path.is_symlink():
         raise RuntimeError('Missing or symbolic-link package input: ' + relative)
     data = path.read_bytes()
-    if relative == 'deepseek-key.example.json':
-        if json.loads(data.decode('utf-8'), object_pairs_hook=lambda pairs: pairs) != [('apiKey', '')]:
-            raise RuntimeError('The distributed key example must contain only an empty apiKey.')
     if relative.endswith('.bat'):
         data = data.replace(b'\r\n', b'\n').replace(b'\n', b'\r\n')
     private_patterns = [

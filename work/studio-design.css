@@ -62,8 +62,8 @@ body{padding:16px}
 #writer-hybrid .w-reading-text{max-width:65ch;margin-inline:auto}
 #writer-hybrid.w-chapters-hidden .w-tree{display:none}
 #writer-hybrid.w-chapters-hidden .w-shell{grid-template-columns:minmax(0,1fr)}
-#writer-hybrid.w-no-context:not(.w-focus) .w-shell,#writer-hybrid.w-board-mode:not(.w-focus) .w-shell,#writer-hybrid.w-characters-mode .w-shell{grid-template-columns:220px minmax(0,1fr)}
-#writer-hybrid.w-chapters-hidden.w-no-context .w-shell,#writer-hybrid.w-chapters-hidden.w-board-mode .w-shell,#writer-hybrid.w-chapters-hidden.w-characters-mode .w-shell,#writer-hybrid.w-focus .w-shell{grid-template-columns:minmax(0,1fr)}
+#writer-hybrid.w-no-context:not(.w-focus) .w-shell,#writer-hybrid.w-characters-mode .w-shell{grid-template-columns:220px minmax(0,1fr)}
+#writer-hybrid.w-chapters-hidden.w-no-context .w-shell,#writer-hybrid.w-chapters-hidden.w-characters-mode .w-shell,#writer-hybrid.w-focus .w-shell{grid-template-columns:minmax(0,1fr)}
 #writer-hybrid.w-chapters-hidden #w-main{margin-inline:auto}
 #writer-hybrid.w-focus .w-tree{display:none}
 #writer-hybrid.w-focus #w-main{width:calc(100% - 32px);max-width:800px;margin:0 auto 24px}
@@ -81,13 +81,13 @@ body{padding:16px}
 @media(max-width:1100px){
  #writer-hybrid .w-shell{grid-template-columns:190px minmax(0,1fr)}
  #writer-hybrid.w-chapters-hidden .w-shell{grid-template-columns:minmax(0,1fr)}
-#writer-hybrid.w-no-context:not(.w-focus) .w-shell,#writer-hybrid.w-board-mode:not(.w-focus) .w-shell,#writer-hybrid.w-characters-mode .w-shell{grid-template-columns:190px minmax(0,1fr)}
+#writer-hybrid.w-no-context:not(.w-focus) .w-shell,#writer-hybrid.w-characters-mode .w-shell{grid-template-columns:190px minmax(0,1fr)}
  #writer-hybrid.w-writing-view #w-main{padding-inline:24px}
  #writer-hybrid .w-brand{flex-basis:100%}
 }
 @media(max-width:900px){
  body{padding:8px}
- #writer-hybrid .w-shell,#writer-hybrid.w-chapters-hidden .w-shell,#writer-hybrid.w-no-context:not(.w-focus) .w-shell,#writer-hybrid.w-board-mode:not(.w-focus) .w-shell,#writer-hybrid.w-characters-mode .w-shell{display:flex;flex-direction:column;padding:14px;gap:16px}
+ #writer-hybrid .w-shell,#writer-hybrid.w-chapters-hidden .w-shell,#writer-hybrid.w-no-context:not(.w-focus) .w-shell,#writer-hybrid.w-characters-mode .w-shell{display:flex;flex-direction:column;padding:14px;gap:16px}
  #writer-hybrid .w-tree{width:100%;padding:14px;border:1px solid var(--w-line);border-radius:10px;grid-column:auto;background:var(--w-panel,var(--w-bg))}
  #writer-hybrid .w-tree{max-height:330px;overflow:auto}
  #writer-hybrid #w-main,#writer-hybrid.w-focus #w-main{width:100%;margin:0 auto;min-height:520px}

@@ -29,7 +29,7 @@ const note=(name,details)=>{evidence.push({name,details});process.stdout.write('
  assert.equal(await page.locator('#w-title').inputValue(),'Untitled entry');
  await page.locator('#w-title').fill('A quiet morning');await page.locator('#w-draft').fill('The harbor was quiet. A small boat crossed the water.');await saved();
  // Simulate an existing workspace from the version that offered the tools panel.
- await page.evaluate(()=>{const key='writing-desk-v1',data=JSON.parse(localStorage.getItem(key)),p=data.projects.find(p=>p.id===data.activeProject),c=p.chapters.find(c=>c.id===p.selected)||p.chapters[0];Object.assign(c,{note:'PRIVATE QA JOURNAL NOTE',planOutline:'LEGACY OUTLINE',idea:'LEGACY IDEA',saved:'LEGACY PASSAGE'});Object.assign(data.preferences,{studioTools:true,studioPanel:'outline',context:true});localStorage.setItem(key,JSON.stringify(data));});
+ await page.evaluate(()=>{const key='writing-desk-v1',data=JSON.parse(localStorage.getItem(key)),p=data.projects.find(p=>p.id===data.activeProject),c=p.chapters.find(c=>c.id===p.selected)||p.chapters[0];Object.assign(c,{note:'PRIVATE QA JOURNAL NOTE',planOutline:'LEGACY OUTLINE',idea:'LEGACY IDEA',saved:'LEGACY PASSAGE',task:'LEGACY REVISION TASK',review:{0:true},uiDrafts:{revision:{find:'harbor',replacement:'shore',scope:'chapter',caseSensitive:false,wholeWord:false,previewRequested:false}}});Object.assign(data.preferences,{studioTools:true,studioPanel:'outline',context:true});localStorage.setItem(key,JSON.stringify(data));});
  const created=await page.locator('.w-entry-created time').getAttribute('datetime');assert.ok(Number.isFinite(Date.parse(created)));
  await page.reload();assert.equal(await page.locator('#w-title').inputValue(),'A quiet morning');assert.equal(await page.locator('.w-entry-created time').getAttribute('datetime'),created);
  assert.equal(await page.locator('#w-context,#w-studio-tools,#w-panel-choice').count(),0);assert.equal(await page.locator('#w-save-status').isVisible(),false);
@@ -38,6 +38,27 @@ const note=(name,details)=>{evidence.push({name,details});process.stdout.write('
  for(const type of ['journaling','fiction','nonfiction','memoir','poetry','screenplay','essays','academic']){await page.locator('#w-project-menu>summary').click();await page.locator('#w-type').selectOption(type);await page.keyboard.press('Escape');assert.equal(await page.locator('#w-context,#w-studio-tools,#w-panel-choice,#w-note,#w-outline,#w-idea,#w-saved').count(),0);assert.equal(await page.locator('#w-draft').inputValue(),'The harbor was quiet. A small boat crossed the water.');}
  await page.locator('#w-project-menu>summary').click();await page.locator('#w-type').selectOption('journaling');await page.keyboard.press('Escape');
  note('Tools panel is absent in every project type; chapter list visibility persists',true);
+ // Retired routes preserve the chosen project/chapter and resolve to Studio.
+ const currentRoute=new URL(page.url());
+ for(const width of [1440,390]){
+  await page.setViewportSize({width,height:1000});
+  for(const view of ['plan','revise','assistant']){
+   const query=new URLSearchParams(currentRoute.hash.slice(8));query.set('view',view);
+   await page.goto(url+'/#studio?'+query.toString());
+   await page.waitForFunction(()=>new URLSearchParams(location.hash.slice(8)).get('view')==='write');
+   assert.equal(await page.locator('#w-title').inputValue(),'A quiet morning');
+   assert.equal(await page.locator('#w-draft').inputValue(),'The harbor was quiet. A small boat crossed the water.');
+   assert.equal(await page.locator('[data-view=plan],[data-view=revise],[data-view=assistant],.w-board-grid,.w-assistant-grid').count(),0);
+   await page.reload();assert.equal(await page.locator('#w-draft').isVisible(),true);
+  }
+ }
+ await page.setViewportSize({width:1440,height:1000});
+ await page.locator('#w-draft').press('Control+Shift+F');
+ assert.equal(await page.locator('#w-find-text').count(),0);
+ await go('help');assert.doesNotMatch(await page.locator('#w-main').innerText(),/Chapter board|Entry board|Open Revise|Assistant|DeepSeek|Find and replace/);
+ await go('write');
+ note('Retired board, Revise and Assistant links safely return to Studio on desktop and mobile',true);
+
  await page.locator('#w-draft').evaluate(e=>{e.focus();e.setSelectionRange(0,10);e.dispatchEvent(new Event('select',{bubbles:true}));});
  await page.locator('#w-bold').click();assert.equal(await page.locator('#w-bold').getAttribute('aria-pressed'),'true');
  await page.locator('#w-open-preview').click();assert.equal(await page.locator('dialog strong').innerText(),'The harbor');await page.locator('#w-dialog-save').click();
@@ -68,20 +89,18 @@ const note=(name,details)=>{evidence.push({name,details});process.stdout.write('
  await page.locator('#w-add-chapter').click();assert.match(await page.locator('dialog h2').innerText(),/Add entry/);await page.locator('dialog input[name=title]').fill('An evening thought');await page.locator('#w-dialog-save').click();await page.locator('#w-draft').fill('A later reflection.');
  await page.locator('#w-writing-tools>summary').click();await page.locator('#w-delete-chapter').click();await page.locator('#w-dialog-save').click();await go('trash');await page.locator('[data-restore-trash]').click();assert.equal(await page.locator('#w-title').inputValue(),'An evening thought');assert.equal(await page.locator('#w-draft').inputValue(),'A later reflection.');
  note('Entry creation, deletion and restoration preserve writing',true);
- await go('revise');await page.locator('#w-find-text').fill('reflection');await page.locator('#w-replace-text').fill('memory');await page.locator('#w-preview-replace').click();await page.locator('#w-apply-replace').click();await page.locator('#w-dialog-save').click();assert.match(await page.locator('#w-main').innerText(),/Before find and replace/);
- note('Replacement preserves a saved version',true);
  await go('export');const exports=[];
  for(const format of ['PDF','Markdown','TXT','DOCX','Reading HTML']){await page.locator('#w-format').selectOption(format);const pending=page.waitForEvent('download');await page.locator('#w-download').click();const download=await pending;await download.saveAs(path.join(out,download.suggestedFilename()));exports.push(download.suggestedFilename());}
  const pending=page.waitForEvent('download');await page.locator('#w-backup-view').click();const download=await pending;await download.saveAs(path.join(out,'backup.json'));
- const backup=JSON.parse(await fs.readFile(path.join(out,'backup.json'),'utf8'));assert.ok(backup.projects.some(p=>p.chapters.some(c=>c.note==='PRIVATE QA JOURNAL NOTE'&&c.planOutline==='LEGACY OUTLINE'&&c.idea==='LEGACY IDEA'&&c.saved==='LEGACY PASSAGE')));
+ const backup=JSON.parse(await fs.readFile(path.join(out,'backup.json'),'utf8'));assert.ok(backup.projects.some(p=>p.chapters.some(c=>c.note==='PRIVATE QA JOURNAL NOTE'&&c.planOutline==='LEGACY OUTLINE'&&c.idea==='LEGACY IDEA'&&c.saved==='LEGACY PASSAGE'&&c.task==='LEGACY REVISION TASK'&&c.review[0]===true&&c.uiDrafts.revision.find==='harbor')));
  note('All manuscript formats and full backup download',{exports});
  const scans=[],reflow=[];await page.addScriptTag({content:axe.source});
- for(const view of ['write','plan','characters','research','revise','reading','assistant','help','export','backups','trash']){
+ for(const view of ['write','characters','research','reading','help','export','backups','trash']){
   await go(view);const result=await page.evaluate(async()=>await axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21aa','wcag22aa']}}));scans.push({view,violations:result.violations.map(x=>({id:x.id,nodes:x.nodes.map(n=>({target:n.target,summary:n.failureSummary}))}))});
  }
- for(const width of [390,320]){await page.setViewportSize({width,height:844});for(const view of ['write','plan','characters','research','revise','reading','assistant','help','export','backups','trash']){await go(view);const actual=await page.evaluate(()=>document.documentElement.scrollWidth);reflow.push({width,view,actual});assert.ok(actual<=width+1,view+' overflow at '+width);}}
+ for(const width of [390,320]){await page.setViewportSize({width,height:844});for(const view of ['write','characters','research','reading','help','export','backups','trash']){await go(view);const actual=await page.evaluate(()=>document.documentElement.scrollWidth);reflow.push({width,view,actual});assert.ok(actual<=width+1,view+' overflow at '+width);}}
  await fs.writeFile(path.join(out,'axe-results.json'),JSON.stringify(scans,null,2));await fs.writeFile(path.join(out,'reflow-results.json'),JSON.stringify(reflow,null,2));
- assert.deepEqual(scans.filter(x=>x.violations.length),[]);note('11 screens pass automatic accessibility scan and 320/390px reflow',{screens:11,widths:[320,390]});
+ assert.deepEqual(scans.filter(x=>x.violations.length),[]);note('8 screens pass automatic accessibility scan and 320/390px reflow',{screens:8,widths:[320,390]});
  await go('write');await page.emulateMedia({reducedMotion:'reduce'});await page.locator('#w-draft').focus();await page.keyboard.type(' Still.');assert.equal(await page.locator('.w-glow-letter').count(),0);await page.emulateMedia({reducedMotion:'no-preference'});note('Reduced motion disables typing glow',true);
  // An old workspace has no creation date. Import must retain that uncertainty.
  await page.locator('#w-import-file').setInputFiles(path.join(__dirname,'backup-fixture.json'));await page.locator('#w-dialog-save').click();await page.locator('#w-project-menu>summary').click();await page.locator('#w-type').selectOption('journaling');await page.keyboard.press('Escape');assert.match(await page.locator('.w-entry-created').innerText(),/unavailable/);note('Imported older writing retains unknown creation dates',true);

@@ -1,6 +1,6 @@
 # Writing Studio
 
-Writing Studio is a private writing workspace for fiction, nonfiction, memoir, poetry, screenplays, essays, and academic work. Its mint charcoal theme pairs white manuscript text with handwritten chapter titles and a soft mint glow that fades after each typed letter. A narrower writing pane keeps lines comfortable to read, with grouped navigation above and a clear writing area. Writing, revision tools, local backups, and exports work without an account or internet connection. An optional DeepSeek assistant uses your own API key when you choose to enable it.
+Writing Studio is a private writing workspace for fiction, nonfiction, memoir, poetry, screenplays, essays, and academic work. Its mint charcoal theme pairs white manuscript text with handwritten chapter titles and a soft mint glow that fades after each typed letter. A narrower writing pane keeps lines comfortable to read, with grouped navigation above and a clear writing area. Writing, local backups, and exports work without an account or internet connection.
 
 Version **0.6.0-beta** adds Journaling with editable entry titles and original creation dates, silent background autosave, stable text sizing while typing, a compact sticky writing toolbar, and a mobile chapter/entry list drawer. The list visibility persists across reloads, project dialogs return keyboard focus correctly, and formatting buttons expose selection state. The mint and near-black design, optional typing glow, existing manuscripts, and local backup format are preserved.
 
@@ -12,13 +12,13 @@ Download: [Windows ZIP](https://github.com/AuroraX98/Writing-Studio/raw/refs/hea
 
 The downloaded app runs independently on your computer. **No ChatGPT account, ChatGPT subscription, Writing Studio account, or GitHub sign-in is required to use it.** Local mode is the default: open the app and start writing. You do not need Codex or ChatGPT running alongside it.
 
-Writing, browser autosave, chapter guidance, character profiles, revision tools, the bundled thesaurus, and exports work without internet access. The launcher also provides automatic local folder backups. Your workspace stays in this browser and your backup files; there is no account-based cloud synchronization.
+Writing, browser autosave, character profiles, the bundled thesaurus, and exports work without internet access. The launcher also provides automatic local folder backups. Your workspace stays in this browser and your backup files; there is no account-based cloud synchronization.
 
-The optional DeepSeek assistant uses your own DeepSeek API key and internet connection when you choose Generate. It does not use a ChatGPT account. External research links need internet access to open their websites.
+External research links need internet access to open their websites.
 
 ![Writing Studio mint charcoal workspace with a handwritten chapter title, narrow manuscript, formatting toolbar, chapter list, and notes](docs/mint-writing-workspace.png)
 
-![Writing Studio Workspace dropdown groups destinations under Write, Plan, Review, and Help](docs/grouped-navigation.png)
+![Writing Studio Workspace dropdown groups destinations under Write, Plan, and Help](docs/grouped-navigation.png)
 
 These screenshots show the running app with an original fictional sample manuscript.
 
@@ -38,25 +38,25 @@ The font selector inside **Format** above the draft includes Caveat (handwritten
 
 The workspace shows your current view and project. **Back** and **Forward** revisit chapters and views within the app; your browser's navigation buttons also work. **Copy location link** records the current project, chapter, and view in the browser address. A location link opens that spot only when the same projects are available at the same app address in the same browser. It does not transfer your writing or create a public sharing link. When returning during a session, the app restores the view's search, open panels, scroll position, and available keyboard focus.
 
-The project-name dropdown contains project switching, creation, import, backups, export, and Trash. **Workspace** groups Studio and Read manuscript under Write; Chapter board, Characters, and Research under Plan; and Revise and Assistant under Review. **Appearance** holds visual preferences. The same menus work on narrow screens. Use **Chapters** (or **Entries** for Journaling) to open or close the list, or **Focus mode** to clear it away. On narrow screens, the list opens as a drawer; closing it returns you to the same caret and scroll position. The former Chapter/Entry tools panel and all of its controls have been removed from every project type. Existing notes, outlines, ideas and saved passages remain in project data and full backups. Keyboard users can use **Skip to workspace** and **Skip to draft** before the main controls.
+The project-name dropdown contains project switching, creation, import, backups, export, and Trash. **Workspace** groups Studio and Read manuscript under Write; Characters and Research under Plan; and getting-started guidance under Help. **Appearance** holds visual preferences. The same menus work on narrow screens. Use **Chapters** (or **Entries** for Journaling) to open or close the list, or **Focus mode** to clear it away. On narrow screens, the list opens as a drawer; closing it returns you to the same caret and scroll position. The former Chapter/Entry tools panel and all of its controls have been removed from every project type. Existing notes, outlines, ideas and saved passages remain in project data and full backups. Keyboard users can use **Skip to workspace** and **Skip to draft** before the main controls.
 
-**Help** includes an optional first-session guide and direct links to Studio, Chapter board, Revise, Folder backups, Export, and Assistant settings. Chapter search shows matching text and **Clear search** brings back the full list.
+**Help** includes an optional first-session guide and direct links to Studio, Folder backups, and Export. Chapter search shows matching text and **Clear search** brings back the full list.
 
 ## Write and organize
 
 The writing page keeps the title and draft together without a settings panel or a second preview section. Change Genre / approach in the project-name menu; delete the current entry or chapter from the toolbar’s Tools menu. Existing saved status and synopsis data remain in your project. The compact toolbar stays within reach while you scroll a long draft. **Format** contains font, size, alignment and spacing; Bold, Italic, Undo, Redo and Preview remain close by. **Writing tools** groups typing help, dictionary, thesaurus, and shortcuts. Each newly typed letter receives a mint glow that fades over 1.5 seconds while the letter stays visible; pasting and reopening a chapter do not animate the whole passage.
 
-Choose **New project** from the project-name dropdown, enter a name, and select Journaling, Fiction, Nonfiction, Memoir, Poetry, Screenplay, Essays, or Academic. Add chapters with the **＋** button. The chapter board supports reordering and flexible structure guidance for 43 genres and approaches across eight project types. All use the same chapter-based workspace, with prompts suited to the selected type. Use the optional structure prompts on the board when they help your project.
+Choose **New project** from the project-name dropdown, enter a name, and select Journaling, Fiction, Nonfiction, Memoir, Poetry, Screenplay, Essays, or Academic. Add chapters with the **＋** button. Choose among 43 genres and approaches across eight project types. Journaling uses dated, freely titled entries; the other types use chapters.
 
-Drafts, titles, research records, and revision tasks autosave after a half-second pause. Routine saving is silent and does not change the layout. **Project → Save details** shows the current status on demand. Save failures remain visible with a Download a backup recovery action. Ordinary closing flushes pending browser changes. A second window changing the same browser workspace pauses saving to protect it.
+Drafts, titles, and research records autosave after a half-second pause. Routine saving is silent and does not change the layout. **Project → Save details** shows the current status on demand. Save failures remain visible with a Download a backup recovery action. Ordinary closing flushes pending browser changes. A second window changing the same browser workspace pauses saving to protect it.
 
-Select words in the draft and click **Bold** or **Italic**. Formatting appears in the toolbar **Preview**, whole manuscript reading, and formatted exports; the typing area displays plain text. Each chapter remembers its left, right, or justified alignment and Compact, Comfortable, or Double line spacing. **Undo** and **Redo** handle draft edits and formatting during the current session. Save a version for a lasting milestone.
+Select words in the draft and click **Bold** or **Italic**. Formatting appears in the toolbar **Preview**, whole manuscript reading, and formatted exports; the typing area displays plain text. Each chapter remembers its left, right, or justified alignment and Compact, Comfortable, or Double line spacing. **Undo** and **Redo** handle draft edits and formatting during the current session. Download a full project backup to keep a lasting copy.
 
 **Personal dictionary** protects your names and unusual words from the app's typing corrections. It also lets you restore removed words. Browser spelling underlines use your browser's own dictionary. The bundled English typing help offers a small list of common typo corrections, including `Ca n` → `Can`, `whta` → `what`, `thta` → `that`, `liek` → `like`, `becasue` → `because`, `bdy` → `body`, `knw` → `know`, and standalone `i` → `I` when you finish a word with a space, punctuation, or Enter; ambiguous word boundaries appear as suggestions. Sentence capitalization changes a completed first word after `.`, `?`, or `!`, including quoted sentences. It avoids common abbreviations, initials, numeric periods, URLs, and ellipses; these are conservative English rules rather than a full grammar checker. Existing text is not changed automatically. Single missing-letter guesses use 82,378 locally bundled English spelling entries, plus recognized regular inflections and appear as review choices, even in Autocorrect mode; the app does not choose an inferred word for you. Recognized words, personal dictionary entries, pasted text, and unfinished words do not produce missing-letter guesses. Inference checks alphabetic words of 3–32 letters, tries one inserted letter, and shows at most eight choices. It cannot reliably recover two missing letters or determine meaning from context. It is not a complete spelling dictionary. Use **Undo correction** to immediately reverse a correction.
 
 **Offline thesaurus** uses the locally bundled WordNet 3.0 English word database. Select a word to explore synonyms grouped by meaning and part of speech, then choose a replacement yourself. Replacements preserve selected formatting and can be undone. Coverage varies by word; definitions and part-of-speech groups help you judge whether a synonym suits your sentence. It does not interpret the context for you, and it makes no external runtime requests.
 
-**Delete** moves chapters, notes, ideas, saved passages, outlines, tasks, research records, character profiles, versions, and projects to **Trash**. Restore brings them back; permanent deletion asks for confirmation. The last chapter is replaced by a blank chapter so writing can continue.
+**Delete** moves chapters, research records, character profiles, and projects to **Trash**. Restore brings them back; permanent deletion asks for confirmation. The last chapter is replaced by a blank chapter so writing can continue.
 
 ## Journal entries
 
@@ -64,19 +64,15 @@ Choose **New project → Project type → Journaling**. The Genre / approach sel
 
 Each newly created entry records its original creation instant. Its date and time appear beneath the title in your device's local time, in Read journal, and in all five manuscript export formats. Full backups preserve the timestamp through import and Trash recovery. Editing or renaming does not change it. Older entries without recorded creation dates say the date is unavailable; the app never invents an old creation time.
 
-Journal hints are optional reflection prompts. No chapter sequence or title is required.
+No chapter sequence or title is required.
 
 ## Keep character profiles
 
 Open **Characters** to keep a separate collection for each project. Add a name and role, then describe appearance, traits, habits, beliefs, goals, fears, relationships, backstory, character arc, and notes. Search works across names, roles, and all profile details. Edits autosave, and deleted profiles move to Trash for recovery.
 
-Full JSON backups include character profiles. Manuscript exports keep chapter text and exclude these private profiles. Character information is not sent to the assistant automatically; include it explicitly in the text preview only when you want it used in a request.
+Full JSON backups include character profiles. Manuscript exports keep chapter text and exclude these private profiles.
 
-## Revise and read
-
-**Revise → Find and replace** searches a chapter or the whole manuscript, with case and whole-word options. Preview the matches before applying changes. Applying saves a version of every affected chapter first. Find and replacement text, scope, case, and whole-word choices save with each chapter, so leaving Revise or reloading keeps your setup. Returning during the same session restores a preview only while the manuscript and search settings still match it. Reloading or importing keeps the settings and asks for a new preview before applying. If the manuscript changed after previewing, create a new preview.
-
-**Save a version** captures the chapter's text, formatting, alignment, spacing, and notes. **Compare with current draft** shows added and removed wording. Large comparisons may show whole changed blocks or shortened displays; the complete versions stay saved. Restoring a version first preserves the draft it replaces.
+## Read your work
 
 **Read manuscript** displays all chapters in order, with a chapter jump list and buttons to return to editing. Private notes and research do not appear in this reading view or manuscript exports.
 
@@ -86,7 +82,6 @@ Full JSON backups include character profiles. Manuscript exports keep chapter te
 | Ctrl/Cmd+Z | Undo draft edit |
 | Ctrl/Cmd+Shift+Z; Ctrl+Y | Redo draft edit |
 | Ctrl/Cmd+S | Save current changes |
-| Ctrl/Cmd+Shift+F | Open find and replace |
 | Ctrl/Cmd+Shift+R | Read the manuscript |
 
 ## Keep recoverable copies
@@ -121,15 +116,7 @@ On Windows, use `py -3` and a Windows folder path instead of `python3`. Changing
 
 Word, PDF, and HTML preserve bold, italic, alignment, and line spacing. Markdown includes bold and italic markup, but visual alignment and line spacing depend on the reader. TXT preserves words and paragraph breaks without formatting. Direct PDF includes a bundled serif font, page numbers, wrapping, and chapter page breaks. If a character is outside that font, the app reports it; use **Print / save as PDF** for browser font support.
 
-## Optional DeepSeek assistant
-
-The assistant requires the local launcher, your own DeepSeek API key, an internet connection, and any usage charges from your provider. Choose a goal such as brainstorming, outlining, continuation, rewriting, or feedback. Each project can save a writing profile: tone, point of view, English variant, style, audience, and preferences. Review the instruction and **Text to send** before choosing **Generate suggestion**. Text is included only when you select it, choose a chapter excerpt, or paste it; private notes and project titles are excluded. Generate sends the profile, project type, genre, instruction, and previewed text to DeepSeek.
-
-Suggestions stay in an editable review area until you explicitly save them as a chapter note, replace selected words, or append them to the chapter. Insertion preserves a saved version first. If the draft, project type, genre, or writing profile changes after generating, create a new suggestion before inserting. The core writing tools continue to work offline.
-
-Your instruction, text preview, goal, model, and editable suggestion save locally with the chapter and are included in full JSON backups. **Clear saved assistant draft** removes those saved fields for the current chapter after confirmation. After reload or import, restored suggestions remain available for review, editing, and copying. Generate a new suggestion before using an insertion or save-as-note button, because the original draft target cannot be verified after reload. Saved drafts contain your writing; API keys remain excluded.
-
-Manual key attachment keeps the key in launcher memory for that session. Closing the launcher clears that in-memory copy. You can also opt in to reading a private local key file, using the setup described in **KEY_FILE_SETUP.md**. The file is plain JSON on your computer and stays outside the app folder by default, beside the backup folder. Protect access to your computer and keep the private key file out of GitHub. API keys are excluded from project backups and release downloads; the distributed example is blank. The controls are under **Assistant → Assistant settings → Saved API key file**. Create a blank private file, fill it locally, then select **Allow Writing Studio to read this key file** or **Reload saved key** if it is already enabled. Reading a saved key requires your explicit setting; it is not enabled by default. **Disconnect** forgets the in-memory key and disables automatic file reading while leaving the file in place. **Remove saved key** empties the configured file, disables reading, and forgets the in-memory key. You can also clear its `apiKey` value manually. The assistant is optional and disabled until configured. Manual **Attach key** turns off automatic file reading. Attaching a key only sets up the local session; it makes no provider request and does not verify account credit. An actual live DeepSeek request has not been verified in this build without a user key.
+The Chapter/Entry board, Revise, and Assistant features have been removed, including their menus, keyboard shortcuts, and local provider integration. Old location links open Studio on the same project and chapter. Existing notes, saved versions, revision tasks, and assistant drafts remain in full backups for compatibility; updating does not erase that data.
 
 ## Build and check the source
 
@@ -147,22 +134,16 @@ Run checks from the project folder with Python 3.8+ and Node.js available:
 node --test tests/storage.test.cjs
 node tests/export.test.cjs
 node tests/pdf.test.cjs
-node tests/revision.test.cjs
-node --test tests/revision-ui.test.cjs
 node tests/text-tools.test.cjs
 node --test tests/autocorrect.test.cjs
 node tests/local-backup.test.cjs
 node tests/thesaurus.test.cjs
 node --test tests/theme-palette.test.cjs
 node --test tests/genres.test.cjs
-node tests/assistant.test.cjs
-node --test tests/assistant-drafts.test.cjs
 python3 -m unittest discover -s tests -p test_local_backup.py -v
-python3 -m unittest discover -s tests -p test_ai_proxy.py -v
-python3 -m unittest discover -s tests -p test_key_file.py -v
 ```
 
-Checks cover storage and recovery, invalid imports, Trash, formatted exports, alignment, replacement settings across navigation and reload, replacement previews, stale previews, saved Assistant drafts, restored suggestion limits, version comparisons, formatting edits, dictionary storage, backup conflicts, atomic writes, retention, and local request boundaries. Backups in these tests use temporary folders and sample text. PDF checks require Python for structural inspection. Loopback server tests require permission to bind a local address. Assistant checks use mocked provider responses and need no real API key; `tests/mock_ai_server.py` is a development-only browser test launcher.
+Checks cover storage and recovery, invalid imports, Trash, formatted exports, alignment, formatting edits, dictionary storage, backup conflicts, atomic writes, retention, and local request boundaries. Browser checks cover the remaining navigation, retired links, autosave, exports, accessibility, and narrow layouts. Checks use isolated sample data.
 
 After rebuilding, create curated downloads with:
 
@@ -174,6 +155,6 @@ The packaging script checks archive integrity and excludes working backups and s
 
 ## Current limits and licensing
 
-This is a beta browser app with launch scripts, rather than an installed desktop application. Nested scenes, attached research files, anchored comments, DOCX import, EPUB, full offline spelling dictionaries, and cross-device synchronization are future work. Undo history is per session; saved versions and JSON backups are persistent. Keep a backup before updating, and import it when moving to a new browser or address.
+This is a beta browser app with launch scripts, rather than an installed desktop application. Nested scenes, attached research files, anchored comments, DOCX import, EPUB, full offline spelling dictionaries, and cross-device synchronization are future work. Undo history is per session; JSON backups are persistent. Keep a backup before updating, and import it when moving to a new browser or address.
 
 The application source is available under the [MIT License](LICENSE). Bundled assets retain their own licenses: the handwritten Caveat font uses the SIL Open Font License in `app/vendor/Caveat-OFL.txt`, the PDF font's license is in `app/vendor/DejaVu-LICENSE.txt`, and the English thesaurus data license is in `app/vendor/WordNet-LICENSE.txt`.

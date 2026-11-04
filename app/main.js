@@ -112,7 +112,6 @@
  }
  const genre=()=>library[state.type][state.genres[state.type]];
  const chapterRole=c=>c.roles?.[state.type]??({opening:'opening',question:'development',practice:'application'}[c.id]||'development');
- function roadmap(){return `<details class="w-roadmap" open><summary>${isJournal()?'Optional journaling prompts':'Suggested book structure'} · ${escape(genre().name)}</summary><p class="w-secondary">${isJournal()?'Pick any prompt that helps, or write freely. There is no required order.':'Flexible movements, not fixed chapter numbers. A movement can span several chapters; a chapter can serve several purposes.'}</p><ol>${genre().map.map(([title,prompt])=>`<li><strong>${escape(title)}</strong><span class="w-secondary">${escape(prompt)}</span></li>`).join('')}</ol></details>`;}
  function appearance(){root.style.colorScheme=state.theme==='dark'?'dark':'light';root.classList.toggle('w-glass',state.theme==='glass');root.classList.toggle('w-solid-glass',state.solidGlass);root.querySelector('#w-transparency-control').hidden=state.theme!=='glass';root.querySelector('#w-solid').checked=state.solidGlass;root.querySelector('#w-theme').value=state.theme;root.querySelector('#w-font').value=state.font;root.style.setProperty('--w-draft-font',{chalkboard:'"Chalkboard SE","Chalkboard","Segoe Print","Comic Sans MS",cursive',serif:'Georgia,serif',sans:'system-ui,sans-serif',caveat:'"Studio Caveat",cursive',georgia:'Georgia,serif',palatino:'Palatino,"Palatino Linotype","Book Antiqua",serif',garamond:'Garamond,Baskerville,Georgia,serif',times:'"Times New Roman",Times,serif',courier:'"Courier New",Courier,monospace',trebuchet:'"Trebuchet MS",Arial,sans-serif',verdana:'Verdana,Geneva,sans-serif'}[state.font]);onPaletteAppearance();studioAppearance();}
  function fitText(){root.querySelectorAll('textarea').forEach(WritingLayout.fit);}
  function count(){root.querySelector('#w-wordcount').textContent=`${words(selected().text)} ${entryWord()} words · ${chapters.reduce((n,c)=>n+words(c.text),0)} manuscript words`;}
@@ -130,27 +129,21 @@
  }
  function render(){
   prepareStudioRender();
+  root.classList.toggle('w-characters-mode',state.view==='characters');
   const c=selected();
   typingSuggestions=[];lastCorrection=null;
   appearance();root.querySelector('#w-type').value=state.type;
   root.classList.toggle('w-focus',state.focus);root.style.setProperty('--w-prose',state.prose+'px');
-  root.classList.toggle('w-board-mode',state.view==='plan');root.classList.toggle('w-characters-mode',state.view==='characters');
   root.querySelector('#w-focus').setAttribute('aria-pressed',state.focus);root.querySelector('#w-focus').textContent=state.focus?'Exit focus':'Focus mode';
   root.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.view===state.view));
   tree();count();
   if(state.view==='write'){
    main.innerHTML=`<div class="w-row"><p class="w-chapter-number">Chapter ${String(chapters.indexOf(c)+1).padStart(2,'0')}</p><span class="w-secondary">${escape(c.status)}</span></div><h2>${escape(c.title)}</h2><section class="w-typing-tools" aria-label="Typing help"><label for="w-typing">Typing help</label><select id="w-typing"><option value="off" ${state.typing==='off'?'selected':''}>Off</option><option value="suggest" ${state.typing==='suggest'?'selected':''}>Suggestions</option><option value="auto" ${state.typing==='auto'?'selected':''}>Autocorrect</option></select><p class="w-secondary">English corrections run when you finish a word with a space, punctuation, or Enter. Includes common typos, standalone I, and sentence capitals after . ? !. Missing-letter guesses appear as choices for you to review. Personal dictionary words are protected.</p><p class="w-secondary" id="w-typing-status" role="status"></p><div id="w-typing-actions"></div></section><textarea id="w-draft" aria-label="Chapter draft" placeholder="Begin writing here…" lang="en" spellcheck="${state.typing!=='off'}" autocorrect="off" autocapitalize="off">${escape(c.text)}</textarea><section class="w-sequence"><h3>Your chapter sequence</h3><div class="w-sequence-grid">${chapters.map((x,i)=>`<button type="button" data-chapter="${x.id}" aria-pressed="${x.id===c.id}"><span class="w-secondary">${String(i+1).padStart(2,'0')} · ${x.status}</span><span>${escape(x.title)}</span></button>`).join('')}</div></section>`;
    updateTyping();
-  }else if(state.view==='plan'){
-   main.innerHTML=`<div class="w-row"><div><p class="w-chapter-number">Creative studio</p><h2>Shape your manuscript.</h2></div></div>${roadmap()}<p class="w-secondary">Drag chapters into order, or use the arrow buttons.</p><div class="w-board-grid">${chapters.map((x,i)=>`<article class="w-plancard" data-card="${x.id}" draggable="true"><div class="w-card-grip"><span class="w-secondary">CHAPTER ${String(i+1).padStart(2,'0')}</span><span aria-hidden="true">⋮⋮</span></div><h3>${escape(x.title)}</h3><span class="w-secondary">${isJournal()?'':escape(x.status)+' · '}${roleNames[chapterRole(x)]}</span><p>${escape(x.summary)}</p><div class="w-card-controls"><button type="button" data-open="${x.id}">Open draft</button><button type="button" data-move="${x.id}" data-direction="-1" aria-label="Move ${escape(x.title)} earlier" ${i===0?'disabled':''}>←</button><button type="button" data-move="${x.id}" data-direction="1" aria-label="Move ${escape(x.title)} later" ${i===chapters.length-1?'disabled':''}>→</button></div></article>`).join('')}</div>`;
   }else if(state.view==='research'){
    main.innerHTML=researchView();
   }else if(state.view==='characters'){
    main.innerHTML=charactersView();
-  }else if(state.view==='revise'){
-   main.innerHTML=revisionView(c);
-  }else if(state.view==='assistant'){
-   main.innerHTML=assistantView();
   }else if(state.view==='reading'){
    main.innerHTML=readingView();
   }else if(state.view==='backups'){
@@ -162,7 +155,7 @@
   }else{
    main.innerHTML=exportView();
   }
-  enrichView();enrichAssistant();fitText();enrichNavigation();enrichStudio();
+  enrichView();fitText();enrichNavigation();enrichStudio();
  }
  function exportDetail(){}
 // Inject inside the main app closure after `library`, `roleNames`, and
@@ -209,11 +202,6 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
  function entryWord(plural=false){return isJournal()?(plural?'entries':'entry'):(plural?'chapters':'chapter');}
  function entryHeading(plural=false){const word=entryWord(plural);return word[0].toUpperCase()+word.slice(1);}
  function createdMarkup(c){return isJournal()?`<p class="w-entry-created">${WritingJournal.validCreatedAt(c.createdAt)?`<time datetime="${escape(c.createdAt)}">${escape(WritingJournal.createdLabel(c))}</time>`:'Creation date unavailable for this existing entry.'}</p>`:'';}
- function revisionChecklist(){
-  if(isJournal())return ['Does this entry say what I wanted to express?','Is there a feeling, detail, or question I want to keep?','Would a title help me find this entry again?'];
-  if(state.type==='fiction')return ['Show the scene through concrete details.','Check what changes for the characters.','Check the connection to the previous chapter.'];
-  return ['Show a concrete experience before explaining it.','Check the connection to the previous chapter.','Check source locators and quotation accuracy.'];
- }
  function enrichJournal(){
   const journal=isJournal(),word=entryHeading(),plural=entryHeading(true);
   root.querySelector('#w-add-chapter').setAttribute('aria-label','Add '+entryWord());
@@ -222,11 +210,7 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
   root.querySelector('#w-search').labels[0].firstChild.textContent=journal?'Find in the journal':'Find in the manuscript';
   root.querySelector('#w-search').placeholder='Search '+entryWord()+' titles, notes, and draft text';
   root.querySelector('#w-search-help').textContent=`Search ${entryWord()} titles, notes, and draft text. Sources, characters, and outlines are not included.`;
-  for(const view of ['plan','reading'])root.querySelectorAll('.w-menu [data-view="'+view+'"]').forEach(el=>el.textContent=navigationViews[view]);
-  if(journal&&state.view==='plan'){
-   main.querySelector('h2').textContent='Your journal entries.';
-   main.querySelectorAll('.w-chapter-number').forEach(el=>el.textContent=el.textContent.replace(/Chapter/i,'Entry'));
-  }
+  for(const view of ['reading'])root.querySelectorAll('.w-menu [data-view="'+view+'"]').forEach(el=>el.textContent=navigationViews[view]);
   if(state.view==='write'){
    main.querySelector('.w-chapter-number').textContent=journal?'Journal entry':'Chapter '+String(chapters.indexOf(selected())+1).padStart(2,'0');
    const title=main.querySelector('#w-title');title.setAttribute('aria-label',word+' title');title.placeholder=journal?'Give this entry a title':'Chapter title';
@@ -257,14 +241,12 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
  function syncData(){const p=project();p.type=state.type;p.genres={...state.genres};p.selected=state.selected;data.preferences={...data.preferences,studioChapters:studioReady?studioChapters:(data.preferences.studioChapters??studioChapters),theme:state.theme,typingGlow:state.typingGlow!==false,font:state.font,typing:state.typing,solidGlass:state.solidGlass,palette:WritingPalette.normalize(state.palette),prose:state.prose,personalDictionary:data.preferences.personalDictionary||[],dictionaryTrash:data.preferences.dictionaryTrash||[]};}
  function flushSave(){clearTimeout(saveTimer);if(!dirty)return !blocked;if(blocked){saveStatus('Saving paused. Download a backup or reopen the app.',true);return false;}syncData();try{WritingStore.save(data);dirty=false;queueFolderBackup();saveStatus('Saved locally · '+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}));return true;}catch(error){queueFolderBackup();saveStatus('Save failed · download a backup to keep your work',true);return false;}}
  function scheduleSave(){dirty=true;if(blocked){saveStatus('Saving paused · download a backup',true);return;}if(!root.querySelector('#w-save-status').classList.contains('w-error'))saveStatus('Saving…');clearTimeout(saveTimer);saveTimer=setTimeout(flushSave,500);}
- function snapshot(c,label='Saved draft'){const p=project();p.history.unshift({id:uid(),chapterId:c.id,at:new Date().toISOString(),title:label,text:c.text,note:c.note,planOutline:c.planOutline||'',alignment:c.alignment||'left',formats:clone(c.formats||[]),lineSpacing:c.lineSpacing||1.7});}
  function toTrash(kind,item,label,chapterId){project().trash.unshift({id:uid(),kind,item:clone(item),label,...(chapterId?{chapterId}:{}),position:kind==='chapter'?chapters.findIndex(c=>c.id===item.id):null,deletedAt:new Date().toISOString()});}
  function field(name,label,value='',multiline=false){return `<label>${escape(label)}${multiline?`<textarea name="${name}" rows="4">${escape(value)}</textarea>`:`<input name="${name}" value="${escape(value)}" ${name==='title'?'required':''} maxlength="${name==='title'?200:20000}">`}</label>`;}
  function showDialog(title,fields,action,button,options={}){dialogOptions=options;const active=document.activeElement,menu=active?.closest('.w-menu');dialogReturn=menu?.querySelector('summary')||active;button??=({'New project':'Create project','Add chapter':'Add chapter','Rename project':'Rename project','Add research / element':'Add record','Edit record':'Save record','Import text as chapter':'Import chapter'})[title]||'Save changes';dialogAction=action;document.getElementById('w-dialog-title').textContent=title;document.getElementById('w-dialog-fields').innerHTML=fields+'<p id="w-dialog-error" role="alert" hidden></p>';document.getElementById('w-dialog-save').textContent=button;document.getElementById('w-dialog').showModal();}
  function confirmAction(title,message,action,button='Move to Trash'){showDialog(title,`<p>${escape(message)}</p>`,()=>action(),button);}
  const sourceFields=s=>'<section class="w-dialog-section" aria-label="Source details"><h3>Source details</h3>'+field('title','Title',s.title)+field('author','Author / creator',s.author)+field('locator','Page, date, or location',s.locator)+field('url','Source URL (saved as a reference)',s.url)+'</section><section class="w-dialog-section" aria-label="Quoted passage"><h3>Quoted passage</h3>'+field('quotation','Exact quotation',s.quotation,true)+'</section><section class="w-dialog-section" aria-label="Your notes"><h3>Your notes</h3>'+field('notes','Your own notes',s.notes,true)+'</section>';
  function researchView(){return `<div class="w-row"><h2>Research &amp; elements</h2><button id="w-add-source">Add record</button></div><p class="w-secondary">Keep sources, people, places, and ideas here. URLs are references; save excerpts for offline use.</p><div class="w-list">${project().sources.length?project().sources.map(s=>`<section class="w-plancard"><h3>${escape(s.title)}</h3><p>${escape(s.author||'')}</p><p class="w-secondary">${escape(s.locator||'')}${s.url?'<br>'+escape(s.url):''}</p>${s.quotation?`<section class="w-record-section" aria-label="Exact quotation"><h4>Exact quotation</h4><blockquote>${escape(s.quotation).replace(/\n/g,'<br>')}</blockquote></section>`:''}${s.notes?`<section class="w-record-section" aria-label="Your own notes"><h4>Your own notes</h4><p>${escape(s.notes).replace(/\n/g,'<br>')}</p></section>`:''}<div class="w-row w-record-actions"><button data-edit-source="${s.id}">Edit record</button><button data-delete-source="${s.id}">Delete</button></div></section>`).join(''):'<p>No records yet. Add a source or an element you want to keep nearby.</p>'}</div>`;}
- function revisionView(c){const history=project().history.filter(h=>h.chapterId===c.id);return `<div class="w-row"><h2>Revision pass</h2><button id="w-snapshot">Save a version</button></div><section class="w-section" aria-label="Revision checklist"><h3>Review checklist</h3><p class="w-secondary">${escape(c.title)} · private review checklist</p>${revisionChecklist().map((t,i)=>`<label class="w-check"><input type="checkbox" data-review="${i}" ${c.review?.[i]?'checked':''}><span>${t}</span></label>`).join('')}</section><section class="w-section" aria-label="Revision task"><h3>Your revision task</h3><textarea id="w-task" aria-label="Revision task" placeholder="What needs attention?">${escape(c.task)}</textarea><button data-delete-field="task">Delete revision task</button></section>${findReplacePanel()}<div id="w-version-comparison"></div><section class="w-section w-saved-versions" aria-label="Saved versions"><h3>Saved versions</h3><p class="w-secondary">Save milestones here. Restoring a version preserves the current draft as another version.</p>${history.map(h=>`<details class="w-plancard"><summary>${escape(h.title)} · ${escape(new Date(h.at).toLocaleString())}</summary><pre class="w-version-text">${escape(h.text)}</pre><p class="w-secondary">${escape(h.note)}</p><button data-compare-version="${h.id}">Compare with current draft</button><button data-restore-version="${h.id}">Restore this version</button><button data-delete-version="${h.id}">Delete version</button></details>`).join('')||'<p>No saved versions for this chapter yet.</p>'}</section>`;}
  function trashView(){return `<h2>Trash</h2><p class="w-secondary">Restore deleted items here. Permanent deletion cannot be undone.</p><div class="w-list">${project().trash.map(t=>`<section class="w-plancard"><strong>${escape(t.label)}</strong><p class="w-secondary">${escape(t.kind)} · ${escape(new Date(t.deletedAt).toLocaleString())}</p><button data-restore-trash="${t.id}">Restore</button><button data-purge-trash="${t.id}">Delete permanently</button></section>`).join('')||'<p>This project’s Trash is empty.</p>'}${data.trashProjects.map(t=>`<section class="w-plancard"><strong>Project: ${escape(t.item.title)}</strong><p class="w-secondary">Deleted ${escape(new Date(t.deletedAt).toLocaleString())}</p><button data-restore-project="${t.id}">Restore project</button><button data-purge-project="${t.id}">Delete permanently</button></section>`).join('')}</div>`;}
  function exportView(){return `<h2>Export your manuscript</h2><p class="w-secondary">Chapter headings and draft text, in the order below. Private notes and research stay in the project backup.</p><section class="w-section" aria-label="Manuscript export"><h3>Manuscript download</h3><label for="w-format">Output format<select id="w-format">${['PDF','Markdown','TXT','DOCX','Reading HTML'].map(x=>`<option value="${x}" ${state.format===x?'selected':''}>${({'PDF':'PDF — share or print','Markdown':'Markdown — text markup','TXT':'Plain text — text only','DOCX':'Word (.docx) — continue editing','Reading HTML':'Reading HTML — read in a browser'})[x]}</option>`).join('')}</select></label><ol>${chapters.map(x=>`<li>${escape(x.title)} · ${words(x.text)} words</li>`).join('')}</ol><button id="w-download">Download manuscript</button><button id="w-print">Print / save as PDF</button><p id="w-export-status" role="status" class="w-secondary"></p><p class="w-secondary">Word, PDF, and Reading HTML preserve chapter alignment. TXT and Markdown contain plain text. PDF uses a book serif font with page numbers. For characters outside that font, use Print / save as PDF.</p></section><section class="w-section" aria-label="Complete project backup"><h3>Complete project backup</h3><p class="w-secondary">Includes all projects, character profiles, notes, research, Trash, and saved versions. Keep a copy in a folder or on another drive.</p><button id="w-backup-view">Download full backup</button></section>`;}
  function enrichView(){
@@ -285,7 +267,7 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
  }
  function backup(){syncData();const text=WritingStore.serialize(data);WritingExport.download(text,'writing-studio-backup-'+new Date().toISOString().slice(0,10)+'.json','application/json');saveStatus('Backup downloaded · keep it somewhere safe');}
  function remapProject(p){const ids=new Map();p.id=uid();for(const c of p.chapters){ids.set(c.id,uid());c.id=ids.get(c.id);}for(const t of p.trash){t.id=uid();if(t.kind==='chapter'){const old=t.item.id;if(!ids.has(old))ids.set(old,uid());t.item.id=ids.get(old);}}for(const t of p.trash){if(t.chapterId)t.chapterId=ids.get(t.chapterId)||t.chapterId;if(t.kind==='version'){t.item.id=uid();t.item.chapterId=ids.get(t.item.chapterId)||t.item.chapterId;}}for(const h of p.history){h.id=uid();h.chapterId=ids.get(h.chapterId)||h.chapterId;}for(const s of p.sources)s.id=uid();for(const c of p.characters||[])c.id=uid();for(const t of p.trash)if(t.kind==='character')t.item.id=uid();p.selected=ids.get(p.selected)||p.chapters[0].id;}
- function restoreItem(id){const p=project(),i=p.trash.findIndex(t=>t.id===id),t=p.trash[i];if(!t)return;if(t.kind==='chapter'){p.chapters.splice(Number.isInteger(t.position)?Math.max(0,Math.min(t.position,p.chapters.length)):p.chapters.length,0,t.item);state.selected=t.item.id;}else if(t.kind==='source')p.sources.push(t.item);else if(t.kind==='character'){p.characters??=[];if(p.characters.length>=1000){saveStatus('Move a character to Trash before restoring another profile.',true);return;}if(p.characters.some(c=>c.id===t.item.id)){saveStatus('This character is already present. The Trash copy has been kept.',true);return;}p.characters.push(t.item);characterChoices.set(p.id,t.item.id);characterQueries.set(p.id,'');}else if(t.kind==='version'){p.history.unshift(t.item);if(chapters.some(c=>c.id===t.item.chapterId))state.selected=t.item.chapterId;}else{let c=chapters.find(c=>c.id===t.chapterId);if(!c){c=blankChapter('Recovered notes');chapters.push(c);}const key={outline:'planOutline',note:'note',idea:'idea',saved:'saved',task:'task'}[t.kind];if(key)c[key]=(c[key]?c[key]+'\n\n':'')+t.item;state.selected=c.id;}p.trash.splice(i,1);if(t.kind==='chapter')navigationTrigger={id:'restore-chapter',draft:true};state.view=t.kind==='source'?'research':t.kind==='character'?'characters':t.kind==='version'?'revise':'write';render();scheduleSave();navigationNotice('Restored '+t.label+'.');}
+ function restoreItem(id){const p=project(),i=p.trash.findIndex(t=>t.id===id),t=p.trash[i];if(!t)return;if(t.kind==='chapter'){p.chapters.splice(Number.isInteger(t.position)?Math.max(0,Math.min(t.position,p.chapters.length)):p.chapters.length,0,t.item);state.selected=t.item.id;}else if(t.kind==='source')p.sources.push(t.item);else if(t.kind==='character'){p.characters??=[];if(p.characters.length>=1000){saveStatus('Move a character to Trash before restoring another profile.',true);return;}if(p.characters.some(c=>c.id===t.item.id)){saveStatus('This character is already present. The Trash copy has been kept.',true);return;}p.characters.push(t.item);characterChoices.set(p.id,t.item.id);characterQueries.set(p.id,'');}else if(t.kind==='version'){p.history.unshift(t.item);if(chapters.some(c=>c.id===t.item.chapterId))state.selected=t.item.chapterId;}else{let c=chapters.find(c=>c.id===t.chapterId);if(!c){c=blankChapter('Recovered notes');chapters.push(c);}const key={outline:'planOutline',note:'note',idea:'idea',saved:'saved',task:'task'}[t.kind];if(key)c[key]=(c[key]?c[key]+'\n\n':'')+t.item;state.selected=c.id;}p.trash.splice(i,1);if(t.kind==='chapter')navigationTrigger={id:'restore-chapter',draft:true};state.view=t.kind==='source'?'research':t.kind==='character'?'characters':'write';render();scheduleSave();navigationNotice('Restored '+t.label+'.');}
  document.getElementById('w-form').addEventListener('submit',e=>{e.preventDefault();const form=new FormData(e.target),values=Object.fromEntries(form.entries());Object.keys(values).forEach(k=>values[k]=values[k].trim());try{dialogAction?.(values);document.getElementById('w-dialog').close();if(dialogOptions.render!==false){render();scheduleSave();}}catch(error){saveStatus(error.message,true);const notice=document.getElementById('w-dialog-error');if(notice){notice.hidden=false;notice.textContent=error.message;}}});
  document.getElementById('w-dialog-cancel').addEventListener('click',()=>document.getElementById('w-dialog').close());
  root.addEventListener('click',e=>{
@@ -302,9 +284,6 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
   else if(b.id==='w-add-source')showDialog('Add research / element',sourceFields({}),v=>p.sources.push({id:uid(),...v}));
   else if(b.dataset.editSource){const s=p.sources.find(s=>s.id===b.dataset.editSource);showDialog('Edit record',sourceFields(s),v=>Object.assign(s,v));}
   else if(b.dataset.deleteSource){const s=p.sources.find(s=>s.id===b.dataset.deleteSource);confirmAction('Delete record?',`“${s.title}” will move to Trash.`,()=>{toTrash('source',s,s.title);p.sources=p.sources.filter(x=>x.id!==s.id);});}
-  else if(b.id==='w-snapshot'){snapshot(c);render();}
-  else if(b.dataset.restoreVersion){const h=p.history.find(h=>h.id===b.dataset.restoreVersion);confirmAction('Restore version?','The current draft will be saved as a version before restoring.',()=>{snapshot(c,'Before restore');c.text=h.text;c.note=h.note;c.planOutline=h.planOutline;c.alignment=h.alignment||'left';c.formats=clone(h.formats||[]);c.lineSpacing=h.lineSpacing||1.7;editHistory.delete(c.id);},'Restore');}
-  else if(b.dataset.deleteVersion){const h=p.history.find(h=>h.id===b.dataset.deleteVersion);toTrash('version',h,h.title,c.id);p.history=p.history.filter(x=>x.id!==h.id);render();}
   else if(b.dataset.restoreTrash)restoreItem(b.dataset.restoreTrash);
   else if(b.dataset.purgeTrash)confirmAction('Delete permanently?','This item cannot be restored afterward. Download a backup first if you want to keep a copy.',()=>p.trash=p.trash.filter(t=>t.id!==b.dataset.purgeTrash),'Delete permanently');
   else if(b.dataset.restoreProject){const i=data.trashProjects.findIndex(t=>t.id===b.dataset.restoreProject),t=data.trashProjects[i];data.projects.push(t.item);data.trashProjects.splice(i,1);data.activeProject=t.item.id;activateProject();render();}
@@ -319,14 +298,14 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
   }else if(b.id==='w-print'){const win=window.open('','_blank');if(win){win.document.open();win.document.write(WritingExport.html(p));win.document.close();win.focus();win.print();}else saveStatus('Allow the reading window to print, or download Reading HTML.',true);}
   if(!['w-import','w-backup','w-backup-view','w-print','w-download'].includes(b.id))scheduleSave();
  });
- root.addEventListener('input',e=>{const el=e.target;if(el.id==='w-title'){selected().title=el.value;tree();}if(el.id==='w-task')selected().task=el.value;if(!['w-search','w-import-file','w-find-text','w-replace-text'].includes(el.id))scheduleSave();});
+ root.addEventListener('input',e=>{const el=e.target;if(el.id==='w-title'){selected().title=el.value;tree();}if(!['w-search','w-import-file'].includes(el.id))scheduleSave();});
  root.addEventListener('change',e=>{
   const el=e.target;
   if(el.id==='w-project'){syncData();data.activeProject=el.value;activateProject();render();}
   else if(el.id==='w-alignment'){selected().alignment=el.value;root.querySelector('#w-draft').style.textAlign=el.value;}
   else if(el.id==='w-prose'){state.prose=Number(el.value);root.style.setProperty('--w-prose',state.prose+'px');fitText();}
   else if(el.id==='w-format'){state.format=el.value;const notice=root.querySelector('#w-export-status');if(notice){notice.textContent='';notice.classList.remove('w-error');}}
-  if(!['w-import-file','w-replace-scope','w-match-case','w-whole-word'].includes(el.id))scheduleSave();
+  if(!['w-import-file'].includes(el.id))scheduleSave();
  });
  root.querySelector('#w-import-file').addEventListener('change',async e=>{
   const file=e.target.files[0];e.target.value='';if(!file)return;
@@ -344,8 +323,7 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
  document.addEventListener('visibilitychange',()=>{if(document.hidden)flushSave();});
  window.addEventListener('beforeunload',e=>{if(dirty&&!flushSave()){e.preventDefault();e.returnValue='';}});
  window.addEventListener('storage',e=>{if(e.key==='writing-desk-v1'){blocked=true;blockReason='concurrent';saveStatus('Another window changed this workspace. Download a backup, then reload.',true);}});
- let freshWorkspace=false,folderHold=true,folderConnected=false,folderFiles=[],folderLoading=false,replacePreview=null,pendingFolderSave=false;
- const replacementPreviews=new Map();
+ let freshWorkspace=false,folderHold=true,folderConnected=false,folderFiles=[],folderLoading=false,pendingFolderSave=false;
  const editHistory=new Map();let draftSelection=null,typingInput=false,thesaurusSelection=null,thesaurusChoices=[];
  const folderBackups=WritingLocalBackup.createClient({onStatus:updateFolderStatus,onConflict:updateFolderStatus});
  function updateFolderStatus(status){
@@ -440,47 +418,8 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
   const c=selected(),draft=main.querySelector('#w-draft');
   main.querySelector('.w-editor-actions').insertAdjacentHTML('beforeend',`<label class="w-alignment-control" for="w-spacing">Line spacing<select id="w-spacing">${[1.4,1.7,2].map(value=>`<option value="${value}" ${(c.lineSpacing||1.7)===value?'selected':''}>${value===1.4?'Compact':value===1.7?'Comfortable':'Double'}</option>`).join('')}</select></label>`);
   draft.style.lineHeight=c.lineSpacing||1.7;
-  draft.insertAdjacentHTML('beforebegin','<div class="w-writing-toolbar" role="group" aria-label="Writing controls"><button id="w-bold" title="Bold selected words (Ctrl/Cmd+B)"><strong>Bold</strong></button><button id="w-italic" title="Italic selected words (Ctrl/Cmd+I)"><em>Italic</em></button><button id="w-editor-undo">Undo</button><button id="w-editor-redo">Redo</button><button id="w-dictionary">Personal dictionary</button><button id="w-thesaurus">Thesaurus</button><details class="w-shortcuts"><summary>Keyboard shortcuts</summary><p>Ctrl/Cmd+B: bold selection<br>Ctrl/Cmd+I: italic selection<br>Ctrl/Cmd+Z: undo draft edit<br>Ctrl/Cmd+Shift+Z: redo<br>Ctrl/Cmd+S: save<br>Ctrl/Cmd+Shift+F: find and replace<br>Ctrl/Cmd+Shift+R: read manuscript</p></details></div><p id="w-formatting-status" class="w-secondary" role="status">Select words to format them. The preview shows how they will look in Word, PDF, Markdown, and reading copies.</p>');
+  draft.insertAdjacentHTML('beforebegin','<div class="w-writing-toolbar" role="group" aria-label="Writing controls"><button id="w-bold" title="Bold selected words (Ctrl/Cmd+B)"><strong>Bold</strong></button><button id="w-italic" title="Italic selected words (Ctrl/Cmd+I)"><em>Italic</em></button><button id="w-editor-undo">Undo</button><button id="w-editor-redo">Redo</button><button id="w-dictionary">Personal dictionary</button><button id="w-thesaurus">Thesaurus</button><details class="w-shortcuts"><summary>Keyboard shortcuts</summary><p>Ctrl/Cmd+B: bold selection<br>Ctrl/Cmd+I: italic selection<br>Ctrl/Cmd+Z: undo draft edit<br>Ctrl/Cmd+Shift+Z: redo<br>Ctrl/Cmd+S: save<br>Ctrl/Cmd+Shift+R: read manuscript</p></details></div><p id="w-formatting-status" class="w-secondary" role="status">Select words to format them. The preview shows how they will look in Word, PDF, Markdown, and reading copies.</p>');
   updateFormattedPreview();
- }
- function revisionDraft(){return {find:'',replacement:'',scope:'chapter',caseSensitive:false,wholeWord:false,previewRequested:false,...(selected().uiDrafts?.revision||{})};}
- function revisionContextKey(){return JSON.stringify([project().id,selected().id]);}
- function revisionOptions(draft){return {caseSensitive:draft.caseSensitive,wholeWord:draft.wholeWord,scope:draft.scope,chapterId:selected().id};}
- function currentReplacementPreview(){
-  replacePreview=null;const key=revisionContextKey(),candidate=replacementPreviews.get(key),draft=revisionDraft();
-  if(!candidate||!draft.previewRequested)return null;
-  if(candidate.query!==draft.find||candidate.replacement!==draft.replacement||candidate.options.scope!==draft.scope||candidate.options.caseSensitive!==draft.caseSensitive||candidate.options.wholeWord!==draft.wholeWord){replacementPreviews.delete(key);return null;}
-  try{WritingRevision.apply(project(),candidate);replacePreview=candidate;return candidate;}catch(_){replacementPreviews.delete(key);return null;}
- }
- function replacementPreviewMarkup(preview){return `<p role="status">${preview.total} matches in ${preview.chapters.length} chapters. Applying saves a version of every changed chapter first.</p>${preview.chapters.slice(0,20).map(c=>`<details class="w-replace-chapter"><summary>${escape(c.title)} · ${c.matches.length} matches</summary>${c.matches.slice(0,20).map(m=>`<p class="w-replace-example">${escape(c.before.slice(Math.max(0,m.start-40),m.start))}<del>${escape(m.original)}</del><ins>${escape(m.replacement)||'(delete)'}</ins>${escape(c.before.slice(m.end,m.end+40))}</p>`).join('')}${c.matches.length>20?'<p>Showing the first 20 matches in this chapter.</p>':''}</details>`).join('')}${preview.chapters.length>20?'<p>Showing the first 20 chapters.</p>':''}${preview.total?'<button id="w-apply-replace">Apply previewed replacements</button>':''}`;}
- function findReplacePanel(){
-  const draft=revisionDraft(),preview=currentReplacementPreview(),notice=preview?replacementPreviewMarkup(preview):draft.previewRequested?'<p role="status">Your search settings are saved. Preview again to check the current manuscript before applying.</p>':'';
-  return `<details class="w-find-panel" open><summary>Find and replace</summary><div class="w-find-grid"><label>Find<input id="w-find-text" type="text" maxlength="100000" value="${escape(draft.find)}" placeholder="Word or phrase"></label><label>Replace with<input id="w-replace-text" type="text" maxlength="100000" value="${escape(draft.replacement)}" placeholder="Replacement (can be empty)"></label><label>Look in<select id="w-replace-scope"><option value="chapter" ${draft.scope==='chapter'?'selected':''}>This chapter</option><option value="project" ${draft.scope==='project'?'selected':''}>Whole manuscript</option></select></label><label class="w-check"><input id="w-match-case" type="checkbox" ${draft.caseSensitive?'checked':''}><span>Match case</span></label><label class="w-check"><input id="w-whole-word" type="checkbox" ${draft.wholeWord?'checked':''}><span>Whole words</span></label></div><button id="w-preview-replace">Preview replacements</button><div id="w-replace-preview" role="region" aria-label="Replacement preview">${notice}</div></details>`;
- }
- function rememberReplacementFields(message){
-  const el=id=>root.querySelector('#'+id),c=selected();if(!el('w-find-text'))return;
-  c.uiDrafts??={};c.uiDrafts.revision={find:el('w-find-text').value.slice(0,100000),replacement:el('w-replace-text').value.slice(0,100000),scope:el('w-replace-scope').value==='project'?'project':'chapter',caseSensitive:el('w-match-case').checked,wholeWord:el('w-whole-word').checked,previewRequested:false};
-  replacementPreviews.delete(revisionContextKey());replacePreview=null;
-  const panel=el('w-replace-preview');if(panel&&message)panel.textContent=message;scheduleSave();
- }
- function previewReplace(){
-  rememberReplacementFields();const panel=root.querySelector('#w-replace-preview'),draft=revisionDraft();
-  try{replacePreview=WritingRevision.preview(project(),draft.find,draft.replacement,revisionOptions(draft));
-   selected().uiDrafts.revision.previewRequested=true;replacementPreviews.set(revisionContextKey(),replacePreview);while(replacementPreviews.size>5)replacementPreviews.delete(replacementPreviews.keys().next().value);panel.innerHTML=replacementPreviewMarkup(replacePreview);scheduleSave();
-  }catch(error){panel.textContent=error.message;}
- }
- function applyReplace(){
-  const preview=currentReplacementPreview(),key=revisionContextKey();
-  if(!preview){root.querySelector('#w-replace-preview').textContent='The manuscript or search settings changed. Preview replacements again.';return;}
-  confirmAction('Apply replacements?',`${preview.total} matches were previewed. Each changed chapter will be saved as a version before applying.`,()=>{
-   if(revisionContextKey()!==key)throw new Error('This preview belongs to a different chapter. Return to that chapter and preview again.');
-   const result=WritingRevision.apply(project(),preview);for(const id of result.changedChapterIds)snapshot(chapters.find(c=>c.id===id),'Before find and replace');
-   for(const replacement of result.chapters){const index=chapters.findIndex(c=>c.id===replacement.id);chapters[index]=replacement;editHistory.delete(replacement.id);}replacementPreviews.delete(key);replacePreview=null;selected().uiDrafts.revision.previewRequested=false;
-  },'Apply replacements');
- }
- function compareVersion(id){
-  const version=project().history.find(item=>item.id===id);if(!version)return;const comparison=WritingRevision.diff(version.text,selected().text),display=WritingRevision.displayDiff(comparison),panel=root.querySelector('#w-version-comparison');
-  panel.innerHTML=`<h3>Saved version → current draft</h3><p class="w-secondary">${escape(new Date(version.at).toLocaleString())}. Removed lines are rose; added lines are mint. ${comparison.approximate?'Large changed sections are shown as complete removed/added blocks.':''}</p><div class="w-diff-legend"><span>− Removed</span><span>+ Added</span></div><div class="w-diff">${display.rows.map(row=>`<div class="w-diff-${row.kind}"><span aria-label="${row.kind}">${{same:' ',added:'+',removed:'−',omitted:'…'}[row.kind]}</span><pre>${escape(row.text)}${row.truncated?'\n[Display shortened; full text remains in the saved version.]':''}</pre></div>`).join('')}</div><p class="w-secondary">${display.omittedRows?display.omittedRows+' rows omitted from this view. ':''}${display.omittedChanges?display.omittedChanges+' changed rows omitted; narrow your comparison or inspect the saved wording. ':''}${display.truncatedText?display.truncatedText+' long rows shortened. ':''}Comparison shows wording. Saved versions also retain formatting, spacing, and alignment.</p>`;
  }
  function readingView(){const p=project();return `<h2>${escape(p.title)}</h2><p class="w-secondary">Whole manuscript · ${chapters.reduce((n,c)=>n+words(c.text),0)} words</p><details class="w-reading-toc"><summary>Jump to ${entryWord()}</summary>${chapters.map(c=>`<a href="#w-read-${c.id}">${escape(c.title)}</a>`).join('')}</details>${chapters.map((c,i)=>`<section id="w-read-${c.id}" class="w-reading-chapter"><div class="w-row"><div><p class="w-chapter-number">${isJournal()?'Journal entry':'Chapter '+String(i+1).padStart(2,'0')}</p><h3>${escape(c.title)}</h3>${createdMarkup(c)}</div><button data-edit-reading="${c.id}">Edit ${entryWord()}</button></div><div class="w-reading-text" style="text-align:${['left','right','justify'].includes(c.alignment)?c.alignment:'left'};line-height:${[1.4,1.7,2].includes(c.lineSpacing)?c.lineSpacing:1.7}">${WritingTextTools.html(c.text,c.formats)||'<span class="w-secondary">This chapter is empty.</span>'}</div></section>`).join('')}`;}
  root.addEventListener('mousedown',e=>{if(e.target.closest('#w-bold,#w-italic'))e.preventDefault();});
@@ -488,8 +427,7 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
  root.addEventListener('beforeinput',e=>{if(e.target.id!=='w-draft')return;if(e.inputType==='historyUndo'||e.inputType==='historyRedo'){e.preventDefault();editorUndo(e.inputType==='historyRedo');return;}recordEditorUndo(e.inputType);});
  root.addEventListener('keydown',e=>{
   if(!(e.ctrlKey||e.metaKey)||e.altKey||e.isComposing)return;const key=e.key.toLowerCase();
-  if(e.shiftKey&&key==='f'){e.preventDefault();e.stopImmediatePropagation();state.view='revise';render();root.querySelector('#w-find-text').focus();}
-  else if(e.shiftKey&&key==='r'){e.preventDefault();e.stopImmediatePropagation();state.view='reading';render();}
+  if(e.shiftKey&&key==='r'){e.preventDefault();e.stopImmediatePropagation();state.view='reading';render();}
   else if(key==='s'){e.preventDefault();e.stopImmediatePropagation();flushSave();}
   else if(e.target.id==='w-draft'&&['b','i','z','y'].includes(key)){e.preventDefault();e.stopImmediatePropagation();if(key==='b'||key==='i')formatSelection(key==='b'?'bold':'italic');else editorUndo(key==='y'||e.shiftKey);}
  },true);
@@ -499,9 +437,6 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
   else if(b.id==='w-editor-undo'||b.id==='w-editor-redo')editorUndo(b.id==='w-editor-redo');
   else if(b.id==='w-dictionary')openDictionary();
   else if(b.id==='w-thesaurus')openThesaurus();
-  else if(b.id==='w-preview-replace')previewReplace();
-  else if(b.id==='w-apply-replace')applyReplace();
-  else if(b.dataset.compareVersion)compareVersion(b.dataset.compareVersion);
   else if(b.dataset.editReading){state.selected=b.dataset.editReading;state.view='write';render();scheduleSave();}
   else if(b.id==='w-folder-backups'){state.view='backups';render();loadFolderFiles();}
   else if(b.id==='w-folder-refresh')loadFolderFiles();
@@ -511,8 +446,6 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
   else if(b.id==='w-folder-now'){syncData();folderBackups.backupNow(WritingStore.serialize(data)).then(loadFolderFiles).catch(error=>saveStatus('Folder backup failed: '+error.message,true));}
  });
  root.addEventListener('change',e=>{if(e.target.id==='w-spacing'){selected().lineSpacing=Number(e.target.value);root.querySelector('#w-draft').style.lineHeight=e.target.value;updateFormattedPreview();fitText();scheduleSave();}else if(e.target.id==='w-alignment')updateFormattedPreview();});
- root.addEventListener('input',e=>{if(['w-find-text','w-replace-text'].includes(e.target.id))rememberReplacementFields('Preview again after changing the search or replacement.');});
- root.addEventListener('change',e=>{if(['w-replace-scope','w-match-case','w-whole-word'].includes(e.target.id))rememberReplacementFields('Preview again after changing the search options.');});
  let palettePreview=null,paletteTransaction=null;
  function applyPaletteTo(element,painting,isDialog=false){
   if(!element)return;element.classList.toggle('w-custom-colors',painting.enabled);
@@ -572,7 +505,7 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
   const group=(title,keys,open=false)=>`<details class="w-character-group" ${open?'open':''}><summary>${title}</summary>${keys.map(editorField).join('')}</details>`;
   return `<div class="w-row"><h3 id="w-character-heading">${escape(c.name)}</h3><button type="button" id="w-delete-character">Delete character</button></div><p id="w-character-error" role="alert" hidden></p>${editorField('name')}${editorField('role')}${group('Appearance and personality',['appearance','traits','habits','beliefs'],true)}${group('Motivations and growth',['goals','fears','arc'])}${group('History and connections',['relationships','backstory'])}${group('Other details',['notes'])}`;
  }
- function charactersView(){const current=selectedCharacter();return `<div class="w-row"><h2>Characters</h2><button type="button" id="w-add-character">Add character</button></div><p class="w-secondary">Profiles for ${escape(project().title)}. Changes autosave; full project backups include these profiles. They stay outside manuscript exports and are not included in assistant requests automatically.</p><label for="w-character-search">Find a character<input type="search" id="w-character-search" placeholder="Search names, roles, or any detail" value="${escape(characterQueries.get(project().id)||'')}"></label><p id="w-character-count" class="w-secondary">${characterList().length} ${characterList().length===1?'character':'characters'}</p><div class="w-characters-layout"><div id="w-character-list" role="group" aria-label="Character profiles">${characterButtons()}</div><section class="w-character-editor" aria-label="Selected character profile">${characterEditor(current)}</section></div>`;}
+ function charactersView(){const current=selectedCharacter();return `<div class="w-row"><h2>Characters</h2><button type="button" id="w-add-character">Add character</button></div><p class="w-secondary">Profiles for ${escape(project().title)}. Changes autosave; full project backups include these profiles. They stay outside manuscript exports.</p><label for="w-character-search">Find a character<input type="search" id="w-character-search" placeholder="Search names, roles, or any detail" value="${escape(characterQueries.get(project().id)||'')}"></label><p id="w-character-count" class="w-secondary">${characterList().length} ${characterList().length===1?'character':'characters'}</p><div class="w-characters-layout"><div id="w-character-list" role="group" aria-label="Character profiles">${characterButtons()}</div><section class="w-character-editor" aria-label="Selected character profile">${characterEditor(current)}</section></div>`;}
  function updateCharacterList(){const list=root.querySelector('#w-character-list');if(list)list.innerHTML=characterButtons();}
  root.addEventListener('click',e=>{
   const button=e.target.closest('button');if(!button)return;
@@ -600,139 +533,24 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
   if(key==='name')root.querySelector('#w-character-heading').textContent=c.name;
   updateCharacterList();scheduleSave();
  });
- function assistantIsVisible(){return state.view==='assistant';}
- const assistantWorkspaces=new Map();let assistantCurrentKey='',assistantInitialized=false;
- const assistantClient=WritingAssistant.createClient({onStatus:updateAssistantStatus});
- const assistantStylePresets=['Clear and concrete','Conversational','Lyrical','Literary','Academic','Direct'];
- function assistantWorkspace(){
-  const key=project().id+':'+selected().id;assistantCurrentKey=key;
-  const chapter=selected(),cached=assistantWorkspaces.get(key);
-  if(!cached||cached.chapter!==chapter){const saved=chapter.assistantDraft;assistantWorkspaces.set(key,{model:saved?.model||'deepseek-flash',goal:saved?.goal||'brainstorm',brief:saved?.brief||'',text:saved?.text||'',selection:null,result:saved?.suggestion?{...saved.suggestion,restored:true}:null,error:'',chapter});}
-  return assistantWorkspaces.get(key);
- }
- function saveAssistantDraft(work=assistantWorkspace()){
-  // Persist only editable writing. Keys, session state, selections and target fingerprints remain in memory.
-  work.chapter.assistantDraft={model:work.model,goal:work.goal,brief:work.brief,text:work.text,suggestion:work.result?{text:work.result.text.slice(0,24000).replace(/[\uD800-\uDBFF]$/,''),truncated:!!work.result.truncated||work.result.text.length>24000}:null};scheduleSave();
- }
- function assistantPrerequisite(status){
-  if(blocked)return 'Recover or reopen the workspace before using the assistant.';
-  if(!status.available)return status.error||'Checking the local launcher. Use the Mac or Windows launcher for the assistant.';
-  if(status.busy)return 'Wait for the current suggestion to finish.';
-  if(status.settingsBusy)return 'Wait for the key settings to finish updating.';
-  if(!status.connected)return 'Attach a DeepSeek key in Assistant settings to enable Generate.';
-  const work=assistantWorkspace();try{WritingAssistant.buildRequest({model:work.model,goal:work.goal,brief:work.brief,text:work.text,profile:project().writingProfile,projectType:state.type,genre:genre().name});}catch(error){return error.message;}
-  return 'Ready. Generate sends the writing profile, instruction and text preview to DeepSeek.';
- }
- function assistantNotice(message,error=false){const el=root.querySelector('#w-ai-status');if(el){el.textContent=message;el.classList.toggle('w-error',error);}}
- function assistantKeyFileFields(){return `<section class="w-ai-keyfile w-section" aria-label="Saved API key file"><h3>Saved API key file</h3><p class="w-secondary">Optional: keep your DeepSeek key in a file on this computer. This file stores the key as plain text. It stays outside project backups and app downloads.</p><p id="w-ai-keyfile-path" class="w-path"></p><p id="w-ai-keyfile-status" role="status"></p><label class="w-check"><input type="checkbox" id="w-ai-keyfile-enable"><span>Allow Writing Studio to read this key file</span></label><p class="w-secondary">This permission is remembered on this computer. When enabled, the launcher reads the key at startup and before each generation. Saving an empty key in the file stops future requests.</p><div class="w-row"><button type="button" id="w-ai-keyfile-create">Create empty key file</button><button type="button" id="w-ai-keyfile-reload">Reload saved key</button><button type="button" id="w-ai-keyfile-clear">Remove saved key</button></div><details><summary>How to fill or remove the key</summary><p>Click Create empty key file, then open the displayed file in a text editor. Put your key between the quotation marks after apiKey and save the file.</p><pre>{ "apiKey": "YOUR_DEEPSEEK_KEY" }</pre><p>Enable the read permission, or click Reload saved key if it is already enabled. To remove it manually, change the file to:</p><pre>{ "apiKey": "" }</pre><p>Remove saved key empties the file, turns off automatic reading, and forgets the current session key. Disconnect turns off file reading and forgets the session key while keeping the file.</p></details></section>`;}
- function updateAssistantKeyFile(status){
-  const checkbox=root.querySelector('#w-ai-keyfile-enable');if(!checkbox)return;
-  const file=status.keyFile,path=root.querySelector('#w-ai-keyfile-path'),notice=root.querySelector('#w-ai-keyfile-status');
-  path.textContent=file?'Key file: '+file.path:'Use the updated local launcher to manage a saved key file.';
-  checkbox.checked=!!file?.readEnabled;checkbox.disabled=!status.available||!file||status.busy||status.settingsBusy;
-  notice.textContent=file?.error||(file?(file.exists?'Key file exists. ':'Key file has not been created. ')+(file.readEnabled?'Automatic reading is allowed.':'Automatic reading is off.'):'');notice.classList.toggle('w-error',!!file?.error);
-  for(const id of ['create','reload','clear']){const button=root.querySelector('#w-ai-keyfile-'+id);button.disabled=!status.available||!file||status.settingsBusy||status.busy&&id!=='clear'||id==='reload'&&!file.readEnabled;}
- }
- function updateAssistantStatus(status){
-  const el=root.querySelector('#w-ai-connection-status');if(el)el.textContent=status.available?(status.connected?'Key attached for this launcher session. Generate is the only action that contacts DeepSeek.':'Attach your key for this launcher session.'):status.error||'Checking the local launcher…';
-  const generate=root.querySelector('#w-ai-generate');if(generate){generate.disabled=!status.available||!status.connected||status.busy||status.settingsBusy||blocked;try{const work=assistantWorkspace();WritingAssistant.buildRequest({model:work.model,goal:work.goal,brief:work.brief,text:work.text,profile:project().writingProfile,projectType:state.type,genre:genre().name});}catch(_){generate.disabled=true;}generate.textContent=status.busy?'Generating…':'Generate suggestion';}
-  for(const id of ['w-ai-connect','w-ai-reconnect']){const button=root.querySelector('#'+id);if(button)button.disabled=status.busy||status.settingsBusy||!status.available&&id==='w-ai-connect';}
-  const disconnect=root.querySelector('#w-ai-disconnect');if(disconnect)disconnect.disabled=!status.available||!status.connected||status.settingsBusy;
-  const reason=root.querySelector('#w-ai-prerequisite');if(reason)reason.textContent=assistantPrerequisite(status);
-  updateAssistantKeyFile(status);
- }
- function assistantView(){
-  const work=assistantWorkspace(),c=selected(),profile=WritingAssistant.normalizeProfile(project().writingProfile);
-  const range=selectionForDraft();if(range&&range.end>range.start)work.selection={projectId:project().id,chapterId:c.id,start:range.start,end:range.end,text:c.text,formatFingerprint:WritingRevision.formatFingerprint(c)};
-  const choice=(values,current,labels={})=>values.map(value=>`<option value="${escape(value)}" ${value===current?'selected':''}>${escape(labels[value]||value)}</option>`).join('');
-  return `<h2>Writing assistant</h2><p class="w-secondary">DeepSeek support requires the Mac or Windows launcher edition. In that edition, your writing stays local until you choose Generate. DeepSeek receives the writing profile, project type, genre, instruction, and text preview below. Requests use your DeepSeek account and may incur charges.</p><details id="w-ai-settings" class="w-plancard"><summary>Assistant settings</summary><p id="w-ai-connection-status" role="status">Checking the local launcher…</p><label for="w-ai-key">DeepSeek API key<input id="w-ai-key" type="password" autocomplete="new-password" autocapitalize="off" spellcheck="false" placeholder="Paste your key for this session"></label><div class="w-row"><button id="w-ai-connect">Attach key</button><button id="w-ai-disconnect">Disconnect and forget key</button><button id="w-ai-reconnect">Check local connection</button></div><p class="w-secondary">A key attached here stays in memory and is excluded from projects and backups. Attaching it turns off automatic key-file reading. Closing the launcher forgets this session key. Attaching a key makes no provider request and does not verify account credit.</p>${assistantKeyFileFields()}</details><details class="w-plancard"><summary>Project writing profile</summary><p class="w-secondary">Saved with ${escape(project().title)} and included in every assistant request for this project.</p><div class="w-assistant-grid"><label>Tone<select id="w-ai-tone">${choice(WritingAssistant.TONES,profile.tone)}</select></label><label>Point of view<select id="w-ai-pov">${choice(WritingAssistant.POVS,profile.pov,{first:'First person',second:'Second person',third:'Third person'})}</select></label><label>English variant<select id="w-ai-variant">${choice(WritingAssistant.VARIANTS,profile.englishVariant,{american:'American English',british:'British English'})}</select></label><label>Style preset<select id="w-ai-style-preset"><option value="">Custom / describe below</option>${choice(assistantStylePresets,profile.style)}</select></label></div><label>Style description<input id="w-ai-style" maxlength="400" value="${escape(profile.style)}" placeholder="For example: warm, lyrical, concrete"></label><label>Intended audience<input id="w-ai-audience" maxlength="400" value="${escape(profile.audience)}" placeholder="Who are you writing for?"></label><label>Writing preferences<textarea id="w-ai-instructions" maxlength="2000" placeholder="Words to avoid, what to preserve, or other preferences">${escape(profile.instructions)}</textarea></label></details><section class="w-section" aria-label="Writing request"><h3>Writing request</h3><div class="w-assistant-grid"><label>Writing goal<select id="w-ai-goal">${choice(WritingAssistant.GOALS,work.goal,{brainstorm:'Brainstorm ideas',outline:'Create an outline',continue:'Suggest a continuation',rewrite:'Rewrite an excerpt',feedback:'Give feedback'})}</select></label><label>DeepSeek model<select id="w-ai-model">${choice(WritingAssistant.MODELS,work.model,{'deepseek-flash':'Flash','deepseek-v4-pro':'V4 Pro'})}</select></label></div><p class="w-secondary">Current context: ${escape(projectTypeLabel(state.type))} · ${escape(genre().name)} · ${escape(c.title)}. Chapter title is shown here for orientation; it is excluded from the request.</p><p class="w-secondary">Your instruction, text preview, chosen goal/model and editable suggestion are saved with this chapter, including in full backups.</p><button id="w-ai-clear-draft" type="button">Clear saved assistant draft</button><label>Your instruction<textarea id="w-ai-brief" maxlength="2000" placeholder="What would help with this passage?">${escape(work.brief)}</textarea></label></section><section class="w-section" aria-label="Text to send"><h3>Text preview</h3><div class="w-row"><button id="w-ai-use-selection" ${work.selection?'':'disabled'}>Use selected words</button><button id="w-ai-use-chapter">Use chapter excerpt</button><button id="w-ai-clear-text">Clear text preview</button></div><label>Text to send<textarea id="w-ai-text" maxlength="10000" placeholder="Include text explicitly or paste an excerpt">${escape(work.text)}</textarea></label><p class="w-secondary">Nothing is included automatically. Chapter excerpts include at most the first 10,000 characters; review and edit them before generating. Total request limit: 12,000 characters including instructions and profile.</p><p id="w-ai-prerequisite" role="status" class="w-secondary"></p><div class="w-row"><button id="w-ai-generate" aria-describedby="w-ai-prerequisite">Generate suggestion</button><button type="button" id="w-ai-open-settings" aria-controls="w-ai-settings">Open Assistant settings</button></div><p id="w-ai-status" role="status" class="w-secondary">${escape(work.error||'Suggestions stay here until you explicitly insert them into your draft.')}</p></section>${work.result?`<section class="w-assistant-result w-section" aria-label="Editable suggestion"><h3>Editable suggestion</h3>${work.result.restored?'<p class="w-secondary">Restored suggestion: review and copy this text here. Generate a new suggestion to insert it, because the original draft target cannot be verified after reload or import.</p>':''}${work.result.truncated?'<p class="w-secondary">The model reached the output limit. This suggestion may end mid-sentence.</p>':''}<textarea id="w-ai-result" maxlength="24000" aria-label="Editable assistant suggestion">${escape(work.result.text)}</textarea><div class="w-row"><button id="w-ai-insert-selection" ${work.result.selection&&!work.result.restored?'':'disabled'}>Replace selected words</button><button id="w-ai-append" ${work.result.restored?'disabled':''}>Append to chapter</button></div><p class="w-secondary">Insertion preserves a version of your draft first. Changes to the draft after generation require a new suggestion.</p></section>`:''}`;
- }
- function enrichAssistant(){if(assistantIsVisible()){updateAssistantStatus(assistantClient.state);fitText();}}
- function initializeAssistant(){
-  if(assistantInitialized)return;assistantInitialized=true;
-  const nav=root.querySelector('.w-nav');if(nav&&!nav.querySelector('[data-view="assistant"]'))nav.insertAdjacentHTML('beforeend','<button type="button" data-view="assistant">Assistant</button>');
-  // This only discovers the local session; it never calls the provider.
-  assistantClient.initialize();
- }
- function saveAssistantProfile(){
-  const value=id=>root.querySelector('#'+id)?.value||'';
-  try{project().writingProfile=WritingAssistant.normalizeProfile({tone:value('w-ai-tone'),style:value('w-ai-style'),audience:value('w-ai-audience'),pov:value('w-ai-pov'),englishVariant:value('w-ai-variant'),instructions:value('w-ai-instructions')});scheduleSave();updateAssistantStatus(assistantClient.state);}
-  catch(error){assistantNotice(error.message,true);}
- }
- function assistantContextFingerprint(){return WritingAssistant.contextFingerprint({projectType:state.type,genreId:state.genres[state.type],genre:genre().name,profile:project().writingProfile});}
- function freshAssistantTarget(target){
-  const c=selected(),current={projectId:project().id,chapterId:c.id,text:c.text,formatFingerprint:WritingRevision.formatFingerprint(c),contextFingerprint:assistantContextFingerprint()};if(blocked||!WritingAssistant.isCurrentTarget(target,current))throw new Error(target?.contextFingerprint?'The draft, writing profile, project type, or genre changed. Generate a new suggestion before inserting or saving it.':'The selected words changed. Return to the draft and select them again.');
-  return c;
- }
- async function generateAssistant(){
-  const work=assistantWorkspace(),key=assistantCurrentKey,c=selected();if(blocked){assistantNotice('Recover or reopen the workspace before using the assistant.',true);return;}
-  const target={projectId:project().id,chapterId:c.id,text:c.text,formatFingerprint:WritingRevision.formatFingerprint(c),contextFingerprint:assistantContextFingerprint()};
-  const selection=work.selection&&work.selection.text===c.text&&work.selection.formatFingerprint===target.formatFingerprint?{...work.selection}:null;
-  work.error='';assistantNotice('Sending this preview to DeepSeek…');
-  try{const result=await assistantClient.generate({model:work.model,goal:work.goal,brief:work.brief,text:work.text,profile:WritingAssistant.normalizeProfile(project().writingProfile),projectType:state.type,genre:genre().name});
-   // A cleared draft or imported workspace must not be repopulated by an old response.
-   if(assistantWorkspaces.get(key)!==work||!data.projects.some(p=>p.chapters.includes(work.chapter)))return;
-   work.result={...result,target,selection};saveAssistantDraft(work);if(assistantCurrentKey===key&&assistantIsVisible()){render();assistantNotice('Suggestion ready. Review it before adding it to your writing.');}
-  }catch(error){work.error=error.message;if(assistantCurrentKey===key&&assistantIsVisible())assistantNotice(error.message,true);}
- }
- function applyAssistant(action){
-  const work=assistantWorkspace(),result=work.result;if(!result)return;
-  try{if(result.restored)throw new Error('Generate a new suggestion before inserting restored text. You can review and copy it here.');const c=freshAssistantTarget(result.target),text=result.text;if(!text.trim())throw new Error('The suggestion is empty.');if([...text].length>WritingAssistant.MAX_OUTPUT)throw new Error('The suggestion is too long. Shorten it before inserting.');
-
-   const range=action==='selection'?result.selection:{start:c.text.length,end:c.text.length};if(!range)throw new Error('Select words in the draft before generating a replacement.');
-   const replacement=action==='append'&&c.text? '\n\n'+text:text,edited=WritingTextTools.edit(c.text,c.formats,range.start,range.end,replacement);
-   snapshot(c,'Before assistant insertion');recordEditorUndo();c.text=edited.text;c.formats=edited.formats;lastCorrection=null;typingSuggestions=[];work.result=null;saveAssistantDraft(work);state.view='write';render();
-   const draft=root.querySelector('#w-draft');draft.focus();draft.setSelectionRange(range.start,range.start+replacement.length);scheduleSave();
-  }catch(error){assistantNotice(error.message,true);}
- }
- root.addEventListener('click',async e=>{
-  const button=e.target.closest('button');if(!button)return;
-  if(button.id==='w-ai-connect'){const input=root.querySelector('#w-ai-key'),key=input.value;input.value='';try{await assistantClient.connect(key);assistantNotice('Key attached for this launcher session. It will be verified when you Generate.');}catch(error){assistantNotice(error.message,true);}}
-  else if(button.id==='w-ai-disconnect'){try{await assistantClient.disconnect();const input=root.querySelector('#w-ai-key');if(input)input.value='';assistantNotice('Key forgotten. Any unfinished response will be discarded; already sent requests may still be billed.');}catch(error){assistantNotice(error.message,true);}}
-  else if(button.id==='w-ai-reconnect')await assistantClient.initialize();
-  else if(button.id==='w-ai-keyfile-create'||button.id==='w-ai-keyfile-reload'||button.id==='w-ai-keyfile-clear'){
-   const action=button.id.split('-').pop();
-   try{await assistantClient.keyFileAction(action);assistantNotice({create:'Empty key file ready. Open the displayed path and enter your key.',reload:'Saved key reloaded locally. No request has been sent to DeepSeek.',clear:'Saved key removed. The file is empty, automatic reading is off, and the session key is forgotten.'}[action]);}catch(error){assistantNotice(error.message,true);}
-  }
-  else if(button.id==='w-ai-open-settings'){const settings=root.querySelector('#w-ai-settings');settings.open=true;settings.querySelector('summary').focus();settings.scrollIntoView({block:'nearest'});}
-  else if(button.id==='w-ai-clear-draft'){const chapter=selected();confirmAction('Clear saved assistant draft','Clear this chapter’s saved Assistant instruction, text preview, selected goal/model and suggestion?',()=>{assistantWorkspaces.delete(project().id+':'+chapter.id);delete chapter.assistantDraft;},'Clear draft');}
-  else if(button.id==='w-ai-generate')generateAssistant();
-  else if(button.id==='w-ai-use-selection'){const work=assistantWorkspace();try{const c=freshAssistantTarget(work.selection);const text=c.text.slice(work.selection.start,work.selection.end);if([...text].length>10000)throw new Error('Selection exceeds 10,000 characters. Choose a shorter excerpt.');work.text=text;saveAssistantDraft(work);render();}catch(error){assistantNotice(error.message,true);}}
-  else if(button.id==='w-ai-use-chapter'){const work=assistantWorkspace();work.text=selected().text.slice(0,10000);saveAssistantDraft(work);render();assistantNotice('Chapter excerpt included. Review the text preview before Generate.');}
-  else if(button.id==='w-ai-clear-text'){const work=assistantWorkspace();work.text='';saveAssistantDraft(work);render();}
-  else if(button.id==='w-ai-insert-selection')applyAssistant('selection');
-  else if(button.id==='w-ai-append')applyAssistant('append');
- });
- root.addEventListener('input',e=>{
-  if(['w-ai-style','w-ai-audience','w-ai-instructions'].includes(e.target.id))saveAssistantProfile();
-  else if(['w-ai-brief','w-ai-text','w-ai-result'].includes(e.target.id)){const work=assistantWorkspace();if(e.target.id==='w-ai-result'&&work.result)work.result.text=e.target.value;else work[e.target.id==='w-ai-brief'?'brief':'text']=e.target.value;saveAssistantDraft(work);updateAssistantStatus(assistantClient.state);}
- });
- root.addEventListener('change',e=>{
-  if(e.target.id==='w-ai-keyfile-enable'){const enabled=e.target.checked;assistantClient.keyFileAction('settings',enabled).then(()=>assistantNotice(enabled?'Automatic key-file reading allowed on this computer.':'Automatic key-file reading is off.')).catch(error=>assistantNotice(error.message,true));}
-  else if(e.target.id==='w-ai-style-preset'){if(e.target.value)root.querySelector('#w-ai-style').value=e.target.value;saveAssistantProfile();}
-  else if(['w-ai-tone','w-ai-pov','w-ai-variant'].includes(e.target.id))saveAssistantProfile();
-  else if(['w-ai-goal','w-ai-model'].includes(e.target.id)){const work=assistantWorkspace();work[e.target.id==='w-ai-goal'?'goal':'model']=e.target.value;saveAssistantDraft(work);updateAssistantStatus(assistantClient.state);}
- });
  function helpView(){
-  return `<h2>Help and getting started</h2><p class="w-secondary">A quick guide to starting, saving, revising, and keeping your work.</p>
-   <section class="w-section" aria-label="Local mode"><h3>Local mode — no account needed</h3><p>Writing Studio opens directly on your computer. You do not need ChatGPT, a ChatGPT account, or a Writing Studio account. Writing, autosave, chapter guidance, character profiles, revision, the thesaurus, and manuscript exports work offline.</p><p>Extract the download and open the Mac or Windows launcher. With no launcher or Python, open Writing Studio.html in your browser and download project backups regularly. The launcher adds automatic folder backups. Keep the same browser and app address to return to your saved workspace.</p><p class="w-secondary">The optional DeepSeek assistant needs your own DeepSeek API key and internet access when you choose Generate. It does not require ChatGPT. Opening an external research link also needs internet access.</p></section>
-   <section class="w-section" aria-label="Optional first writing session"><h3>Optional first writing session</h3><ol><li>Create or choose a project, then open Studio.</li><li>Choose Journaling for dated entries, or another project type for chapters. Give the entry or chapter a working title and start drafting. You can change the title and order later.</li><li>Your work autosaves silently in this browser as you edit. Project → Save details shows its status. A save failure appears above the workspace with a recovery action.</li><li>Use the Chapter board to move chapters and explore flexible structure prompts.</li></ol><div class="w-row"><button type="button" data-view="write">Open Studio</button><button type="button" data-view="plan">Open Chapter board</button></div></section>
-   <section class="w-section" aria-label="Versions and revision"><h3>Versions and revision</h3><p>Open Revise to save a version before a major change, compare wording, or restore an earlier version. Restoring preserves the current draft as another version first.</p><button type="button" data-view="revise">Open Revise</button></section>
+  return `<h2>Help and getting started</h2><p class="w-secondary">A quick guide to starting, saving, and keeping your work.</p>
+   <section class="w-section" aria-label="Local mode"><h3>Local mode — no account needed</h3><p>Writing Studio opens directly on your computer. You do not need ChatGPT, a ChatGPT account, or a Writing Studio account. Writing, autosave, character profiles, the thesaurus, and manuscript exports work offline.</p><p>Extract the download and open the Mac or Windows launcher. With no launcher or Python, open Writing Studio.html in your browser and download project backups regularly. The launcher adds automatic folder backups. Keep the same browser and app address to return to your saved workspace.</p><p class="w-secondary">Opening an external research link also needs internet access.</p></section>
+   <section class="w-section" aria-label="Optional first writing session"><h3>Optional first writing session</h3><ol><li>Create or choose a project, then open Studio.</li><li>Choose Journaling for dated entries, or another project type for chapters. Give the entry or chapter a working title and start drafting. You can change the title later.</li><li>Your work autosaves silently in this browser as you edit. Project → Save details shows its status. A save failure appears above the workspace with a recovery action.</li></ol><div class="w-row"><button type="button" data-view="write">Open Studio</button></div></section>
    <section class="w-section" aria-label="Backups and recovery"><h3>Backups and recovery</h3><p>Autosave keeps the current workspace in this browser. Folder backups provide another local copy when you use the launcher. You can also download a portable project backup and import a backup as separate project copies.</p><p class="w-secondary">A manuscript export contains chapter text. A full project backup also contains notes, research, character profiles, Trash, and saved versions.</p><button type="button" data-view="backups">Open Folder backups</button><button type="button" data-view="export">Open Export</button></section>
    <section class="w-section" aria-label="Manuscript exports"><h3>Manuscript exports</h3><p>Choose an output format in Export, review the chapter list, then choose Download manuscript. Use Print / save as PDF when you want the browser's print controls.</p><button type="button" data-view="export">Choose an export format</button></section>
-   <section class="w-section" aria-label="Keyboard shortcuts"><h3>Keyboard shortcuts</h3><ul><li>Ctrl/Cmd+B: bold selected draft text</li><li>Ctrl/Cmd+I: italic selected draft text</li><li>Ctrl/Cmd+Z: undo a draft edit; Ctrl/Cmd+Shift+Z: redo</li><li>Ctrl/Cmd+S: save now</li><li>Ctrl/Cmd+Shift+F: open Find and replace</li><li>Ctrl/Cmd+Shift+R: open Read manuscript</li></ul><p class="w-secondary">Ctrl means Control on Windows and Linux; Cmd means Command on Mac.</p></section>
-   <section class="w-section" aria-label="Optional writing assistant"><h3>Optional writing assistant</h3><p>The assistant needs the Mac or Windows launcher. In Assistant settings, attach a DeepSeek key for the current launcher session, or create a local key file and enable permission for the launcher to read it. The key file is plain text; its path and instructions appear in the settings.</p><p>Review the text preview and your instruction before choosing Generate. Only Generate sends a request to DeepSeek. Generated suggestions stay separate until you choose to save a note, replace selected words, or append them to a chapter.</p><button type="button" data-view="assistant" data-open-assistant-settings="true">Open Assistant settings</button></section>
+   <section class="w-section" aria-label="Keyboard shortcuts"><h3>Keyboard shortcuts</h3><ul><li>Ctrl/Cmd+B: bold selected draft text</li><li>Ctrl/Cmd+I: italic selected draft text</li><li>Ctrl/Cmd+Z: undo a draft edit; Ctrl/Cmd+Shift+Z: redo</li><li>Ctrl/Cmd+S: save now</li><li>Ctrl/Cmd+Shift+R: open Read manuscript</li></ul><p class="w-secondary">Ctrl means Control on Windows and Linux; Cmd means Command on Mac.</p></section>
   `;
  }
  root.addEventListener('click',e=>{
   const button=e.target.closest('button');if(!button)return;
   if(button.id==='w-clear-search'){
    const search=root.querySelector('#w-search');if(search){search.value='';tree();search.focus();}
-  }else if(button.dataset.openAssistantSettings){queueMicrotask(()=>{if(state.view==='assistant')root.querySelector('#w-ai-open-settings')?.click();});}else if(button.dataset.view==='backups'){
+  }else if(button.dataset.view==='backups'){
    queueMicrotask(()=>{if(state.view==='backups')loadFolderFiles();});
   }
  });
- const navigationViews={write:'Studio',plan:'Chapter board',research:'Research',revise:'Revise',export:'Export',characters:'Characters',reading:'Read manuscript',trash:'Trash',assistant:'Assistant',backups:'Folder backups',help:'Help'};
+ const navigationViews={write:'Studio',research:'Research',export:'Export',characters:'Characters',reading:'Read manuscript',trash:'Trash',backups:'Folder backups',help:'Help'};
  const navigationContexts=new Map(),navigationWorkspacePositions=new Map();let navigationCurrent=null,navigationReady=false,navigationApplying=false,navigationIndex=0,navigationMax=0,navigationTrigger=null,mobileSettings=false;
  function navigationRoute(){return {project:project().id,chapter:selected().id,view:state.view};}
  function navigationKey(route){return route.project+':'+route.chapter+':'+route.view;}
@@ -749,10 +567,13 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
  function applyNavigationURL(){
   if(!location.hash.startsWith('#studio?'))return false;
   const query=new URLSearchParams(location.hash.slice(8)),p=data.projects.find(item=>item.id===query.get('project'));
-  const chapter=p?.chapters.find(item=>item.id===query.get('chapter')),view=query.get('view');
+  const chapter=p?.chapters.find(item=>item.id===query.get('chapter')),requestedView=query.get('view');
+  const retired=['plan','revise','assistant'].includes(requestedView),view=retired?'write':requestedView;
   if(!p||!chapter||!Object.hasOwn(navigationViews,view)){navigationNotice('This saved location is unavailable. Choose a project or chapter from the workspace.');return false;}
   if(p.id!==data.activeProject){syncData();data.activeProject=p.id;activateProject();}
-  state.selected=chapter.id;state.view=view;return true;
+  state.selected=chapter.id;state.view=view;
+  if(retired)history.replaceState(history.state,'',navigationURL(navigationRoute()));
+  return true;
  }
  function initializeNavigation(){
   navigationApplying=true;applyNavigationURL();navigationApplying=false;
@@ -787,7 +608,7 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
   navigationCurrent=route;navigationTrigger=null;
  }
  root.addEventListener('click',event=>{
-  const button=event.target.closest('button,a');if(!button)return;captureNavigation();navigationTrigger={id:button.id,draft:!!button.dataset.open||!!button.dataset.editReading||button.id==='w-jump-draft'||button.id==='w-skip-draft'};
+  const button=event.target.closest('button,a');if(!button)return;captureNavigation();navigationTrigger={id:button.id,draft:!!button.dataset.editReading||button.id==='w-jump-draft'||button.id==='w-skip-draft'};
   if(button.id==='w-skip-workspace'||button.id==='w-skip-draft'){event.preventDefault();event.stopImmediatePropagation();if(button.id==='w-skip-draft'&&state.view!=='write'){state.view='write';render();}else focusWorkspace(button.id==='w-skip-draft');}
   else if(button.id==='w-jump-draft'){event.stopImmediatePropagation();state.view='write';render();focusWorkspace(true);}
   else if(button.id==='w-mobile-settings'){event.stopImmediatePropagation();mobileSettings=!mobileSettings;root.classList.toggle('w-mobile-settings-hidden',!mobileSettings);button.setAttribute('aria-expanded',String(mobileSettings));}
@@ -822,7 +643,7 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
   const theme=appearancePanel.querySelector('#w-theme');theme.insertAdjacentHTML('afterbegin','<option value="mint">Mint charcoal</option>');
   appearancePanel.insertAdjacentHTML('beforeend','<label class="w-check"><input type="checkbox" id="w-typing-glow"><span>Typing glow</span></label><p class="w-secondary">A mint glow fades after each letter. Animation is off when your device requests reduced motion.</p><div id="w-font-home"></div>');
   studioFontLabel=root.querySelector('#w-font').closest('label');appearancePanel.querySelector('#w-font-home').append(studioFontLabel);
-  const groups=[['Write',['write','reading']],['Plan',['plan','characters','research']],['Review',['revise','assistant']],['Help',['help']]];
+  const groups=[['Write',['write','reading']],['Plan',['characters','research']],['Help',['help']]];
   workspaceMenu.lastElementChild.innerHTML=groups.map(([title,views])=>'<section class="w-menu-group"><h3>'+title+'</h3>'+views.map(view=>'<button type="button" data-view="'+view+'">'+navigationViews[view]+'</button>').join('')+'</section>').join('');
   const actions=document.createElement('div');actions.className='w-top-actions';
   actions.append(root.querySelector('#w-focus'));
@@ -844,7 +665,7 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
  }
  function prepareStudioRender(){
   if(!studioReady)return;
-  navigationViews.plan=isJournal()?'Entry board':'Chapter board';navigationViews.reading=isJournal()?'Read journal':'Read manuscript';
+  navigationViews.reading=isJournal()?'Read journal':'Read manuscript';
   studioGlow?.destroy();studioGlow=null;
   root.querySelector('#w-font-home').append(studioFontLabel);
  }
@@ -896,7 +717,7 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
   const status=main.querySelector('#w-formatting-status');status.textContent='';status.classList.add('w-visually-hidden');
   // Place all toolbar controls directly against the draft. Help/status follows it.
   draft.before(toolbar);draft.after(status);
-  for(const id of ['w-new-project','w-ai-generate','w-download'])root.querySelector('#'+id)?.classList.add('w-primary');
+  for(const id of ['w-new-project','w-download'])root.querySelector('#'+id)?.classList.add('w-primary');
   const typing=main.querySelector('.w-typing-tools');status.after(typing);
   main.querySelector('.w-sequence')?.remove();
   studioGlow=globalThis.WritingGlow?.attach(draft,state.typingGlow!==false);
@@ -924,17 +745,8 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
   if(returnToDraft&&draft&&saved?.id===selected().id){draft.focus({preventScroll:true});draft.setSelectionRange(saved.start,saved.end);window.scrollTo(saved.x,saved.y);}
   else if(returnToDraft)root.querySelector('#w-studio-chapters').focus({preventScroll:true});
  }
+ root.addEventListener('input',event=>{if(event.target.id==='w-draft')queueMicrotask(()=>studioGlow?.refresh());});
  function closeStudioMenus(except=null){root.querySelectorAll('details.w-menu[open]').forEach(menu=>{if(menu!==except)menu.open=false;});}
- function captureStudioSelection(){
-  if(state.view!=='write')return;
-  const draft=root.querySelector('#w-draft');if(!draft)return;
-  const c=selected(),work=assistantWorkspace();
-  work.selection=draft.selectionEnd>draft.selectionStart?{projectId:project().id,chapterId:c.id,start:draft.selectionStart,end:draft.selectionEnd,text:c.text,formatFingerprint:WritingRevision.formatFingerprint(c),contextFingerprint:assistantContextFingerprint()}:null;
-  const button=root.querySelector('#w-ai-use-selection');if(button)button.disabled=!work.selection;
- }
- root.addEventListener('select',event=>{if(event.target.id==='w-draft')captureStudioSelection();},true);
- root.addEventListener('input',event=>{if(event.target.id==='w-draft')queueMicrotask(()=>{studioGlow?.refresh();captureStudioSelection();});});
- root.addEventListener('click',event=>{if(event.target.closest('#w-ai-use-selection'))captureStudioSelection();},true);
  root.addEventListener('toggle',event=>{
   const menu=event.target;if(!menu.matches?.('details.w-menu'))return;
   menu.querySelector('summary').setAttribute('aria-expanded',String(menu.open));
@@ -982,19 +794,13 @@ document.getElementById('w-dialog').addEventListener('change',event=>{if(event.t
   else if(b.dataset.view){state.view=b.dataset.view;render();}
   else if(b.id==='w-focus'){state.focus=!state.focus;render();}
   else if(b.dataset.chapter){state.selected=b.dataset.chapter;render();}
-  else if(b.dataset.open){state.selected=b.dataset.open;state.view='write';render();}
-  else if(b.dataset.move){const i=chapters.findIndex(c=>c.id===b.dataset.move),j=i+Number(b.dataset.direction);if(j>=0&&j<chapters.length){[chapters[i],chapters[j]]=[chapters[j],chapters[i]];render();}}
  });
  root.addEventListener('input',e=>{if(e.target.id==='w-search')tree();else if(e.target.id==='w-draft'){typingInput=true;try{checkTypedWord(e);}finally{typingInput=false;}setDraftText(e.target.value);count();fitText();}});
  root.addEventListener('keydown',e=>{if(e.target.id==='w-draft'&&lastCorrection&&(e.metaKey||e.ctrlKey)&&!e.shiftKey&&e.key.toLowerCase()==='z'){e.preventDefault();undoTypingCorrection();}});
- root.addEventListener('dragstart',e=>{const card=e.target.closest('[data-card]');if(card&&e.dataTransfer){e.dataTransfer.setData('text/plain',card.dataset.card);e.dataTransfer.effectAllowed='move';}});
- root.addEventListener('dragover',e=>{if(e.target.closest('[data-card]'))e.preventDefault();});
- root.addEventListener('drop',e=>{const target=e.target.closest('[data-card]');if(!target||!e.dataTransfer)return;e.preventDefault();const id=e.dataTransfer.getData('text/plain'),i=chapters.findIndex(x=>x.id===id);if(i<0||target.dataset.card===id)return;const [moved]=chapters.splice(i,1);const j=chapters.findIndex(x=>x.id===target.dataset.card);chapters.splice(j,0,moved);render();});
- root.addEventListener('change',e=>{if(e.target.id==='w-typing'){state.typing=e.target.value;typingSuggestions=[];lastCorrection=null;root.querySelector('#w-draft').spellcheck=state.typing!=='off';updateTyping();}else if(e.target.id==='w-theme'){state.theme=e.target.value;appearance();}else if(e.target.id==='w-solid'){state.solidGlass=e.target.checked;appearance();}else if(e.target.id==='w-font'){state.font=e.target.value;appearance();fitText();}else if(e.target.id==='w-type'){state.type=e.target.value;render();}else if(e.target.id==='w-format'){state.format=e.target.value;exportDetail();}else if(e.target.dataset.task){selected().done=e.target.checked;}else if(e.target.dataset.review){const c=selected();c.review=c.review||{};c.review[e.target.dataset.review]=e.target.checked;}if(['w-typing','w-theme','w-solid','w-font','w-type','w-genre'].includes(e.target.id))rememberChoices();});
+ root.addEventListener('change',e=>{if(e.target.id==='w-typing'){state.typing=e.target.value;typingSuggestions=[];lastCorrection=null;root.querySelector('#w-draft').spellcheck=state.typing!=='off';updateTyping();}else if(e.target.id==='w-theme'){state.theme=e.target.value;appearance();}else if(e.target.id==='w-solid'){state.solidGlass=e.target.checked;appearance();}else if(e.target.id==='w-font'){state.font=e.target.value;appearance();fitText();}else if(e.target.id==='w-type'){state.type=e.target.value;render();}else if(e.target.id==='w-format'){state.format=e.target.value;exportDetail();}if(['w-typing','w-theme','w-solid','w-font','w-type','w-genre'].includes(e.target.id))rememberChoices();});
  initialize();
  initializePalette();
  initializeNavigation();
- initializeAssistant();
  initializeStudio();
  render();
  connectFolderBackups();

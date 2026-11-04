@@ -2,11 +2,6 @@
  function entryWord(plural=false){return isJournal()?(plural?'entries':'entry'):(plural?'chapters':'chapter');}
  function entryHeading(plural=false){const word=entryWord(plural);return word[0].toUpperCase()+word.slice(1);}
  function createdMarkup(c){return isJournal()?`<p class="w-entry-created">${WritingJournal.validCreatedAt(c.createdAt)?`<time datetime="${escape(c.createdAt)}">${escape(WritingJournal.createdLabel(c))}</time>`:'Creation date unavailable for this existing entry.'}</p>`:'';}
- function revisionChecklist(){
-  if(isJournal())return ['Does this entry say what I wanted to express?','Is there a feeling, detail, or question I want to keep?','Would a title help me find this entry again?'];
-  if(state.type==='fiction')return ['Show the scene through concrete details.','Check what changes for the characters.','Check the connection to the previous chapter.'];
-  return ['Show a concrete experience before explaining it.','Check the connection to the previous chapter.','Check source locators and quotation accuracy.'];
- }
  function enrichJournal(){
   const journal=isJournal(),word=entryHeading(),plural=entryHeading(true);
   root.querySelector('#w-add-chapter').setAttribute('aria-label','Add '+entryWord());
@@ -15,11 +10,7 @@
   root.querySelector('#w-search').labels[0].firstChild.textContent=journal?'Find in the journal':'Find in the manuscript';
   root.querySelector('#w-search').placeholder='Search '+entryWord()+' titles, notes, and draft text';
   root.querySelector('#w-search-help').textContent=`Search ${entryWord()} titles, notes, and draft text. Sources, characters, and outlines are not included.`;
-  for(const view of ['plan','reading'])root.querySelectorAll('.w-menu [data-view="'+view+'"]').forEach(el=>el.textContent=navigationViews[view]);
-  if(journal&&state.view==='plan'){
-   main.querySelector('h2').textContent='Your journal entries.';
-   main.querySelectorAll('.w-chapter-number').forEach(el=>el.textContent=el.textContent.replace(/Chapter/i,'Entry'));
-  }
+  for(const view of ['reading'])root.querySelectorAll('.w-menu [data-view="'+view+'"]').forEach(el=>el.textContent=navigationViews[view]);
   if(state.view==='write'){
    main.querySelector('.w-chapter-number').textContent=journal?'Journal entry':'Chapter '+String(chapters.indexOf(selected())+1).padStart(2,'0');
    const title=main.querySelector('#w-title');title.setAttribute('aria-label',word+' title');title.placeholder=journal?'Give this entry a title':'Chapter title';
